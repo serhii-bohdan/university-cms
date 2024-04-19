@@ -1,41 +1,82 @@
 package ua.foxminded.universitycms.service;
 
-import java.util.Optional;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ua.foxminded.universitycms.dto.CourseDto;
+import ua.foxminded.universitycms.model.Course;
+import java.util.List;
 
 /**
- * The {@code CourseService} interface provides methods for managing courses.
- * <p>
- * This interface includes methods for adding a course, getting a course by ID,
- * and deleting a course by ID.
+ * The {@code CourseService} interface defines a set of operations for managing {@link Course} entities
+ * and their corresponding {@link CourseDto} representations. It extends the generic {@link Service} interface,
+ * providing specialized services for managing courses within the system, including CRUD operations, pagination,
+ * searching, fetching student courses, and retrieving author information.
  *
  * @author Serhii Bohdan
  */
-public interface CourseService {
+public interface CourseService extends Service<Course, CourseDto> {
 
     /**
-     * Adds a new course.
+     * Retrieves a page of course data containing all courses. This method retrieves a paginated list of all
+     * courses from the underlying data store. It utilizes the provided `Pageable` object to specify the
+     * page number, size.
      *
-     * @param courseDto the course DTO to add
-     * @return true if the course was added successfully, false otherwise
+     * @param pageable the Pageable object containing pagination information (size, page number)
+     * @return a Page object containing a list of CourseDto objects representing the requested page of courses
      */
-    boolean addCourse(CourseDto courseDto);
+    Page<CourseDto> getAllCoursesInPage(@NotNull Pageable pageable);
 
     /**
-     * Gets a course by ID.
+     * Retrieves a page of course data filtered by name. This method retrieves a paginated list of courses
+     * whose names contain (case-insensitive) the provided keyword. It utilizes the `Pageable` object to
+     * specify the page number, size.
      *
-     * @param courseId the ID of the course to get
-     * @return an Optional containing the course DTO if found, an empty Optional
-     *         otherwise
+     * @param name     the keyword to filter courses by name (can be blank)
+     * @param pageable the Pageable object containing pagination information (size, page number)
+     * @return a Page object containing a list of CourseDto objects representing the requested page of filtered courses
      */
-    Optional<CourseDto> getCourseById(Long courseId);
+    Page<CourseDto> getCourseByNameInPage(@NotNull String name, @NotNull Pageable pageable);
 
     /**
-     * Deletes a course by ID.
+     * Retrieves a list of all course names in the system.
      *
-     * @param courseId the ID of the course to delete
-     * @return true if the course was deleted successfully, false otherwise
+     * @return a list of course names, providing a concise overview of available courses
      */
-    boolean deleteCourseById(Long courseId);
+    List<String> getAllNamesOfCourses();
+
+    /**
+     * Retrieves a list of courses enrolled by a student identified by the given student ID.
+     *
+     * @param studentId the ID of the student to retrieve courses for
+     * @return a list of {@link CourseDto} objects representing the student's enrolled courses
+     */
+    List<CourseDto> getStudentCourses(long studentId);
+
+    /**
+     * Retrieves a list of courses enrolled by a student identified by the given student ID,
+     * filtered by a specific course name.
+     *
+     * @param studentId  the ID of the student to retrieve courses for
+     * @param courseName the name of the course to filter by
+     * @return a list of {@link CourseDto} objects representing the student's enrolled courses matching the provided course name
+     */
+    List<CourseDto> getStudentCourseByCourseName(long studentId, @NotNull String courseName);
+
+    /**
+     * Retrieves a list of names of courses enrolled by a student identified by the given student ID.
+     *
+     * @param studentId the ID of the student to retrieve course names for
+     * @return a list of course names representing the student's enrolled courses
+     */
+    List<String> getStudentCoursesNames(long studentId);
+
+    /**
+     * Retrieves the full name (first name and last name combined) of the course author identified by the given teacher ID.
+     *
+     * @param teacherId the ID of the teacher (course author)
+     * @return the full name of the course author as a String
+     */
+    String getAuthorFullNameByTeacherId(long teacherId);
 
 }

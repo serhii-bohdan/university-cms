@@ -1,0 +1,39 @@
+stages:
+  - test
+  - build
+
+unit-test:
+  stage: test
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - apk add openjdk17-jdk
+  script:
+    - ./mvnw test
+
+maven-build:
+  stage: build
+  tags:
+    - docker
+  image: openjdk:17-jdk-slim
+  script:
+    - ./mvnw package -DskipTests
+  artifacts:
+    paths:
+      - target/*.jar
+
+docker-build:
+  stage: build
+  tags:
+    - docker
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [ "" ]
+  script:
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:latest"

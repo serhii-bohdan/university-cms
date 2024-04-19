@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>Courses</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
+  <h2 class="title-center">My courses</h2>
+  <div class="my-3">
+    <form th:action="@{/ui/v1/courses/my}" id="searchForm">
+      <div class="row d-flex">
+        <div class="col-md-5 mt-2">
+          <div class="search">
+            <i class="fa fa-search"></i>
+            <input id="keyword" type="search" name="keyword" th:value="${#strings.trim(keyword)}" required class="form-control" placeholder="Enter course name">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </div>
+        </div>
+        <div class="col-md-3 mt-2 unsent-width">
+          <button id="btnClear" class="btn btn-secondary">Clear</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div th:if="${userCourses.size()} > 0">
+    <table class="table table-striped table-hover table-responsive-xl">
+      <thead class="table-light">
+      <tr>
+        <th scope="col">№</th>
+        <th scope="col">Course name</th>
+        <th scope="col">Number of topics</th>
+        <th scope="col">Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="course, interStat : ${userCourses}">
+        <th scope="row" th:text="${interStat.count}"></th>
+        <td th:text="*{course.courseName}"></td>
+        <td th:text="*{course.topics.size()}"></td>
+        <td>
+          <a class="fa fa-eye icon-dark no-decoration" aria-hidden="true" th:href="@{/ui/v1/courses/my/{courseId}(courseId=${course.id})}" title="View this course"></a>
+          &nbsp;
+          <a href="#" title="Edit this course" class="fa-regular fa-pen-to-square icon-dark" style="text-decoration: none"></a>
+          &nbsp;
+          <a href="#" title="Delete this course" class="fa-regular fa-trash-can icon-dark btn-delete"></a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="message" th:unless="${userCourses.size()} > 0">
+    <span th:if="${hasError}" th:text="#{error}"></span>
+    <span th:unless="${hasError}" th:text="#{courses.no.found}"></span>
+  </div>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+<script th:src="@{/webjars/jquery-ui/1.13.2/jquery-ui.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/script.js}"></script>
+<script th:inline="javascript">
+  $(document).ready(function () {
+    function clearAndRedirect(url) {
+      $("#btnClear").on("click", function (e) {
+        e.preventDefault();
+        $("#keyword").text("");
+        window.location = url;
+      });
+    }
+
+    clearAndRedirect("/ui/v1/courses/my");
+
+    const courseNames = /*[[${userCoursesNames}]]*/ [];
+
+    $("#keyword").autocomplete({
+      source: courseNames
+    });
+  });
+</script>
+</body>
+</html>

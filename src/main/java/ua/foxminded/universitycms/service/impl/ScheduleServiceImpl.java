@@ -1,81 +1,60 @@
 package ua.foxminded.universitycms.service.impl;
 
-import java.util.Objects;
-import java.util.Optional;
-import org.modelmapper.ModelMapper;
+import java.util.*;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
+import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.ScheduleDto;
+import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.Schedule;
-import ua.foxminded.universitycms.repository.ScheduleRepository;
+import ua.foxminded.universitycms.model.Student;
+import ua.foxminded.universitycms.repository.StudentRepository;
 import ua.foxminded.universitycms.service.ScheduleService;
 
 /**
- * The {@code ScheduleServiceImpl} class implements the {@link ScheduleService}
- * interface.
- * <p>
- * This class provides the functionality for managing schedules.
+ * The {@code ScheduleServiceImpl} class implements the {@link ScheduleService} interface, providing concrete
+ * implementations for managing schedule entities. It extends the {@link AbstractService} class, inheriting common
+ * service functionalities for basic CRUD operations and validation, and adds functionality specific to schedules.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Mapper
+ * @see StudentRepository
  */
 @Service
+@Validated
 @Transactional
-public class ScheduleServiceImpl implements ScheduleService {
-
-    private final ScheduleRepository scheduleRepository;
-    private final ModelMapper modelMapper;
+public class ScheduleServiceImpl extends AbstractService<Schedule, ScheduleDto> implements ScheduleService {
 
     /**
-     * Constructs a new {@code ScheduleServiceImpl} with the specified schedule
-     * repository and model mapper.
+     * The repository for managing {@link Student} entities.
+     */
+    private final StudentRepository studentRepository;
+
+    /**
+     * Constructs a new {@code ScheduleServiceImpl} instance with the given dependencies.
      *
-     * @param scheduleRepository the schedule repository
-     * @param modelMapper        the model mapper
+     * @param repository        the repository for managing schedule entities
+     * @param studentRepository the repository for managing student entities
+     * @param mapper            the mapper for converting between schedule entities and DTOs
      */
-    public ScheduleServiceImpl(ScheduleRepository scheduleRepository, ModelMapper modelMapper) {
-        this.scheduleRepository = scheduleRepository;
-        this.modelMapper = modelMapper;
+    public ScheduleServiceImpl(JpaRepository<Schedule, Long> repository, StudentRepository studentRepository,
+                               Mapper<Schedule, ScheduleDto> mapper) {
+        super(repository, mapper);
+        this.studentRepository = studentRepository;
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves the schedule for a given student.
+     *
+     * @param studentId the ID of the student whose schedule to retrieve
+     * @return an {@link Optional} containing a {@link ScheduleDto} representing the student's schedule,
+     * or an empty {@link Optional} if no schedule is found for the student
      */
     @Override
-    public boolean addSchedule(ScheduleDto scheduleDto) {
-        boolean isAdded = false;
-
-        if (Objects.nonNull(scheduleDto)) {
-            scheduleRepository.save(mapToEntity(scheduleDto));
-            isAdded = true;
-        }
-
-        return isAdded;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Optional<ScheduleDto> getScheduleById(Long scheduleId) {
-        ScheduleDto findedSchedule = null;
-
-        if (Objects.nonNull(scheduleId)) {
-            Optional<Schedule> optional = scheduleRepository.findById(scheduleId);
-
-            if (optional.isPresent()) {
-                findedSchedule = mapToDto(optional.get());
-            }
-        }
-
-        return Optional.ofNullable(findedSchedule);
-    }
-
-    private ScheduleDto mapToDto(Schedule entity) {
-        return modelMapper.map(entity, ScheduleDto.class);
-    }
-
-    private Schedule mapToEntity(ScheduleDto dto) {
-        return modelMapper.map(dto, Schedule.class);
+    public Optional<ScheduleDto> getScheduleForStudent(long studentId) {
+        return studentRepository.findById(studentId).map(student -> mapper.toDto(student.getSchedule()));
     }
 
 }

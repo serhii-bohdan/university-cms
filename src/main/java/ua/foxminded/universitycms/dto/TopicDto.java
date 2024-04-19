@@ -1,85 +1,68 @@
 package ua.foxminded.universitycms.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
 /**
- * The {@code TopicDto} class is a data transfer object (DTO) for topic
- * entities.
- * <p>
- * This class includes fields for topic ID, topic name, topic description, and
- * course ID. It also includes getter and setter methods for these fields.
- * <p>
- * The {@code toString()} method is overridden to return a string representation
- * of the topic DTO.
+ * The {@code TopicDto} class is a concrete DTO (Data Transfer Object) that extends the {@link AbstractDto} class.
+ * It represents a topic entity within a course and provides information about the learning subject.
  *
  * @author Serhii Bohdan
  */
-public class TopicDto {
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(callSuper = true)
+@SuperBuilder
+public class TopicDto extends AbstractDto {
 
-    private Long topicId;
+    /**
+     * The name of the topic.
+     */
+    @NotBlank(message = "Topic name is mandatory")
+    @Size(max = 255)
     private String topicName;
+
+    /**
+     * A description of the topic content.
+     */
+    @NotBlank(message = "Description is mandatory")
     private String topicDescription;
+
+    /**
+     * The order (position) of the topic within the course curriculum.
+     */
+    @NotNull(message = "Topic order is mandatory")
+    @Min(1)
+    private Integer topicOrder;
+
+    /**
+     * The ID of the course that this topic belongs to.
+     */
+    @NotNull
+    @Min(1)
     private Long courseId;
 
     /**
-     * Constructs a new {@code TopicDto} with the specified topic name, topic
-     * description, and course ID.
+     * Constructs a new {@code TopicDto} instance with the specified topic details.
      *
      * @param topicName        the name of the topic
      * @param topicDescription the description of the topic
-     * @param courseId         the ID of the course that the topic belongs to
+     * @param topicOrder       the order (position) of the topic within the course curriculum
+     * @param courseId         the ID of the course that this topic belongs to
      */
-    public TopicDto(String topicName, String topicDescription, Long courseId) {
+    public TopicDto(String topicName, String topicDescription, Integer topicOrder, Long courseId) {
         this.topicName = topicName;
         this.topicDescription = topicDescription;
+        this.topicOrder = topicOrder;
         this.courseId = courseId;
-    }
-
-    /**
-     * Constructs a new {@code TopicDto} with no initial values.
-     */
-    public TopicDto() {
-    }
-
-    public Long getTopicId() {
-        return topicId;
-    }
-
-    public void setTopicId(Long topicId) {
-        this.topicId = topicId;
-    }
-
-    public String getTopicName() {
-        return topicName;
-    }
-
-    public void setTopicName(String topicName) {
-        this.topicName = topicName;
-    }
-
-    public String getTopicDescription() {
-        return topicDescription;
-    }
-
-    public void setTopicDescription(String topicDescription) {
-        this.topicDescription = topicDescription;
-    }
-
-    public Long getCourseId() {
-        return courseId;
-    }
-
-    public void setCourseId(Long courseId) {
-        this.courseId = courseId;
-    }
-
-    /**
-     * Returns a string representation of the topic DTO.
-     *
-     * @return a string representation of the topic DTO
-     */
-    @Override
-    public String toString() {
-        return "TopicDto [topicId=" + topicId + ", topicName=" + topicName + ", topicDescription=" + topicDescription
-                + ", courseId=" + courseId + "]";
     }
 
 }

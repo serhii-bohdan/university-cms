@@ -3,6 +3,7 @@ package ua.foxminded.universitycms.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ua.foxminded.universitycms.model.Topic;
+import java.util.List;
 
 /**
  * The {@code TopicRepository} interface is a Spring Data JPA repository for
@@ -18,5 +19,14 @@ import ua.foxminded.universitycms.model.Topic;
  */
 @Repository
 public interface TopicRepository extends JpaRepository<Topic, Long> {
+
+    /**
+     * Finds topics that belong to the course with the given ID.
+     *
+     * @param courseId the ID of the course to search for topics within
+     * @return a list of topics associated with the specified course,
+     *         or an empty list if none found
+     */
+    List<Topic> findByCourseId(Long courseId);
 
 }

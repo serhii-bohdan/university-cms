@@ -1,72 +1,55 @@
 package ua.foxminded.universitycms.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
- * The {@code GroupDto} class is a data transfer object (DTO) for group
- * entities.
- * <p>
- * This class includes fields for group ID, group name, and a set of students.
- * It also includes getter and setter methods for these fields.
- * <p>
- * The {@code toString()} method is overridden to return a string representation
- * of the group DTO.
+ * The {@code GroupDto} class is a concrete DTO (Data Transfer Object) that extends the
+ * {@link AbstractDto} class. It represents a group entity in the system and provides
+ * information about student groups.
  *
  * @author Serhii Bohdan
  */
-public class GroupDto {
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(callSuper = true, exclude = "students")
+@SuperBuilder
+public class GroupDto extends AbstractDto {
 
-    private Long groupId;
+    /**
+     * The name of the group.
+     */
+    @NotNull(message = "Group name is mandatory")
+    @Pattern(regexp = "^[A-Z]{2}-[0-9]{2}$")
     private String groupName;
+
+    /**
+     * The date and time the group was created.
+     */
+    private LocalDateTime createdAt;
+
+    /**
+     * The date and time the group information was last updated.
+     */
+    private LocalDateTime updatedAt;
+
+    /**
+     * A collection of {@link StudentDto} objects representing the students enrolled in the group.
+     */
     private Set<StudentDto> students;
 
     /**
-     * Constructs a new {@code GroupDto} with the specified group name.
+     * Constructs a new {@code GroupDto} instance with the specified group name.
      *
      * @param groupName the name of the group
      */
     public GroupDto(String groupName) {
         this.groupName = groupName;
-    }
-
-    /**
-     * Constructs a new {@code GroupDto} with no initial values.
-     */
-    public GroupDto() {
-    }
-
-    public Long getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(Long groupId) {
-        this.groupId = groupId;
-    }
-
-    public String getGroupName() {
-        return groupName;
-    }
-
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
-    }
-
-    public Set<StudentDto> getStudents() {
-        return students;
-    }
-
-    public void setStudents(Set<StudentDto> students) {
-        this.students = students;
-    }
-
-    /**
-     * Returns a string representation of the group DTO.
-     *
-     * @return a string representation of the group DTO
-     */
-    @Override
-    public String toString() {
-        return "GroupDto [groupId=" + groupId + ", groupName=" + groupName + ", students=" + students + "]";
     }
 
 }

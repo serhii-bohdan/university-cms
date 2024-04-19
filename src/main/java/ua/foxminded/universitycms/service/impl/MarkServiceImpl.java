@@ -1,137 +1,105 @@
 package ua.foxminded.universitycms.service.impl;
 
-import java.util.Objects;
-import java.util.Optional;
-import org.modelmapper.ModelMapper;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
+import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.MarkDto;
+import ua.foxminded.universitycms.exception.ServiceException;
+import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.Mark;
-import ua.foxminded.universitycms.model.Student;
 import ua.foxminded.universitycms.model.Topic;
 import ua.foxminded.universitycms.repository.MarkRepository;
-import ua.foxminded.universitycms.repository.StudentRepository;
 import ua.foxminded.universitycms.repository.TopicRepository;
 import ua.foxminded.universitycms.service.MarkService;
 
 /**
- * The {@code MarkServiceImpl} class implements the {@link MarkService}
- * interface.
- * <p>
- * This class provides the functionality for managing marks.
+ * The {@code MarkServiceImpl} class implements the {@link MarkService} interface, providing concrete
+ * implementations for managing mark entities. It extends the {@link AbstractService} class, inheriting common
+ * service functionalities for basic CRUD operations and validation, and adds functionality specific to marks.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Mapper
+ * @see MarkRepository
+ * @see TopicRepository
  */
 @Service
+@Validated
 @Transactional
-public class MarkServiceImpl implements MarkService {
+public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements MarkService {
 
+    /**
+     * The repository for managing {@link Mark} entities.
+     */
     private final MarkRepository markRepository;
-    private final StudentRepository studentRepository;
+
+    /**
+     * The repository for managing {@link Topic} entities.
+     */
     private final TopicRepository topicRepository;
-    private final ModelMapper modelMapper;
 
     /**
-     * Constructs a new {@code MarkServiceImpl} with the specified mark repository,
-     * student repository, topic repository, and model mapper.
+     * Constructs a new {@code MarkServiceImpl} instance with the given dependencies.
      *
-     * @param markRepository    the mark repository
-     * @param studentRepository the student repository
-     * @param topicRepository   the topic repository
-     * @param modelMapper       the model mapper
+     * @param repository      the repository for managing mark entities
+     * @param mapper          the mapper for converting between mark entities and DTOs
+     * @param topicRepository the repository for managing topic entities
      */
-    public MarkServiceImpl(MarkRepository markRepository, StudentRepository studentRepository,
-            TopicRepository topicRepository, ModelMapper modelMapper) {
-        this.markRepository = markRepository;
-        this.studentRepository = studentRepository;
+    public MarkServiceImpl(JpaRepository<Mark, Long> repository, Mapper<Mark, MarkDto> mapper, TopicRepository topicRepository) {
+        super(repository, mapper);
+        this.markRepository = (MarkRepository) repository;
         this.topicRepository = topicRepository;
-        this.modelMapper = modelMapper;
     }
 
     /**
-     * Sets up the model mapper after the bean has been initialized.
-     */
-    @PostConstruct
-    protected void setupMapper() {
-        modelMapper.createTypeMap(Mark.class, MarkDto.class).addMappings(mapper -> {
-            mapper.map(src -> src.getStudent().getUserId(), MarkDto::setStudentId);
-            mapper.map(src -> src.getTopic().getTopicId(), MarkDto::setTopicId);
-        });
-    }
-
-    /**
-     * {@inheritDoc}
+     * Retrieves a list of marks for a student in a given course.
+     *
+     * @param studentId the ID of the student
+     * @param courseId  the ID of the course
+     * @return a list of {@link MarkDto} objects representing the student's marks in the course
+     * @throws ServiceException if an error occurs during retrieval
      */
     @Override
-    public boolean addMark(MarkDto markDto) {
-        boolean isAdded = false;
-
-        if (Objects.nonNull(markDto) && Objects.nonNull(markDto.getMarkValue())
-                && Objects.nonNull(markDto.getStudentId()) && Objects.nonNull(markDto.getTopicId())) {
-            markRepository.save(mapToEntity(markDto));
-            isAdded = true;
-        }
-
-        return isAdded;
+    public List<MarkDto> getStudentCourseMarks(long studentId, long courseId) {
+        return getMarkDtoList(markRepository.findMarksByStudentIdAndCourseId(studentId, courseId));
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves a list of marks for a student in a given course and topic.
+     *
+     * @param studentId the ID of the student
+     * @param courseId  the ID of the course
+     * @param topicName the name of the topic
+     * @return a list of {@link MarkDto} objects representing the student's marks for the specified topic
      */
     @Override
-    public Optional<MarkDto> getMarkById(Long markId) {
-        MarkDto findedMark = null;
-
-        if (Objects.nonNull(markId)) {
-            Optional<Mark> optional = markRepository.findById(markId);
-
-            if (optional.isPresent()) {
-                findedMark = mapToDto(optional.get());
-            }
-        }
-
-        return Optional.ofNullable(findedMark);
+    public List<MarkDto> getStudentCourseMarksByTopicName(long studentId, long courseId, String topicName) {
+        return markRepository.findMarksByStudentIdAndCourseId(studentId, courseId).stream()
+            .filter(m -> m.getTopic().getTopicName().equals(topicName.strip()))
+            .map(mapper::toDto)
+            .toList();
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves the names of topics within a given course.
+     *
+     * @param courseId the ID of the course
+     * @return a list of topic names as strings
+     * @throws ServiceException if an error occurs during retrieval
      */
     @Override
-    public boolean deleteMarkById(Long markId) {
-        boolean isDeleted = false;
-
-        if (Objects.nonNull(markId)) {
-            Optional<Mark> optional = markRepository.findById(markId);
-
-            if (optional.isPresent()) {
-                markRepository.delete(optional.get());
-                isDeleted = true;
-            }
-        }
-
-        return isDeleted;
+    public List<String> getNamesOfTopicsInCourse(long courseId) {
+        return topicRepository.findByCourseId(courseId).stream()
+            .map(Topic::getTopicName)
+            .toList();
     }
 
-    private MarkDto mapToDto(Mark entity) {
-        return modelMapper.map(entity, MarkDto.class);
-    }
-
-    private Mark mapToEntity(MarkDto dto) {
-        Student student = studentRepository.findById(dto.getStudentId()).get();
-        Topic topic = topicRepository.findById(dto.getTopicId()).get();
-        Mark mark = null;
-
-        if (Objects.nonNull(dto.getMarkId()) && dto.getMarkId() >= 1L) {
-            mark = markRepository.findById(dto.getMarkId()).get();
-            mark.setMarkValue(dto.getMarkValue());
-        } else {
-            mark = modelMapper.map(dto, Mark.class);
-        }
-
-        mark.setStudent(student);
-        mark.setTopic(topic);
-        return mark;
+    private List<MarkDto> getMarkDtoList(List<Mark> marks) {
+        return marks.stream()
+            .map(mapper::toDto)
+            .toList();
     }
 
 }

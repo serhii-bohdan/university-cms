@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<nav aria-label="Pagination" th:fragment="pagination(url, totalPages, page, size, keyword)" th:if="${totalPages > 1}">
+  <ul class="pagination justify-content-center">
+    <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
+      <a class="page-link" th:href="@{'/ui/v1/' + ${url} + '?' + ${keyword!=null && keyword!=''? 'keyword=' + keyword + '&' : ''} + 'page=0&size=' + ${size}}" tabindex="-1" aria-disabled="true">First</a>
+    </li>
+    <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
+      <a class="page-link" th:href="@{'/ui/v1/' + ${url} + '?' + ${keyword!=null && keyword!=''? 'keyword=' + keyword + '&' : ''} + 'page=' + ${page - 1} + '&size=' + ${size}}">Previous</a>
+    </li>
+    <li class="page-item" th:each="i: ${#numbers.sequence((page + 1) > totalPages - 2 ? totalPages - (totalPages < 3 ? 1 : 2) : (page + 1), (page + 1) > totalPages - 2 ? totalPages : page + 1 + 2)}"
+        th:if="${i <= totalPages}" th:classappend="${page == (i - 1)} ? 'active'">
+      <a class="page-link" th:href="@{'/ui/v1/' + ${url} + '?' + ${keyword!=null && keyword!=''? 'keyword=' + keyword + '&' : ''} + 'page=' + ${i - 1} + '&size=' + ${size}}">[[${i}]]</a>
+    </li>
+    <li class="page-item" th:classappend="${(page + 1) >= totalPages} ? 'disabled'">
+      <a class="page-link" th:href="@{'/ui/v1/' + ${url} + '?' + ${keyword!=null && keyword!=''? 'keyword=' + keyword + '&' : ''} + 'page=' + ${page + 1} + '&size=' + ${size}}">Next</a>
+    </li>
+    <li class="page-item" th:classappend="${(page + 1) >= totalPages} ? 'disabled'">
+      <a class="page-link" th:href="@{'/ui/v1/' + ${url} + '?' + ${keyword!=null && keyword!=''? 'keyword=' + keyword + '&' : ''} + 'page=' + ${totalPages - 1} + '&size=' + ${size}}">Last</a>
+    </li>
+  </ul>
+</nav>
+</html>

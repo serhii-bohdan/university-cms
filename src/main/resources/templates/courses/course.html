@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>Courses</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" id="course" style="max-width: 900px; margin: 0 auto;">
+  <div th:if="${hasError}">
+    <span class="message" style="height: 520px" th:text="#{error}"></span>
+  </div>
+  <div th:unless="${hasError}">
+    <h2 class="title-center" th:text="${course.courseName}"></h2>
+    <div class="row d-flex">
+      <div class="col-md-3 mt-3 bold unsent-width">Author:</div>
+      <div class="col mt-3 unsent-width" th:text="${authorName}"></div>
+    </div>
+    <div class="row d-flex">
+      <div class="col-md-3 mt-3 bold unsent-width">Description:</div>
+      <div class="col mt-3 unsent-width" th:text="${course.courseDescription}"></div>
+    </div>
+    <hr class="my-1">
+    <div class="empty-space"></div>
+    <div class="row d-flex">
+      <div class="col-md-3 mt-3 unsent-width">
+        <a class="btn btn-success" href="#">Create topic</a>
+      </div>
+      <div class="col-md-3 mt-3 unsent-width">
+        <a class="btn btn-primary" th:href="@{/ui/v1/courses/my/{courseId}/marks(courseId=${course.id}, courseName=${course.courseName})}">View marks</a>
+      </div>
+    </div>
+    <div th:if="${course.topics.size()} > 0">
+      <h4 style="margin-top: unset; text-align: center !important;">Topics</h4>
+      <table class="table table-striped table-hover table-responsive-xl">
+        <thead class="table-light">
+        <tr>
+          <th scope="col">№</th>
+          <th scope="col">Topic name</th>
+          <th scope="col">Details</th>
+          <th scope="col">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="topic, interStat : ${course.topics}">
+          <th scope="row" th:text="${interStat.count}"></th>
+          <td th:text="*{topic.topicName}"></td>
+          <td th:text="*{topic.topicDescription}" style="text-align: left"></td>
+          <td>
+            <a href="#" title="Edit this topic" class="fa-regular fa-pen-to-square icon-dark"></a>
+            &nbsp;
+            <a href="#" title="Delete this topic" class="fa-regular fa-trash-can icon-dark btn-delete"></a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="message" th:unless="${course.topics.size()} > 0" style="height: 200px;">
+      <span th:text="#{topic.list.empty}"></span>
+    </div>
+  </div>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+<script th:src="@{/webjars/jquery-ui/1.13.2/jquery-ui.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/script.js}"></script>
+</body>
+</html>

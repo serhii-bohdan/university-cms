@@ -2,66 +2,34 @@ package ua.foxminded.universitycms.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.*;
 
 /**
- * The {@code Name} class is an embeddable class that represents a name.
+ * This class represents a person's name, which can be embedded in other entities.
  * <p>
- * This class is annotated with {@code @Embeddable}, indicating that it's
- * intended to be used as a part of other entities. This class includes fields
- * for the first name and last name.
+ * {@code @Embeddable} this annotation is used to indicate that this class can be embedded
+ * in other entities.
  *
  * @author Serhii Bohdan
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @Embeddable
 public class Name {
 
+    /**
+     * The first name of the person.
+     */
     @Column(name = "first_name")
     private String firstName;
 
+    /**
+     * The last name of the person.
+     */
     @Column(name = "last_name")
     private String lastName;
-
-    /**
-     * Constructs a new {@code Name} object with the given parameters.
-     *
-     * @param firstName the first name
-     * @param lastName  the last name
-     */
-    public Name(String firstName, String lastName) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
-
-    /**
-     * Constructs a new {@code Name} object with default values.
-     */
-    public Name() {
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    /**
-     * Returns a string representation of the name.
-     *
-     * @return a string representation of this name
-     */
-    @Override
-    public String toString() {
-        return "Name [firstName=" + firstName + ", lastName=" + lastName + "]";
-    }
 
 }

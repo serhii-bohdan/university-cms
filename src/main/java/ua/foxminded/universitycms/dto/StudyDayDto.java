@@ -1,99 +1,65 @@
 package ua.foxminded.universitycms.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Set;
-import ua.foxminded.universitycms.model.enums.WeekDay;
 
 /**
- * The {@code StudyDayDto} class is a data transfer object (DTO) for study day
- * entities.
- * <p>
- * This class includes fields for study day ID, date, week day, schedule ID, and
- * a set of lessons. It also includes getter and setter methods for these
- * fields.
- * <p>
- * The {@code toString()} method is overridden to return a string representation
- * of the study day DTO.
+ * The {@code StudyDayDto} class is a concrete DTO (Data Transfer Object) that extends the {@link AbstractDto} class.
+ * It represents a day within a schedule entity in the system, containing information about the date, week day,
+ * associated lessons, and the schedule it belongs to.
  *
  * @author Serhii Bohdan
  */
-public class StudyDayDto {
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(callSuper = true, exclude = "lessons")
+@SuperBuilder
+public class StudyDayDto extends AbstractDto {
 
-    private Long studyDayId;
+    /**
+     * The date of the study day.
+     */
+    @NotNull(message = "Date is mandatory")
     private LocalDate date;
-    private WeekDay weekDay;
+
+    /**
+     * The day of the week for the study day (e.g., MONDAY, TUESDAY, etc.).
+     */
+    @NotNull(message = "Day of week is mandatory")
+    private DayOfWeek weekDay;
+
+    /**
+     * The ID of the schedule that this study day belongs to.
+     */
+    @NotNull
+    @Min(1)
     private Long scheduleId;
+
+    /**
+     * A collection of {@link LessonDto} objects representing the lessons on this particular study day.
+     */
     private Set<LessonDto> lessons;
 
     /**
-     * Constructs a new {@code StudyDayDto} with the specified date, week day, and
-     * schedule ID.
+     * Constructs a new {@code StudyDayDto} instance with the specified details about the study day.
      *
      * @param date       the date of the study day
-     * @param weekDay    the week day of the study day
-     * @param scheduleId the ID of the schedule that the study day belongs to
+     * @param weekDay    the day of the week for the study day
+     * @param scheduleId the ID of the schedule that this study day belongs to
      */
-    public StudyDayDto(LocalDate date, WeekDay weekDay, Long scheduleId) {
+    public StudyDayDto(LocalDate date, DayOfWeek weekDay, Long scheduleId) {
         this.date = date;
         this.weekDay = weekDay;
         this.scheduleId = scheduleId;
-    }
-
-    /**
-     * Constructs a new {@code StudyDayDto} with no initial values.
-     */
-    public StudyDayDto() {
-    }
-
-    public Long getStudyDayId() {
-        return studyDayId;
-    }
-
-    public void setStudyDayId(Long studyDayId) {
-        this.studyDayId = studyDayId;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public WeekDay getWeekDay() {
-        return weekDay;
-    }
-
-    public void setWeekDay(WeekDay weekDay) {
-        this.weekDay = weekDay;
-    }
-
-    public Long getScheduleId() {
-        return scheduleId;
-    }
-
-    public void setScheduleId(Long scheduleId) {
-        this.scheduleId = scheduleId;
-    }
-
-    public Set<LessonDto> getLessons() {
-        return lessons;
-    }
-
-    public void setLessons(Set<LessonDto> lessons) {
-        this.lessons = lessons;
-    }
-
-    /**
-     * Returns a string representation of the study day DTO.
-     *
-     * @return a string representation of the study day DTO
-     */
-    @Override
-    public String toString() {
-        return "StudyDayDto [studyDayId=" + studyDayId + ", date=" + date + ", weekDay=" + weekDay + ", scheduleId="
-                + scheduleId + ", lessons=" + lessons + "]";
     }
 
 }

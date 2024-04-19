@@ -1,41 +1,45 @@
 package ua.foxminded.universitycms.service;
 
-import java.util.Optional;
+import jakarta.validation.constraints.NotNull;
 import ua.foxminded.universitycms.dto.MarkDto;
+import ua.foxminded.universitycms.model.Mark;
+import java.util.List;
 
 /**
- * The {@code MarkService} interface provides methods for managing marks.
- * <p>
- * This interface includes methods for adding a mark, getting a mark by ID, and
- * deleting a mark by ID.
+ * The {@code MarkService} interface defines a set of operations for managing {@link Mark} entities and their
+ * corresponding {@link MarkDto} representations. It extends the generic {@link Service} interface, providing
+ * specialized services for working with marks within a course, including retrieval based on student, course,
+ * and topic criteria.
  *
  * @author Serhii Bohdan
  */
-public interface MarkService {
+public interface MarkService extends Service<Mark, MarkDto> {
 
     /**
-     * Adds a new mark.
+     * Retrieves a list of student's marks for a given course.
      *
-     * @param markDto the mark DTO to add
-     * @return true if the mark was added successfully, false otherwise
+     * @param studentId the ID of the student whose marks to retrieve
+     * @param courseId  the ID of the course for which to retrieve marks
+     * @return a list of {@link MarkDto} objects representing the student's marks in the course
      */
-    boolean addMark(MarkDto markDto);
+    List<MarkDto> getStudentCourseMarks(long studentId, long courseId);
 
     /**
-     * Gets a mark by ID.
+     * Retrieves a list of student's marks for a given course and topic.
      *
-     * @param markId the ID of the mark to get
-     * @return an Optional containing the mark DTO if found, an empty Optional
-     *         otherwise
+     * @param studentId   the ID of the student whose marks to retrieve
+     * @param courseId    the ID of the course for which to retrieve marks
+     * @param topicName   the name of the topic for which to retrieve marks
+     * @return a list of {@link MarkDto} objects representing the student's marks for the specified topic in the course
      */
-    Optional<MarkDto> getMarkById(Long markId);
+    List<MarkDto> getStudentCourseMarksByTopicName(long studentId, long courseId, @NotNull String topicName);
 
     /**
-     * Deletes a mark by ID.
+     * Retrieves the names of topics within a given course.
      *
-     * @param markId the ID of the mark to delete
-     * @return true if the mark was deleted successfully, false otherwise
+     * @param courseId the ID of the course for which to retrieve topic names
+     * @return a list of topic names as strings
      */
-    boolean deleteMarkById(Long markId);
+    List<String> getNamesOfTopicsInCourse(long courseId);
 
 }

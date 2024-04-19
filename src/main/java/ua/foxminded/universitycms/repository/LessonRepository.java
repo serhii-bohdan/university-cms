@@ -18,5 +18,4 @@ import ua.foxminded.universitycms.model.Lesson;
  */
 @Repository
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
-
 }

@@ -1,42 +1,28 @@
 package ua.foxminded.universitycms.service;
 
-import java.util.Optional;
+import jakarta.validation.constraints.NotNull;
 import ua.foxminded.universitycms.dto.StudyDayDto;
+import ua.foxminded.universitycms.model.StudyDay;
+import java.time.LocalDate;
+import java.util.Optional;
 
 /**
- * The {@code StudyDayService} interface provides methods for managing study
- * days.
- * <p>
- * This interface includes methods for adding a study day, getting a study day
- * by ID, and deleting a study day by ID.
+ * The {@code StudyDayService} interface defines a set of operations for managing {@link StudyDay} entities and their
+ * corresponding {@link StudyDayDto} representations. It extends the generic {@link Service} interface, providing
+ * specialized services for working with study days, including retrieving study days by schedule ID and date.
  *
  * @author Serhii Bohdan
  */
-public interface StudyDayService {
+public interface StudyDayService extends Service<StudyDay, StudyDayDto> {
 
     /**
-     * Adds a new study day.
+     * Retrieves a study day by the ID of the schedule it belongs to and the specific date.
      *
-     * @param studyDayDto the study day DTO to add
-     * @return true if the study day was added successfully, false otherwise
+     * @param scheduleId the ID of the schedule
+     * @param date       the date of the study day (LocalDate)
+     * @return an {@link Optional} containing a {@link StudyDayDto} if a matching study day exists,
+     * or {@link Optional#empty()} if no study day is found for the given parameters.
      */
-    boolean addStudyDay(StudyDayDto studyDayDto);
-
-    /**
-     * Gets a study day by ID.
-     *
-     * @param studyDayId the ID of the study day to get
-     * @return an Optional containing the study day DTO if found, an empty Optional
-     *         otherwise
-     */
-    Optional<StudyDayDto> getStudyDayById(Long studyDayId);
-
-    /**
-     * Deletes a study day by ID.
-     *
-     * @param studyDayId the ID of the study day to delete
-     * @return true if the study day was deleted successfully, false otherwise
-     */
-    boolean deleteStudyDayById(Long studyDayId);
+    Optional<StudyDayDto> getStudyDayByScheduleIdAndDate(long scheduleId, @NotNull LocalDate date);
 
 }
