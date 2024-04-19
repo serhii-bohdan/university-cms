@@ -1,19 +1,18 @@
 package ua.foxminded.universitycms.model;
 
-import java.time.ZonedDateTime;
-import java.util.Objects;
+import java.time.LocalTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
- * The {@code Lesson} class represents a lesson in the system.
+ * The {@code Lesson} class represents a scheduled lesson within a {@link StudyDay}
+ * and a {@link Course}. {@code Lesson} inherits from the {@link AbstractEntity} class.
  * <p>
  * This class is annotated with {@code @Entity}, indicating that it's a JPA
  * entity. This means that instances of this class can be persisted to the
@@ -24,25 +23,48 @@ import jakarta.persistence.Table;
  *
  * @author Serhii Bohdan
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(callSuper = true, exclude = {"course", "studyDay"})
+@SuperBuilder
 @Entity
 @Table(name = "lessons")
-public class Lesson {
+public class Lesson extends AbstractEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "lesson_id")
-    private Long lessonId;
-
+    /**
+     * The start time of the lesson.
+     */
+    @EqualsAndHashCode.Include
     @Column(name = "lesson_start_time")
-    private ZonedDateTime lessonStartTime;
+    private LocalTime lessonStartTime;
 
+    /**
+     * The end time of the lesson.
+     */
+    @EqualsAndHashCode.Include
     @Column(name = "lesson_end_time")
-    private ZonedDateTime lessonEndTime;
+    private LocalTime lessonEndTime;
 
+    /**
+     * The timezone in which the lesson times are specified.
+     */
+    @EqualsAndHashCode.Include
+    @Column(name = "timezone")
+    private String timezone;
+
+    /**
+     * The {@link Course} that this lesson belongs to.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
+    /**
+     * The {@link StudyDay} that this lesson is part of.
+     */
+    @EqualsAndHashCode.Include
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "study_day_id", nullable = false)
     private StudyDay studyDay;
@@ -51,103 +73,17 @@ public class Lesson {
      * Constructs a new {@code Lesson} object with the given parameters.
      *
      * @param lessonStartTime the start time of the lesson
-     * @param lessonEndTime   the end time of the lesson
-     * @param course          the course that the lesson belongs to
-     * @param studyDay        the study day that the lesson is part of
+     * @param lessonEndTime the end time of the lesson
+     * @param timezone the timezone in which the lesson times are specified
+     * @param course the course that the lesson belongs to
+     * @param studyDay the study day that the lesson is part of
      */
-    public Lesson(ZonedDateTime lessonStartTime, ZonedDateTime lessonEndTime, Course course, StudyDay studyDay) {
+    public Lesson(LocalTime lessonStartTime, LocalTime lessonEndTime, String timezone, Course course, StudyDay studyDay) {
         this.lessonStartTime = lessonStartTime;
         this.lessonEndTime = lessonEndTime;
+        this.timezone = timezone;
         this.course = course;
         this.studyDay = studyDay;
-    }
-
-    /**
-     * Constructs a new {@code Lesson} object with default values.
-     */
-    public Lesson() {
-    }
-
-    public Long getLessonId() {
-        return lessonId;
-    }
-
-    public void setLessonId(Long lessonId) {
-        this.lessonId = lessonId;
-    }
-
-    public ZonedDateTime getLessonStartTime() {
-        return lessonStartTime;
-    }
-
-    public void setLessonStartTime(ZonedDateTime lessonStartTime) {
-        this.lessonStartTime = lessonStartTime;
-    }
-
-    public ZonedDateTime getLessonEndTime() {
-        return lessonEndTime;
-    }
-
-    public void setLessonEndTime(ZonedDateTime lessonEndTime) {
-        this.lessonEndTime = lessonEndTime;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    public StudyDay getStudyDay() {
-        return studyDay;
-    }
-
-    public void setStudyDay(StudyDay studyDay) {
-        this.studyDay = studyDay;
-    }
-
-    /**
-     * Returns a hash code value for the lesson.
-     *
-     * @return a hash code value for this lesson
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hash(course, lessonEndTime, lessonStartTime, studyDay);
-    }
-
-    /**
-     * Indicates whether some other object is "equal to" this one by comparing their
-     * course, lesson end time, lesson start time, and study day.
-     *
-     * @param obj the reference object with which to compare
-     * @return {@code true} if this object is the same as the obj argument;
-     *         {@code false} otherwise
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof Lesson)) {
-            return false;
-        }
-        Lesson other = (Lesson) obj;
-        return Objects.equals(course, other.course) && Objects.equals(lessonEndTime, other.lessonEndTime)
-                && Objects.equals(lessonStartTime, other.lessonStartTime) && Objects.equals(studyDay, other.studyDay);
-    }
-
-    /**
-     * Returns a string representation of the lesson.
-     *
-     * @return a string representation of this lesson
-     */
-    @Override
-    public String toString() {
-        return "Lesson [lessonId=" + lessonId + ", lessonStartTime=" + lessonStartTime + ", lessonEndTime="
-                + lessonEndTime + ", course=" + course + ", studyDay=" + studyDay + "]";
     }
 
 }

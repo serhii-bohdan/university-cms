@@ -1,63 +1,60 @@
 package ua.foxminded.universitycms.dto;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import java.util.Set;
 
 /**
- * The {@code TeacherDto} class is a data transfer object (DTO) for teacher
- * entities.
- * <p>
- * This class extends {@link UserDto} and inherits all its fields and methods.
- * It represents a specific type of user, namely a teacher. It includes an
- * additional field for a set of courses.
- * <p>
- * The {@code toString()} method is overridden to return a string representation
- * of the teacher DTO.
+ * The {@code TeacherDto} class is a concrete DTO (Data Transfer Object) that
+ * extends the {@link UserDto} class. It represents a teacher user entity in the
+ * system and inherits all properties from {@link UserDto}. Additionally, it provides
+ * information specific to teachers, such as associated courses.
  *
  * @author Serhii Bohdan
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(callSuper = true, exclude = "courses")
+@SuperBuilder
 public class TeacherDto extends UserDto {
 
+    /**
+     * A collection of {@link CourseDto} objects representing the courses taught by the teacher.
+     */
     private Set<CourseDto> courses;
 
     /**
-     * Constructs a new {@code TeacherDto} with the specified first name, last name,
-     * email, password, and active status.
+     * Constructs a new {@code TeacherDto} instance with the specified teacher details
+     * including the schedule ID.
+     *
+     * @param firstName  the first name of the teacher
+     * @param lastName   the last name of the teacher
+     * @param email      the email address of the teacher
+     * @param password   the password of the teacher
+     * @param isActive   indicates whether the teacher account is active
+     * @param scheduleId the ID of the schedule associated with the teacher
+     */
+    public TeacherDto(String firstName, String lastName, String email, String password, Boolean isActive,
+                      Long scheduleId) {
+        super(firstName, lastName, email, password, isActive, scheduleId);
+    }
+
+    /**
+     * Constructs a new {@code TeacherDto} instance with the specified teacher details,
+     * omitting the schedule ID.
      *
      * @param firstName the first name of the teacher
      * @param lastName  the last name of the teacher
-     * @param email     the email of the teacher
+     * @param email     the email address of the teacher
      * @param password  the password of the teacher
-     * @param isActive  the active status of the teacher
+     * @param isActive  indicates whether the teacher account is active
      */
     public TeacherDto(String firstName, String lastName, String email, String password, Boolean isActive) {
         super(firstName, lastName, email, password, isActive);
-    }
-
-    /**
-     * Constructs a new {@code TeacherDto} with no initial values.
-     */
-    public TeacherDto() {
-        super();
-    }
-
-    public Set<CourseDto> getCourses() {
-        return courses;
-    }
-
-    public void setCourses(Set<CourseDto> courses) {
-        this.courses = courses;
-    }
-
-    /**
-     * Returns a string representation of the teacher DTO.
-     *
-     * @return a string representation of the teacher DTO
-     */
-    @Override
-    public String toString() {
-        return "TeacherDto [userId=" + super.getUserId() + ", firstName=" + super.getFirstName() + ", lastName="
-                + super.getLastName() + ", email=" + super.getEmail() + ", password=" + super.getPassword()
-                + ", isActive=" + super.getIsActive() + ", courses=" + courses + "]";
     }
 
 }

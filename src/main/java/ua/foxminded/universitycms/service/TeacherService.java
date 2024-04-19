@@ -1,41 +1,48 @@
 package ua.foxminded.universitycms.service;
 
-import java.util.Optional;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ua.foxminded.universitycms.dto.TeacherDto;
+import ua.foxminded.universitycms.model.Teacher;
+import java.util.List;
 
 /**
- * The {@code TeacherService} interface provides methods for managing teachers.
- * <p>
- * This interface includes methods for adding a teacher, getting a teacher by
- * ID, and deleting a teacher by ID.
+ * The {@code TeacherService} interface defines a set of operations for managing {@link Teacher} entities and their
+ * corresponding {@link TeacherDto} representations. It extends the generic {@link Service} interface, offering
+ * specialized services specifically tailored for teachers, including paginated retrieval, searching by name, and
+ * schedule management.
  *
  * @author Serhii Bohdan
  */
-public interface TeacherService {
+public interface TeacherService extends Service<Teacher, TeacherDto> {
 
     /**
-     * Adds a new teacher.
+     * Retrieves a page of teacher data containing all teachers. This method retrieves a paginated list
+     * of all teachers from the underlying data store. It utilizes the provided `Pageable` object to specify
+     * the page number, size.
      *
-     * @param teacherDto the teacher DTO to add
-     * @return true if the teacher was added successfully, false otherwise
+     * @param pageable the Pageable object containing pagination information (size, page number)
+     * @return a Page object containing a list of TeacherDto objects representing the requested page of teachers
      */
-    boolean addTeacher(TeacherDto teacherDto);
+    Page<TeacherDto> getTeachersPage(@NotNull Pageable pageable);
 
     /**
-     * Gets a teacher by ID.
+     * Retrieves a page of teacher data filtered by full name. This method retrieves a paginated list of teachers
+     * whose full names contain (case-insensitive) the provided keyword. It utilizes the `Pageable` object to specify
+     * the page number, size.
      *
-     * @param teacherId the ID of the teacher to get
-     * @return an Optional containing the teacher DTO if found, an empty Optional
-     *         otherwise
+     * @param fullName the keyword to filter teachers by full name (can be blank)
+     * @param pageable the Pageable object containing pagination information (size, page number)
+     * @return a Page object containing a list of TeacherDto objects representing the requested page of filtered teachers
      */
-    Optional<TeacherDto> getTeacherById(Long teacherId);
+    Page<TeacherDto> getTeacherInPageByName(@NotNull String fullName, @NotNull Pageable pageable);
 
     /**
-     * Deletes a teacher by ID.
+     * Retrieves a list of all teacher names in the system.
      *
-     * @param teacherId the ID of the teacher to delete
-     * @return true if the teacher was deleted successfully, false otherwise
+     * @return a list of teacher names
      */
-    boolean deleteTeacherById(Long teacherId);
+    List<String> getAllNamesOfTeachers();
 
 }

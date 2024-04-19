@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<main role="main" id="home" class="container">
+  <div class="jumbotron">
+    <h2 class="title-center">Welcome dear user 👋</h2>
+    <p class="lead">
+      Improve and automate your learning process using our CMS. Our platform is designed to streamline administrative
+      tasks, enhance teaching and learning experiences, and foster meaningful communication between students, teachers,
+      and managers. With our CMS, you can easily manage courses, track student progress, and create engaging
+      content that meets the needs of today's learners. Join us in transforming education for a better future.
+    </p>
+    <hr class="home my-4">
+    <div class="row">
+      <div class="col-md-6">
+        <p class="button-like">Basic features:</p>
+        <ol class="list-group list-group-numbered">
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+              <div class="fw-bold">For Manager:</div>
+              <ol class="custom-counter">
+                <li>Manages groups in the system (create, update, delete).
+                </li>
+                <li>Add, delete, and edit information about participants in the learning process (teachers, students).</li>
+              </ol>
+            </div>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+              <div class="fw-bold">For Teachers:</div>
+              <ol class="custom-counter">
+                <li>Create and edit your courses.</li>
+                <li>Add students to courses.</li>
+                <li>Evaluate students by giving marks.</li>
+                <li>Compose and manage your lessons schedule.</li>
+              </ol>
+            </div>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+              <div class="fw-bold">For Students:</div>
+              <ol class="custom-counter">
+                <li>Use the courses that are present on the platform.</li>
+                <li>Track your performance using marks.</li>
+                <li>Create and manage your schedule.</li>
+              </ol>
+            </div>
+          </li>
+        </ol>
+      </div>
+      <div class="col-md-6">
+        <img th:src="@{/images/learning-image.jpg}" class="img-fluid rounded mx-auto d-block" alt="Learning Image">
+      </div>
+    </div>
+  </div>
+</main>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+</body>
+</html>

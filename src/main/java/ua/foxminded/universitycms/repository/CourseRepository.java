@@ -1,5 +1,7 @@
 package ua.foxminded.universitycms.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ua.foxminded.universitycms.model.Course;
@@ -18,5 +20,16 @@ import ua.foxminded.universitycms.model.Course;
  */
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
+
+    /**
+     * Finds courses with a name that matches the given name, ignoring case sensitivity.
+     * The results are returned as a {@link Page} of courses, allowing for pagination
+     * and sorting.
+     *
+     * @param name     the name to search for, ignoring case
+     * @param pageable the pagination information, such as page number and size
+     * @return a {@link Page} of matching courses, or an empty {@link Page} if none found
+     */
+    Page<Course> findCourseByCourseNameIgnoreCase(String name, Pageable pageable);
 
 }

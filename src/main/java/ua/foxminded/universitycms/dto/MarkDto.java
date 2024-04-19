@@ -1,84 +1,64 @@
 package ua.foxminded.universitycms.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
 /**
- * The {@code MarkDto} class is a data transfer object (DTO) for mark entities.
- * <p>
- * This class includes fields for mark ID, mark value, student ID, and topic ID.
- * It also includes getter and setter methods for these fields.
- * <p>
- * The {@code toString()} method is overridden to return a string representation
- * of the mark DTO.
+ * The {@code MarkDto} class is a concrete DTO (Data Transfer Object) that extends the {@link AbstractDto} class.
+ * It represents a mark (grade) assigned to a student for a specific topic within a course.
  *
  * @author Serhii Bohdan
  */
-public class MarkDto {
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(callSuper = true)
+@SuperBuilder
+public class MarkDto extends AbstractDto {
 
-    private Long markId;
+    /**
+     * The numerical value of the mark assigned to the student.
+     */
+    @NotNull(message = "Mark value is mandatory")
+    @Min(1)
     private Integer markValue;
+
+    /**
+     * An optional comment or feedback provided by the teacher regarding the student's performance.
+     */
+    private String comment;
+
+    /**
+     * The ID of the student who received the mark.
+     */
+    @NotNull
+    @Min(1)
     private Long studentId;
-    private Long topicId;
 
     /**
-     * Constructs a new {@code MarkDto} with the specified mark value, student ID,
-     * and topic ID.
+     * A {@link TopicDto} object representing the topic for which the mark was given.
+     */
+    @NotNull
+    private TopicDto topic;
+
+    /**
+     * Constructs a new {@code MarkDto} instance with the specified details.
      *
-     * @param markValue the value of the mark
+     * @param markValue the numerical value of the mark assigned to the student
+     * @param comment   an optional comment or feedback provided by the instructor
      * @param studentId the ID of the student who received the mark
-     * @param topicId   the ID of the topic for which the mark was given
+     * @param topic     a {@link TopicDto} object representing the topic for which the mark was given
      */
-    public MarkDto(Integer markValue, Long studentId, Long topicId) {
+    public MarkDto(Integer markValue, String comment, Long studentId, TopicDto topic) {
         this.markValue = markValue;
+        this.comment = comment;
         this.studentId = studentId;
-        this.topicId = topicId;
-    }
-
-    /**
-     * Constructs a new {@code MarkDto} with no initial values.
-     */
-    public MarkDto() {
-    }
-
-    public Long getMarkId() {
-        return markId;
-    }
-
-    public void setMarkId(Long markId) {
-        this.markId = markId;
-    }
-
-    public Integer getMarkValue() {
-        return markValue;
-    }
-
-    public void setMarkValue(Integer markValue) {
-        this.markValue = markValue;
-    }
-
-    public Long getStudentId() {
-        return studentId;
-    }
-
-    public void setStudentId(Long studentId) {
-        this.studentId = studentId;
-    }
-
-    public Long getTopicId() {
-        return topicId;
-    }
-
-    public void setTopicId(Long topicId) {
-        this.topicId = topicId;
-    }
-
-    /**
-     * Returns a string representation of the mark DTO.
-     *
-     * @return a string representation of the mark DTO
-     */
-    @Override
-    public String toString() {
-        return "MarkDto [markId=" + markId + ", markValue=" + markValue + ", studentId=" + studentId + ", topicId="
-                + topicId + "]";
+        this.topic = topic;
     }
 
 }

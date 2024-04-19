@@ -1,99 +1,77 @@
 package ua.foxminded.universitycms.dto;
 
-import java.time.ZonedDateTime;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import java.time.LocalTime;
 
 /**
- * The {@code LessonDto} class is a data transfer object (DTO) for lesson
- * entities.
- * <p>
- * This class includes fields for lesson ID, lesson start time, lesson end time,
- * course ID, and study day ID. It also includes getter and setter methods for
- * these fields.
- * <p>
- * The {@code toString()} method is overridden to return a string representation
- * of the lesson DTO.
+ * The {@code LessonDto} class is a concrete DTO (Data Transfer Object) that extends the {@link AbstractDto} class.
+ * It represents a lesson entity within a schedule, containing information about the lesson time, course,
+ * and the study day it's associated with.
  *
  * @author Serhii Bohdan
  */
-public class LessonDto {
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString(callSuper = true)
+@SuperBuilder
+public class LessonDto extends AbstractDto {
 
-    private Long lessonId;
-    private ZonedDateTime lessonStartTime;
-    private ZonedDateTime lessonEndTime;
-    private Long courseId;
+    /**
+     * The time the lesson starts on the specified date (considering the time zone).
+     */
+    @NotNull(message = "Lesson start time is mandatory")
+    private LocalTime lessonStartTime;
+
+    /**
+     * The time the lesson ends on the specified date (considering the time zone).
+     */
+    @NotNull(message = "Lesson start time is mandatory")
+    private LocalTime lessonEndTime;
+
+    /**
+     * The time zone identifier for the lesson times.
+     */
+    @NotBlank(message = "Time zone is mandatory")
+    @Size(max = 255)
+    private String timezone;
+
+    /**
+     * A {@link CourseDto} object representing the course that this lesson covers.
+     */
+    @NotNull
+    private CourseDto course;
+
+    /**
+     * The ID of the study day that this lesson belongs to within a schedule.
+     */
+    @NotNull
+    @Min(1)
     private Long studyDayId;
 
     /**
-     * Constructs a new {@code LessonDto} with the specified lesson start time,
-     * lesson end time, course ID, and study day ID.
+     * Constructs a new {@code LessonDto} instance with the specified details about the lesson.
      *
-     * @param lessonStartTime the start time of the lesson
-     * @param lessonEndTime   the end time of the lesson
-     * @param courseId        the ID of the course that the lesson belongs to
-     * @param studyDayId      the ID of the study day that the lesson belongs to
+     * @param lessonStartTime the time the lesson starts on the specified date (considering the time zone)
+     * @param lessonEndTime   the time the lesson ends on the specified date (considering the time zone)
+     * @param timezone        the time zone identifier (e.g., "Europe/Kiev", "America/Los_ Angeles") for the lesson times
+     * @param course          a {@link CourseDto} object representing the course that this lesson covers
+     * @param studyDayId      the ID of the study day that this lesson belongs to within a schedule
      */
-    public LessonDto(ZonedDateTime lessonStartTime, ZonedDateTime lessonEndTime, Long courseId, Long studyDayId) {
+    public LessonDto(LocalTime lessonStartTime, LocalTime lessonEndTime, String timezone, CourseDto course, Long studyDayId) {
         this.lessonStartTime = lessonStartTime;
         this.lessonEndTime = lessonEndTime;
-        this.courseId = courseId;
+        this.timezone = timezone;
+        this.course = course;
         this.studyDayId = studyDayId;
-    }
-
-    /**
-     * Constructs a new {@code LessonDto} with no initial values.
-     */
-    public LessonDto() {
-    }
-
-    public Long getLessonId() {
-        return lessonId;
-    }
-
-    public void setLessonId(Long lessonId) {
-        this.lessonId = lessonId;
-    }
-
-    public ZonedDateTime getLessonStartTime() {
-        return lessonStartTime;
-    }
-
-    public void setLessonStartTime(ZonedDateTime lessonStartTime) {
-        this.lessonStartTime = lessonStartTime;
-    }
-
-    public ZonedDateTime getLessonEndTime() {
-        return lessonEndTime;
-    }
-
-    public void setLessonEndTime(ZonedDateTime lessonEndTime) {
-        this.lessonEndTime = lessonEndTime;
-    }
-
-    public Long getCourseId() {
-        return courseId;
-    }
-
-    public void setCourseId(Long courseId) {
-        this.courseId = courseId;
-    }
-
-    public Long getStudyDayId() {
-        return studyDayId;
-    }
-
-    public void setStudyDayId(Long studyDayId) {
-        this.studyDayId = studyDayId;
-    }
-
-    /**
-     * Returns a string representation of the lesson DTO.
-     *
-     * @return a string representation of the lesson DTO
-     */
-    @Override
-    public String toString() {
-        return "LessonDto [lessonId=" + lessonId + ", lessonStartTime=" + lessonStartTime + ", lessonEndTime="
-                + lessonEndTime + ", courseId=" + courseId + ", studyDayId=" + studyDayId + "]";
     }
 
 }

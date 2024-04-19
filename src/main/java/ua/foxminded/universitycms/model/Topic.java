@@ -1,23 +1,21 @@
 package ua.foxminded.universitycms.model;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
- * The {@code Topic} class represents a topic in a course in the system.
+ * The {@code Topic} class represents a topic covered within a course and
+ * inherits from the {@link AbstractEntity} class.
  * <p>
  * This class is annotated with {@code @Entity}, indicating that it's a JPA
  * entity. This means that instances of this class can be persisted to the
@@ -28,26 +26,48 @@ import jakarta.persistence.Table;
  *
  * @author Serhii Bohdan
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(callSuper = true, exclude = {"course", "marks"})
+@SuperBuilder
 @Entity
 @Table(name = "topics")
-public class Topic {
+public class Topic extends AbstractEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "topic_id")
-    private Long topicId;
-
+    /**
+     * The name of the topic.
+     */
+    @EqualsAndHashCode.Include
     @Column(name = "topic_name")
     private String topicName;
 
+    /**
+     * A description of the topic content.
+     */
     @Column(name = "topic_description")
     private String topicDescription;
 
+    /**
+     * The order (position) of the topic within the course curriculum.
+     * Lower numbers indicate topics covered earlier in the course.
+     */
+    @Column(name = "topic_order")
+    private Integer topicOrder;
+
+    /**
+     * The course that this topic belongs to.
+     */
+    @EqualsAndHashCode.Include
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @OneToMany(mappedBy = "topic", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    /**
+     * The student marks (grades) associated with this topic.
+     */
+    @OneToMany(mappedBy = "topic", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<Mark> marks = new HashSet<>();
 
     /**
@@ -55,96 +75,14 @@ public class Topic {
      *
      * @param topicName        the name of the topic
      * @param topicDescription the description of the topic
+     * @param topicOrder       the order (position) of the topic within the course
      * @param course           the course that the topic belongs to
      */
-    public Topic(String topicName, String topicDescription, Course course) {
+    public Topic(String topicName, String topicDescription, Integer topicOrder, Course course) {
         this.topicName = topicName;
         this.topicDescription = topicDescription;
+        this.topicOrder = topicOrder;
         this.course = course;
-    }
-
-    /**
-     * Constructs a new {@code Topic} object with default values.
-     */
-    public Topic() {
-    }
-
-    public Long getTopicId() {
-        return topicId;
-    }
-
-    public void setTopicId(Long topicId) {
-        this.topicId = topicId;
-    }
-
-    public String getTopicName() {
-        return topicName;
-    }
-
-    public void setTopicName(String topicName) {
-        this.topicName = topicName;
-    }
-
-    public String getTopicDescription() {
-        return topicDescription;
-    }
-
-    public void setTopicDescription(String topicDescription) {
-        this.topicDescription = topicDescription;
-    }
-
-    public Course getCourse() {
-        return course;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    public Set<Mark> getMarks() {
-        return Collections.unmodifiableSet(marks);
-    }
-
-    /**
-     * Returns a hash code value for the topic.
-     *
-     * @return a hash code value for this topic
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hash(course, topicDescription, topicName);
-    }
-
-    /**
-     * Indicates whether some other object is "equal to" this one by comparing their
-     * course, topic description, and topic name.
-     *
-     * @param obj the reference object with which to compare
-     * @return {@code true} if this object is the same as the obj argument;
-     *         {@code false} otherwise
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof Topic)) {
-            return false;
-        }
-        Topic other = (Topic) obj;
-        return Objects.equals(course, other.course) && Objects.equals(topicDescription, other.topicDescription)
-                && Objects.equals(topicName, other.topicName);
-    }
-
-    /**
-     * Returns a string representation of the topic.
-     *
-     * @return a string representation of this topic
-     */
-    @Override
-    public String toString() {
-        return "Topic [topicId=" + topicId + ", topicName=" + topicName + ", topicDescription=" + topicDescription
-                + "]";
     }
 
 }

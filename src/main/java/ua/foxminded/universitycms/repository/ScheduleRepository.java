@@ -18,5 +18,4 @@ import ua.foxminded.universitycms.model.Schedule;
  */
 @Repository
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
-
 }

@@ -1,34 +1,25 @@
 package ua.foxminded.universitycms.service;
 
-import java.util.Optional;
 import ua.foxminded.universitycms.dto.ScheduleDto;
+import ua.foxminded.universitycms.model.Schedule;
+import java.util.Optional;
 
 /**
- * The {@code ScheduleService} interface provides methods for managing
- * schedules.
- * <p>
- * This interface includes methods for adding a schedule and getting a schedule
- * by ID.
+ * The {@code ScheduleService} interface defines a set of operations for managing {@link Schedule} entities and their
+ * corresponding {@link ScheduleDto} representations. It extends the generic {@link Service} interface, providing
+ * specialized services for working with schedules, including retrieving schedules for specific students.
  *
  * @author Serhii Bohdan
  */
-public interface ScheduleService {
+public interface ScheduleService extends Service<Schedule, ScheduleDto> {
 
     /**
-     * Adds a new schedule.
+     * Retrieves the schedule for a given student.
      *
-     * @param scheduleDto the schedule DTO to add
-     * @return true if the schedule was added successfully, false otherwise
+     * @param studentId the ID of the student whose schedule to retrieve
+     * @return an {@link Optional} containing a {@link ScheduleDto} representing the student's schedule,
+     * or an empty {@link Optional} if no schedule is found for the student
      */
-    boolean addSchedule(ScheduleDto scheduleDto);
-
-    /**
-     * Gets a schedule by ID.
-     *
-     * @param scheduleId the ID of the schedule to get
-     * @return an Optional containing the schedule DTO if found, an empty Optional
-     *         otherwise
-     */
-    Optional<ScheduleDto> getScheduleById(Long scheduleId);
+    Optional<ScheduleDto> getScheduleForStudent(long studentId);
 
 }

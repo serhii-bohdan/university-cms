@@ -1,124 +1,108 @@
 package ua.foxminded.universitycms.service.impl;
 
-import java.util.Objects;
-import java.util.Optional;
-import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
+import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.TeacherDto;
-import ua.foxminded.universitycms.model.Schedule;
+import ua.foxminded.universitycms.exception.ServiceException;
+import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.Teacher;
 import ua.foxminded.universitycms.repository.ScheduleRepository;
 import ua.foxminded.universitycms.repository.TeacherRepository;
 import ua.foxminded.universitycms.service.TeacherService;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * The {@code TeacherServiceImpl} class implements the {@link TeacherService}
- * interface.
- * <p>
- * This class provides the functionality for managing teachers.
+ * The {@code TeacherServiceImpl} class implements the {@link TeacherService} interface, providing concrete
+ * implementations for managing teacher entities. It extends the {@link UserService} class, inheriting core user
+ * management functionality and adding teacher-specific operations like name-based retrieval.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Mapper
+ * @see TeacherRepository
+ * @see ScheduleRepository
+ * @see PasswordEncoder
  */
 @Service
+@Validated
 @Transactional
-public class TeacherServiceImpl implements TeacherService {
+public class TeacherServiceImpl extends UserService<Teacher, TeacherDto> implements TeacherService {
 
+    /**
+     * The {@link TeacherRepository} used for managing teacher entities.
+     */
     private final TeacherRepository teacherRepository;
-    private final ScheduleRepository scheduleRepository;
-    private final ModelMapper modelMapper;
 
     /**
-     * Constructs a new {@code TeacherServiceImpl} with the specified teacher
-     * repository, schedule repository, and model mapper.
+     * Constructs a new {@code TeacherServiceImpl} instance with the given dependencies.
      *
-     * @param teacherRepository  the teacher repository
-     * @param scheduleRepository the schedule repository
-     * @param modelMapper        the model mapper
+     * @param repository         the repository for managing teacher entities
+     * @param mapper             the mapper for converting between teacher entities and DTOs
+     * @param scheduleRepository the repository for managing schedules (potentially associated with teachers)
+     * @param passwordEncoder    the password encoder for securely encoding teacher passwords
      */
-    public TeacherServiceImpl(TeacherRepository teacherRepository, ScheduleRepository scheduleRepository,
-            ModelMapper modelMapper) {
-        this.teacherRepository = teacherRepository;
-        this.scheduleRepository = scheduleRepository;
-        this.modelMapper = modelMapper;
+    public TeacherServiceImpl(JpaRepository<Teacher, Long> repository, Mapper<Teacher, TeacherDto> mapper,
+                              ScheduleRepository scheduleRepository, PasswordEncoder passwordEncoder) {
+        super(repository, mapper, scheduleRepository, passwordEncoder);
+        this.teacherRepository = (TeacherRepository) repository;
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves a page of teacher data containing all teachers. This method retrieves a
+     * paginated list of all teachers from the underlying data store. It utilizes the provided
+     * `Pageable` object to specify the page number, size, and sorting criteria (if applicable).
+     *
+     * @param pageable the Pageable object containing pagination information (size, page)
+     *                 (must not be null)
+     * @return a Page object containing a list of TeacherDto objects representing the requested page of teachers
      */
     @Override
-    public boolean addTeacher(TeacherDto teacherDto) {
-        boolean isAdded = false;
-
-        if (Objects.nonNull(teacherDto) && Objects.nonNull(teacherDto.getFirstName())
-                && Objects.nonNull(teacherDto.getLastName()) && Objects.nonNull(teacherDto.getEmail())
-                && Objects.nonNull(teacherDto.getPassword()) && Objects.nonNull(teacherDto.getIsActive())) {
-            teacherRepository.save(mapToEntity(teacherDto));
-            isAdded = true;
-        }
-
-        return isAdded;
+    public Page<TeacherDto> getTeachersPage(Pageable pageable) {
+        return teacherRepository.findAll(pageable).map(mapper::toDto);
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves a page of teacher data filtered by full name. This method retrieves a paginated
+     * list of teachers whose full names contain the provided keyword. It utilizes the `Pageable`
+     * object to specify the page number, size.
+     *
+     * @param fullName the keyword to filter teachers by full name (can be blank)
+     *                 (must not be null)
+     * @param pageable the Pageable object containing pagination information (size, page)
+     *                 (must not be null)
+     * @return a Page object containing a list of TeacherDto objects representing the requested page of filtered teachers
      */
     @Override
-    public Optional<TeacherDto> getTeacherById(Long teacherId) {
-        TeacherDto findedTeacher = null;
-
-        if (Objects.nonNull(teacherId)) {
-            Optional<Teacher> optional = teacherRepository.findById(teacherId);
-
-            if (optional.isPresent()) {
-                findedTeacher = mapToDto(optional.get());
-            }
-        }
-
-        return Optional.ofNullable(findedTeacher);
+    public Page<TeacherDto> getTeacherInPageByName(String fullName, Pageable pageable) {
+        List<String> names = getSeparateFirstNameAndLastName(fullName.strip());
+        return teacherRepository.findByName_FirstNameAndName_LastNameIgnoreCase(names.get(0), names.get(1), pageable).map(mapper::toDto);
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves a list of all teacher names in the system.
+     *
+     * @return a list of teacher names
      */
     @Override
-    public boolean deleteTeacherById(Long teacherId) {
-        boolean isDeleted = false;
-
-        if (Objects.nonNull(teacherId)) {
-            Optional<Teacher> optional = teacherRepository.findById(teacherId);
-
-            if (optional.isPresent()) {
-                teacherRepository.delete(optional.get());
-                isDeleted = true;
-            }
-        }
-
-        return isDeleted;
+    public List<String> getAllNamesOfTeachers() {
+        return teacherRepository.findAll().stream()
+            .map(t -> t.getName().getFirstName() + " " + t.getName().getLastName())
+            .toList();
     }
 
-    private TeacherDto mapToDto(Teacher entity) {
-        return modelMapper.map(entity, TeacherDto.class);
-    }
-
-    private Teacher mapToEntity(TeacherDto dto) {
-        Teacher teacher = null;
-
-        if (Objects.nonNull(dto.getUserId()) && dto.getUserId() >= 1L) {
-            teacher = teacherRepository.findById(dto.getUserId()).get();
-            teacher.setFirstName(dto.getFirstName());
-            teacher.setLastName(dto.getLastName());
-            teacher.setEmail(dto.getEmail());
-            teacher.setPassword(dto.getPassword());
-            teacher.setIsActive(dto.getIsActive());
-        } else {
-            Schedule schedule = new Schedule();
-            scheduleRepository.save(schedule);
-            teacher = modelMapper.map(dto, Teacher.class);
-            teacher.setSchedule(schedule);
+    private List<String> getSeparateFirstNameAndLastName(String fullName) {
+        String[] firstNameAndLastName = fullName.split(" ");
+        if (firstNameAndLastName.length >= 2) {
+            return Arrays.asList(firstNameAndLastName);
         }
 
-        return teacher;
+        throw new ServiceException("Full name must contain at least two words");
     }
 
 }

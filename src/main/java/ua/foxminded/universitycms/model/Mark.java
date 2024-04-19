@@ -1,18 +1,17 @@
 package ua.foxminded.universitycms.model;
 
-import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
- * The {@code Mark} class represents a mark in the system.
+ * The {@code Mark} class represents a mark (grade) obtained by a student in
+ * a particular topic and inherits from the {@link AbstractEntity} class.
  * <p>
  * This class is annotated with {@code @Entity}, indicating that it's a JPA
  * entity. This means that instances of this class can be persisted to the
@@ -23,22 +22,40 @@ import jakarta.persistence.Table;
  *
  * @author Serhii Bohdan
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(callSuper = true, exclude = {"student", "topic"})
+@SuperBuilder
 @Entity
 @Table(name = "marks")
-public class Mark {
+public class Mark extends AbstractEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "mark_id")
-    private Long markId;
-
+    /**
+     * The numerical value of the mark (grade).
+     */
     @Column(name = "mark_value")
     private Integer markValue;
 
+    /**
+     * An optional comment about the mark, providing additional context or feedback.
+     */
+    @Column(name = "comment")
+    private String comment;
+
+    /**
+     * The student who received the mark.
+     */
+    @EqualsAndHashCode.Include
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
+    /**
+     * The topic for which the mark was given.
+     */
+    @EqualsAndHashCode.Include
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
@@ -47,92 +64,15 @@ public class Mark {
      * Constructs a new {@code Mark} object with the given parameters.
      *
      * @param markValue the value of the mark
-     * @param student   the student who received the mark
-     * @param topic     the topic for which the mark was given
+     * @param comment an optional comment about the mark
+     * @param student the student who received the mark
+     * @param topic the topic for which the mark was given
      */
-    public Mark(Integer markValue, Student student, Topic topic) {
+    public Mark(Integer markValue, String comment, Student student, Topic topic) {
         this.markValue = markValue;
+        this.comment = comment;
         this.student = student;
         this.topic = topic;
-    }
-
-    /**
-     * Constructs a new {@code Mark} object with default values.
-     */
-    public Mark() {
-    }
-
-    public Long getMarkId() {
-        return markId;
-    }
-
-    public void setMarkId(Long markId) {
-        this.markId = markId;
-    }
-
-    public Integer getMarkValue() {
-        return markValue;
-    }
-
-    public void setMarkValue(Integer markValue) {
-        this.markValue = markValue;
-    }
-
-    public Student getStudent() {
-        return student;
-    }
-
-    public void setStudent(Student student) {
-        this.student = student;
-    }
-
-    public Topic getTopic() {
-        return topic;
-    }
-
-    public void setTopic(Topic topic) {
-        this.topic = topic;
-    }
-
-    /**
-     * Returns a hash code value for the mark.
-     *
-     * @return a hash code value for this mark
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hash(markValue, student, topic);
-    }
-
-    /**
-     * Indicates whether some other object is "equal to" this one by comparing their
-     * mark value, student, and topic.
-     *
-     * @param obj the reference object with which to compare
-     * @return {@code true} if this object is the same as the obj argument;
-     *         {@code false} otherwise
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (!(obj instanceof Mark)) {
-            return false;
-        }
-        Mark other = (Mark) obj;
-        return Objects.equals(markValue, other.markValue) && Objects.equals(student, other.student)
-                && Objects.equals(topic, other.topic);
-    }
-
-    /**
-     * Returns a string representation of the mark.
-     *
-     * @return a string representation of this mark
-     */
-    @Override
-    public String toString() {
-        return "Mark [markId=" + markId + ", markValue=" + markValue + "]";
     }
 
 }

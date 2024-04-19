@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: .
+    ports:
+      - "8083:8083"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15.3
+    restart: always
+    user: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: university
+      POSTGRES_PASSWORD: pass
+    expose:
+      - 5432
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:

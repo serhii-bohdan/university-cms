@@ -1,10 +1,115 @@
 # University CMS
 
+## Motivation & Goal
+When creating the app, I was motivated and encouraged by the following aspects:
+- The first is the desire to learn new technologies that are used to develop web applications in Java, more precisely it is: `Spring MVC`, `Spring Security`, `Thymeleaf`, `HTML`, `CSS`.
+- It should also be said that the development of this application is included in the Foxminded training program. Therefore, the second aspect of motivation was the desire to pass successfully another stage of training.
+- The last aspect was the thirst to learn more about the full cycle of software development.
+
+**Technologies used:**
+- *Java 17*;
+- *Spring (Boot, MVC, Data)*;
+- *Hibernate*;
+- *PostgreSQL*, *Flyway*;
+- *JUnit 5*, *Mockito*, *Testcontainers*;
+- *Maven*, *Git*;
+- *Docker Compose*, *GitLab CI/CD*;
+- *HTML*, *CSS*, *Thymeleaf*, *JavaScript*.
+
+## Install & Run
+To **install** this project, you must have Git version control installed on your device. It would also be nice to have a basic knowledge of using Git. You can download and learn how to use the version control system [here](https://git-scm.com/book/en/v2). Go to the folder where you want to install the project. Open Git Bash in it and enter the command:
+
+```
+$ git clone https://gitlab.com/SerhiiBohdan/university-cms.git
+```
+
+This way you will have the app installed.
+
+There are several ways to **run** the application **locally**. Consider them.
+1) Docker Container<br>
+   To use this method you must have [`Docker`](https://www.docker.com/products/docker-desktop/) installed on your machine ([more information](https://docs.docker.com/get-started/overview/#docker-objects)). Run it and make sure the docker daemon is running. Next, you should go to the root of the project you just downloaded. To run an application in a docker container, you should run the following command:
+
+   ```
+   > docker compose up -d
+   ```
+   After all containers are successfully launched, go to your browser and enter the following URL: `http://localhost:8083/ui/v1/home`. As a result, you should see the welcome page of the application.
+
+
+2) Build jar<br>
+   This path requires more settings and services. You must have installed:
+   - [x] Java 17 (JDK)
+   - [x] PostgreSQL or Docker
+
+   1. If you have PostgreSQL installed:<br>
+      You should make the following settings:<br>
+        a) Create a database, name it `university`.<br>
+        b) Next, you should change some settings in the [application.yml](src/main/resources/application.yml) file:<br>
+        - replace `jdbc:postgresql://db:5432/university` with `jdbc:postgresql://localhost:5432/university`;<br>
+        - change the username `postgres` to the name of the database owner `university` (usually the database owner is `postgres`);<br>
+        - finally replace `pass` with the database user password you use to connect to your local database.
+
+        At the end of these settings, you should get the following [application.yml](src/main/resources/application.yml) content:
+        ```yml
+        spring:
+          datasource:
+            driver-class-name: org.postgresql.Driver
+            url: jdbc:postgresql://localhost:5432/school
+            username: your-database-owner-name
+            password: your-local-database-password
+        ```
+    2. If you have Docker installed:<br>
+       a) Run Docker on your device and make sure docker daemon is running.<br>
+       b) Perform the following command:
+       ```
+       > docker run -it --rm --detach \
+            --name db \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=pass \
+            -e POSTGRES_DB=university \
+            -p 5433:5432 \
+            postgres:15.3
+       ```
+        c) Next, replace `jdbc:postgresql://db:5432/university` with `jdbc:postgresql://localhost:5433/university` in the [application.yml](src/main/resources/application.yml) file.
+
+    Now you have a database in which the necessary data will be stored. And modifying the [application.yml](src/main/resources/application.yml) file will ensure that the application can successfully connect to this database at runtime. Now you can run the application by executing the following commands in the root of the project:<br>
+
+    - for Windows (cmd)
+    ```
+    > mvnw.cmd package -DskipTests
+    ```
+    - for Linux/MacOS
+    ```
+    > ./mvnw package -DskipTests
+    ```
+    and further
+    ```
+    > java -jar target/university-cms-0.0.1-SNAPSHOT.jar
+    ```
+
+   Next, go to your browser and enter the following URL: `http://localhost:8083/ui/v1/home`. As a result, you should see the welcome page of the application.
+
+## Tests
+The application has a set of unit tests that you can also run and verify that they pass successfully. What you need to have to run the tests:
+- [x] Java 17 (JDK)
+- [x] Docker
+
+*Why do you need Docker to run tests?* The reason is that the tests for some classes use a database that is deploying in a docker container, that is, we are dealing with Testcontainers. Therefore, before running the tests, make sure that the docker daemon is running on your device. Next, execute the following command in the root of the project:<br>
+
+* for Windows (cmd)
+```
+> mvnw.cmd test
+```
+* for Linux/MacOS
+```
+> ./mvnw test
+```
+She will do the tests.
+
 ### Class Diagram
 
 Below is a class diagram of our project. It helps to visualize the structure of the project and the relationships between different classes.
 
-![class diagram](docs/university-cms.png)
+![class diagram](docs/university-cms.svg)
 
 **Student** - reflects the student in the learning process; <br>
 **Teacher** - corresponds to the teacher in a certain educational institution, has a certain set of courses created by him; <br>
@@ -12,11 +117,10 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 **Topic** - corresponds to a specific topic from the course, which has a name and description; <br>
 **Mark** - has a certain meaning, topic and belongs to the student; <br>
 **Group** - corresponds to a group in an educational institution, consists of a certain number of stuents; <br>
-**Administrator** - a person who has advanced management of students, teachers, courses, groups; <br>
+**Manager** - a person who has advanced management of students, teachers, groups; <br>
 **Schedule** - contains a set of study days; <br>
 **StudyDay** - corresponds to one study day with the date and day of the week, contains a set of lessons; <br>
 **Lesson** - corresponds to one lesson in the study day, contains the start time of the lesson and the end as well as the course; <br>
-**WeekDay** - contains seven days of the week, Monday to Sunday.
 
 
 ### Business Requirements
@@ -57,6 +161,18 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 
 - The administrator distributes and adds students to the groups.
 
+# Task 3.3 Create basic UI
+
+**Assignment:** <br>
+1. [Add Bootstrap](https://www.baeldung.com/spring-boot-start) js/css support to your project (webjars recommended)
+2. Add basic data generation or migration script to populate your db with sample data
+3. Create welcome page and controller with menu with main entities from your model
+
+**Important** use thymeleaf templates and reusable fragments
+
+4. Create pages with tables to list content from DB for each Entity and link those pages from main menu
+5. Cover controllers with [Spring MVC tests](https://www.baeldung.com/spring-boot-testing#unit-testing-with-webmvctest)
+
 # Task 3.2 Bootstrap project
 
 **Assignment** <br>
@@ -78,8 +194,8 @@ Example:
 ```java
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
-        
-    // should not be covered with test 
+
+    // should not be covered with test
     Optional<Group> findByGroupName(String name) throws SQLException;
 
     // sould be covered with test
@@ -99,11 +215,11 @@ public class StudentService {
     public void deleteById(Long id) throws SQLException {
 		studentRepository.delete(studentOpt.get());
 	}
-  
+
     // should be covered with test
     @Transactional
     public Student addCourse(Long studentId, Long courseId) throws SQLException {
-	
+
 	    var student = studentRepository.findById(studentId);
 	    var course = courseRepository.findById(courseId);
 
