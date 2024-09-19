@@ -26,6 +26,7 @@ public interface CourseMapper extends ua.foxminded.universitycms.mapper.Mapper<C
      * This method performs the following mapping:
      * <ul>
      *   <li>Maps the ID of the associated {@link Teacher} to the `authorId` field in the DTO.</li>
+     *   <li>Maps the `authorFirstName` and `authorLastName` from the DTO to the {@link Teacher}'s name.</li>
      * </ul>
      * Additional mappings for topics and potentially ordering them can be configured based on your specific requirements.
      *
@@ -34,6 +35,8 @@ public interface CourseMapper extends ua.foxminded.universitycms.mapper.Mapper<C
      */
     @Override
     @Mapping(source = "author.id", target = "authorId")
+    @Mapping(source = "author.name.firstName", target = "authorFirstName")
+    @Mapping(source = "author.name.lastName", target = "authorLastName")
     CourseDto toDto(Course entity);
 
     /**

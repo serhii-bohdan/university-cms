@@ -1,19 +1,20 @@
 package ua.foxminded.universitycms.controller;
 
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ua.foxminded.universitycms.dto.StudentDto;
-import ua.foxminded.universitycms.exception.ServiceException;
+import ua.foxminded.universitycms.exception.CustomHttpException;
+import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.StudentService;
-import java.util.ArrayList;
-import java.util.Objects;
 
 /**
  * This Spring Boot Web Controller handles requests related to managing and displaying students.
@@ -22,6 +23,7 @@ import java.util.Objects;
  * @author Serhii Bohdan
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/ui/v1/students")
 public class StudentController {
 
@@ -29,15 +31,6 @@ public class StudentController {
      * The {@link StudentService} used to interact with student data.
      */
     private final StudentService studentService;
-
-    /**
-     * Constructs a new {@code StudentController} instance with the given {@link StudentService}.
-     *
-     * @param studentService the {@link StudentService} to use for student-related operations
-     */
-    public StudentController(StudentService studentService) {
-        this.studentService = studentService;
-    }
 
     /**
      * Retrieves a page of student data for display and populates the model with necessary attributes.
@@ -52,19 +45,17 @@ public class StudentController {
      * @return the logical view name "students/all-students" representing the student list template
      */
     @GetMapping
+    @PreAuthorize("hasAuthority('STUDENTS_READ')")
     public String getPageWithStudents(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                       @PageableDefault Pageable pageable) {
-        Page<StudentDto> studentsPage = new PageImpl<>(new ArrayList<>());
-        boolean hasError = false;
+        Page<StudentDto> studentsPage;
 
         try {
-            if (Objects.nonNull(keyword) && !keyword.isBlank()) {
-                studentsPage = studentService.getStudentInPageByName(keyword, pageable);
-            } else {
-                studentsPage = studentService.getStudentsPage(pageable);
-            }
-        } catch (ServiceException e) {
-            hasError = true;
+            studentsPage = StringUtils.isBlank(keyword)
+                ? studentService.getStudentsPage(pageable)
+                : studentService.getStudentInPageByName(keyword, pageable);
+        } catch (InvalidFullNameFormatException e) {
+            throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
         }
 
         model.addAttribute("allNamesOfStudents", studentService.getAllNamesOfStudents())
@@ -73,8 +64,7 @@ public class StudentController {
             .addAttribute("totalItems", studentsPage.getTotalElements())
             .addAttribute("totalPages", studentsPage.getTotalPages())
             .addAttribute("size", pageable.getPageSize())
-            .addAttribute("keyword", keyword)
-            .addAttribute("hasError", hasError);
+            .addAttribute("keyword", keyword);
 
         return "students/all-students";
     }

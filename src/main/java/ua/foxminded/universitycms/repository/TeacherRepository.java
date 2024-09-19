@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ua.foxminded.universitycms.model.Teacher;
+import java.util.Optional;
 
 /**
  * The {@code TeacherRepository} interface is a Spring Data JPA repository for
@@ -22,14 +23,22 @@ import ua.foxminded.universitycms.model.Teacher;
 public interface TeacherRepository extends JpaRepository<Teacher, Long> {
 
     /**
+     * Finds a teacher by their unique email address.
+     *
+     * @param email The email address of the teacher to search for.
+     * @return An {@link Optional} containing the teacher if found, or an empty Optional if not.
+     */
+    Optional<Teacher> findByEmail(String email);
+
+    /**
      * Finds teachers with a matching first name and last name (case-insensitive).
      * This method leverages Spring Data JPA convention for creating named queries
      * based on method names. The results are returned as a Page of teachers, allowing
      * for pagination and sorting.
      *
-     * @param firstName  the first name to search for, ignoring case
-     * @param lastName   the last name to search for, ignoring case
-     * @param pageable   the pagination information, such as page number and size
+     * @param firstName the first name to search for, ignoring case
+     * @param lastName  the last name to search for, ignoring case
+     * @param pageable  the pagination information, such as page number and size
      * @return a {@link Page} of matching teachers, or an empty Page if none found
      */
     Page<Teacher> findByName_FirstNameAndName_LastNameIgnoreCase(String firstName, String lastName, Pageable pageable);

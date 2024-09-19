@@ -1,8 +1,11 @@
 package ua.foxminded.universitycms.service;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ua.foxminded.universitycms.dto.TeacherDto;
 import ua.foxminded.universitycms.model.Teacher;
 import java.util.List;
@@ -16,6 +19,19 @@ import java.util.List;
  * @author Serhii Bohdan
  */
 public interface TeacherService extends Service<Teacher, TeacherDto> {
+
+    /**
+     * Creates and saves a new teacher along with their associated schedule.
+     * <p>
+     * This method takes a {@link TeacherDto} object and a plain-text `password`, encodes the password using the
+     * {@link PasswordEncoder}. The provided `dto` must be valid according to its validation constraints, and the
+     * `password` must not be blank.
+     *
+     * @param dto      the {@link TeacherDto} object representing the new teacher
+     * @param password the plain-text password for the new teacher
+     * @return the saved {@link TeacherDto} object, with the password hashed
+     */
+    TeacherDto save(@NotNull @Valid TeacherDto dto, @NotBlank String password);
 
     /**
      * Retrieves a page of teacher data containing all teachers. This method retrieves a paginated list

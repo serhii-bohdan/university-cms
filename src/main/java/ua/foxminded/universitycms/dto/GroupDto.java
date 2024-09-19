@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 /**
@@ -29,27 +29,18 @@ public class GroupDto extends AbstractDto {
     private String groupName;
 
     /**
-     * The date and time the group was created.
+     * The date and time (including time zone) when the group record was created.
      */
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     /**
-     * The date and time the group information was last updated.
+     * The date and time (including time zone) when the group record was last updated.
      */
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 
     /**
      * A collection of {@link StudentDto} objects representing the students enrolled in the group.
      */
     private Set<StudentDto> students;
-
-    /**
-     * Constructs a new {@code GroupDto} instance with the specified group name.
-     *
-     * @param groupName the name of the group
-     */
-    public GroupDto(String groupName) {
-        this.groupName = groupName;
-    }
 
 }

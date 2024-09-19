@@ -1,6 +1,6 @@
 package ua.foxminded.universitycms.model;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.MappedSuperclass;
@@ -23,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = {"email", "passwordHash"})
 @ToString(callSuper = true)
 @SuperBuilder
 @MappedSuperclass
@@ -38,14 +38,12 @@ public abstract class User extends AbstractEntity {
     /**
      * The user's email address used for login.
      */
-    @EqualsAndHashCode.Include
     @Column(name = "email")
     private String email;
 
     /**
      * A hashed representation of the user's password for security purposes.
      */
-    @EqualsAndHashCode.Include
     @Column(name = "password_hash")
     private String passwordHash;
 
@@ -56,18 +54,18 @@ public abstract class User extends AbstractEntity {
     private Boolean isActive;
 
     /**
-     * The date and time the user record was created in the system.
-     * This field is automatically populated with the current timestamp before persisting the entity.
+     * The date and time when the user record was created in the database,
+     * including time zone information.
      */
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     /**
-     * The date and time the user record was last updated in the system.
-     * This field is automatically populated with the current timestamp before updating the entity.
+     * The date and time when the user record was last updated in the database,
+     * including time zone information.
      */
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 
     /**
      * Constructs a new {@code User} instance with essential user information.
@@ -91,7 +89,7 @@ public abstract class User extends AbstractEntity {
      */
     @PrePersist
     protected void onCreate() {
-        setCreatedAt(LocalDateTime.now());
+        setCreatedAt(ZonedDateTime.now());
     }
 
     /**
@@ -100,7 +98,7 @@ public abstract class User extends AbstractEntity {
      */
     @PreUpdate
     protected void onUpdate() {
-        setUpdatedAt(LocalDateTime.now());
+        setUpdatedAt(ZonedDateTime.now());
     }
 
 }

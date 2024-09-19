@@ -1,10 +1,11 @@
 package ua.foxminded.universitycms.mapper;
 
+import org.mapstruct.*;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import ua.foxminded.universitycms.dto.ManagerDto;
 import ua.foxminded.universitycms.model.Manager;
 import ua.foxminded.universitycms.model.Name;
+import ua.foxminded.universitycms.model.Role;
 
 /**
  * Interface defining mappings between {@link Manager} entities and {@link ManagerDto} data transfer objects.
@@ -21,7 +22,7 @@ public interface ManagerMapper extends ua.foxminded.universitycms.mapper.Mapper<
      * <ul>
      *   <li>Maps the first name from the entity's {@link Name} object to the `firstName` field in the DTO.</li>
      *   <li>Maps the last name from the entity's {@link Name} object to the `lastName` field in the DTO.</li>
-     *   <li>Maps the password hash from the entity to the `password` field in the DTO.</li>
+     *   <li>Maps the `id` field from the entity's {@link Role} to the `roleId` field in the DTO.</li>
      * </ul>
      * </p>
      *
@@ -31,7 +32,7 @@ public interface ManagerMapper extends ua.foxminded.universitycms.mapper.Mapper<
     @Override
     @Mapping(source = "name.firstName", target = "firstName")
     @Mapping(source = "name.lastName", target = "lastName")
-    @Mapping(source = "passwordHash", target = "password")
+    @Mapping(source = "role.id", target = "roleId")
     ManagerDto toDto(Manager entity);
 
     /**
@@ -40,7 +41,7 @@ public interface ManagerMapper extends ua.foxminded.universitycms.mapper.Mapper<
      * <ul>
      *   <li>Maps the `firstName` field from the DTO to the first name within the entity's {@link Name} object.</li>
      *   <li>Maps the `lastName` field from the DTO to the last name within the entity's {@link Name} object.</li>
-     *   <li>Maps the `password` field from the DTO to the password hash in the entity.</li>
+     *   <li>Maps the `roleId` field from the DTO to the associated role's ID in the entity.</li>
      * </ul>
      * </p>
      *
@@ -50,7 +51,24 @@ public interface ManagerMapper extends ua.foxminded.universitycms.mapper.Mapper<
     @Override
     @Mapping(source = "firstName", target = "name.firstName")
     @Mapping(source = "lastName", target = "name.lastName")
-    @Mapping(source = "password", target = "passwordHash")
+    @Mapping(source = "roleId", target = "role.id")
     Manager toEntity(ManagerDto dto);
+
+    /**
+     * Performs a partial update of an existing {@link Manager} entity using data from a {@link ManagerDto}.
+     * <p>
+     * This method selectively updates the `Manager` entity with non-null values from the provided DTO.
+     * It utilizes MapStruct's `NullValuePropertyMappingStrategy.IGNORE` to prevent null values in the DTO from
+     * overwriting existing values in the entity.
+     *
+     * @param dto    The {@link ManagerDto} containing the data to update (null values are ignored).
+     * @param entity The existing {@link Manager} entity to be updated.
+     * @return The updated `Manager` entity.
+     */
+    @Mapping(source = "firstName", target = "name.firstName")
+    @Mapping(source = "lastName", target = "name.lastName")
+    @Mapping(source = "roleId", target = "role.id")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Manager partialUpdate(ManagerDto dto, @MappingTarget Manager entity);
 
 }

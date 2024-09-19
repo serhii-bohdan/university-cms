@@ -1,6 +1,5 @@
 package ua.foxminded.universitycms.repository;
 
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,15 +22,6 @@ import ua.foxminded.universitycms.model.Group;
  */
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
-
-    /**
-     * Finds a group by its name.
-     *
-     * @param groupName the name of the group to find
-     * @return an Optional containing the found group, or an empty Optional if no
-     *         group was found with the given name
-     */
-    Optional<Group> findByGroupName(String groupName);
 
     /**
      * Finds groups with a name that matches the given name, ignoring case sensitivity.

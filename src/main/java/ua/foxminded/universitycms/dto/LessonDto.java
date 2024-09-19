@@ -57,21 +57,4 @@ public class LessonDto extends AbstractDto {
     @Min(1)
     private Long studyDayId;
 
-    /**
-     * Constructs a new {@code LessonDto} instance with the specified details about the lesson.
-     *
-     * @param lessonStartTime the time the lesson starts on the specified date (considering the time zone)
-     * @param lessonEndTime   the time the lesson ends on the specified date (considering the time zone)
-     * @param timezone        the time zone identifier (e.g., "Europe/Kiev", "America/Los_ Angeles") for the lesson times
-     * @param course          a {@link CourseDto} object representing the course that this lesson covers
-     * @param studyDayId      the ID of the study day that this lesson belongs to within a schedule
-     */
-    public LessonDto(LocalTime lessonStartTime, LocalTime lessonEndTime, String timezone, CourseDto course, Long studyDayId) {
-        this.lessonStartTime = lessonStartTime;
-        this.lessonEndTime = lessonEndTime;
-        this.timezone = timezone;
-        this.course = course;
-        this.studyDayId = studyDayId;
-    }
-
 }

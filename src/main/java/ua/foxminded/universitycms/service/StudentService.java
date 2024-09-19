@@ -1,8 +1,11 @@
 package ua.foxminded.universitycms.service;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.model.Student;
 import java.util.List;
@@ -16,6 +19,19 @@ import java.util.List;
  * @author Serhii Bohdan
  */
 public interface StudentService extends Service<Student, StudentDto> {
+
+    /**
+     * Creates and saves a new student along with their associated schedule.
+     * <p>
+     * This method takes a {@link StudentDto} object and a plain-text `password`, encodes the password using the
+     * {@link PasswordEncoder}. The provided `dto` must be valid according to its validation constraints, and the
+     * `password` must not be blank.
+     *
+     * @param dto      the {@link StudentDto} object representing the new student
+     * @param password the plain-text password for the new student
+     * @return the saved {@link StudentDto} object, with the password hashed
+     */
+    StudentDto save(@NotNull @Valid StudentDto dto, @NotBlank String password);
 
     /**
      * Retrieves a page of student data containing all students. This method retrieves

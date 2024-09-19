@@ -15,17 +15,28 @@ ALTER SEQUENCE students_id_seq RESTART WITH 1;
 DELETE FROM teachers;
 ALTER SEQUENCE teachers_id_seq RESTART WITH 1;
 
-DELETE FROM schedules;
-ALTER SEQUENCE schedules_id_seq RESTART WITH 1;
+DELETE FROM managers;
+ALTER SEQUENCE managers_id_seq RESTART WITH 1;
+
+DELETE FROM admins;
+ALTER SEQUENCE admins_id_seq RESTART WITH 1;
 
 DELETE FROM groups;
 ALTER SEQUENCE groups_id_seq RESTART WITH 1;
 
-DELETE FROM managers;
-ALTER SEQUENCE managers_id_seq RESTART WITH 1;
+DELETE FROM schedules;
+ALTER SEQUENCE schedules_id_seq RESTART WITH 1;
 
 DELETE FROM lessons;
 ALTER SEQUENCE lessons_id_seq RESTART WITH 1;
 
 DELETE FROM study_days;
 ALTER SEQUENCE study_days_id_seq RESTART WITH 1;
+
+DELETE FROM roles_permissions;
+
+DELETE FROM roles;
+ALTER SEQUENCE roles_id_seq RESTART WITH 1;
+
+DELETE FROM permissions;
+ALTER SEQUENCE roles_id_seq RESTART WITH 1;

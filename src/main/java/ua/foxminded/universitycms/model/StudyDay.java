@@ -34,7 +34,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = {"date", "schedule"})
 @ToString(callSuper = true, exclude = {"schedule", "lessons"})
 @SuperBuilder
 @Entity
@@ -44,7 +44,6 @@ public class StudyDay extends AbstractEntity {
     /**
      * The date of the study day.
      */
-    @EqualsAndHashCode.Include
     @Column(name = "day_date")
     private LocalDate date;
 
@@ -58,7 +57,6 @@ public class StudyDay extends AbstractEntity {
     /**
      * The {@link Schedule} that this study day belongs to.
      */
-    @EqualsAndHashCode.Include
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id", nullable = false)
     private Schedule schedule;

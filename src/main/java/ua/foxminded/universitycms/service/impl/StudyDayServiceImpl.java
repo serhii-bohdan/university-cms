@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
+import ua.foxminded.universitycms.dto.LessonDto;
 import ua.foxminded.universitycms.dto.StudyDayDto;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.StudyDay;
@@ -53,7 +54,17 @@ public class StudyDayServiceImpl extends AbstractService<StudyDay, StudyDayDto> 
      */
     @Override
     public Optional<StudyDayDto> getStudyDayByScheduleIdAndDate(long scheduleId, LocalDate date) {
-        return studyDayRepository.findByScheduleIdAndDate(scheduleId, date).map(mapper::toDto);
+        return studyDayRepository.findByScheduleIdAndDate(scheduleId, date).map(schedule -> {
+            StudyDayDto dto = mapper.toDto(schedule);
+            dto.setLessons(getSortedLessons(dto.getLessons()));
+            return dto;
+        });
+    }
+
+    private Set<LessonDto> getSortedLessons(Collection<LessonDto> lessons) {
+        return new LinkedHashSet<>(lessons.stream()
+            .sorted(Comparator.comparing(LessonDto::getLessonStartTime))
+            .toList());
     }
 
 }

@@ -27,34 +27,4 @@ public class TeacherDto extends UserDto {
      */
     private Set<CourseDto> courses;
 
-    /**
-     * Constructs a new {@code TeacherDto} instance with the specified teacher details
-     * including the schedule ID.
-     *
-     * @param firstName  the first name of the teacher
-     * @param lastName   the last name of the teacher
-     * @param email      the email address of the teacher
-     * @param password   the password of the teacher
-     * @param isActive   indicates whether the teacher account is active
-     * @param scheduleId the ID of the schedule associated with the teacher
-     */
-    public TeacherDto(String firstName, String lastName, String email, String password, Boolean isActive,
-                      Long scheduleId) {
-        super(firstName, lastName, email, password, isActive, scheduleId);
-    }
-
-    /**
-     * Constructs a new {@code TeacherDto} instance with the specified teacher details,
-     * omitting the schedule ID.
-     *
-     * @param firstName the first name of the teacher
-     * @param lastName  the last name of the teacher
-     * @param email     the email address of the teacher
-     * @param password  the password of the teacher
-     * @param isActive  indicates whether the teacher account is active
-     */
-    public TeacherDto(String firstName, String lastName, String email, String password, Boolean isActive) {
-        super(firstName, lastName, email, password, isActive);
-    }
-
 }

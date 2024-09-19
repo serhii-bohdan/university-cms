@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ua.foxminded.universitycms.model.Student;
+import java.util.Optional;
 
 /**
  * The {@code StudentRepository} interface is a Spring Data JPA repository for
@@ -22,14 +23,22 @@ import ua.foxminded.universitycms.model.Student;
 public interface StudentRepository extends JpaRepository<Student, Long> {
 
     /**
+     * Finds a student by their unique email address.
+     *
+     * @param email The email address of the student to search for.
+     * @return An {@link Optional} containing the student if found, or an empty Optional if not.
+     */
+    Optional<Student> findByEmail(String email);
+
+    /**
      * Finds students with a matching first name and last name (case-insensitive).
      * This method uses the Spring Data JPA convention for named queries based on
      * method names.The results are returned as a {@link Page} of students, allowing
      * for pagination and sorting.
      *
-     * @param firstName  the first name to search for, ignoring case
-     * @param lastName   the last name to search for, ignoring case
-     * @param pageable   the pagination information, such as page number and size
+     * @param firstName the first name to search for, ignoring case
+     * @param lastName  the last name to search for, ignoring case
+     * @param pageable  the pagination information, such as page number and size
      * @return a {@link Page} of matching students, or an empty {@link Page} if none found
      */
     Page<Student> findByName_FirstNameAndName_LastNameIgnoreCase(String firstName, String lastName, Pageable pageable);

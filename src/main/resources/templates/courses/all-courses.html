@@ -34,13 +34,10 @@
           <button id="btnClear" class="btn btn-secondary">Clear</button>
         </div>
         <div class="col-md-3 mt-2 unsent-width">
-          <a class="btn btn-success" href="#">Create course</a>
+          <a th:href="@{/ui/v1/courses/my}">My courses</a>
         </div>
       </div>
     </form>
-  </div>
-  <div>
-    <a th:href="@{/ui/v1/courses/my}">My courses</a>
   </div>
   <div th:if="${courses.size()} > 0">
     <table class="table table-striped table-hover table-responsive-xl">
@@ -48,27 +45,22 @@
       <tr>
         <th scope="col">№</th>
         <th scope="col">Course name</th>
+        <th scope="col">Author name</th>
         <th scope="col">Number of topics</th>
-        <th scope="col">Actions</th>
       </tr>
       </thead>
       <tbody>
       <tr th:each="course, interStat : ${courses}">
         <th scope="row" th:text="${size * page + interStat.count}"></th>
         <td th:text="*{course.courseName}"></td>
+        <td th:text="*{course.authorFirstName + ' ' + course.authorLastName}"></td>
         <td th:text="*{course.topics.size()}"></td>
-        <td>
-          <a href="#" title="Edit this course" class="fa-regular fa-pen-to-square icon-dark"></a>
-          &nbsp;
-          <a href="#" title="Delete this course" class="fa-regular fa-trash-can icon-dark btn-delete"></a>
-        </td>
       </tr>
       </tbody>
     </table>
   </div>
-  <div class="message" th:unless="${courses.size()} > 0">
-    <span th:if="${hasError}" th:text="#{error}"></span>
-    <span th:unless="${hasError}" th:text="#{courses.no.found}"></span>
+  <div class="message info-m" th:unless="${courses.size()} > 0">
+    <span th:text="#{courses.no.found}"></span>
   </div>
   <div
     th:insert="~{fragments/pagination :: pagination('courses', ${totalPages}, ${page}, ${size}, ${keyword})}"></div>

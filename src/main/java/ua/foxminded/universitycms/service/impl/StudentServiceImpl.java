@@ -5,38 +5,58 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.StudentDto;
-import ua.foxminded.universitycms.exception.ServiceException;
+import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
+import ua.foxminded.universitycms.exception.UserNotFoundException;
 import ua.foxminded.universitycms.mapper.Mapper;
+import ua.foxminded.universitycms.mapper.StudentMapper;
+import ua.foxminded.universitycms.model.Schedule;
 import ua.foxminded.universitycms.model.Student;
 import ua.foxminded.universitycms.repository.ScheduleRepository;
 import ua.foxminded.universitycms.repository.StudentRepository;
 import ua.foxminded.universitycms.service.StudentService;
 
 /**
- * The {@code StudentServiceImpl} class implements the {@link StudentService} interface, providing concrete
- * implementations for managing student entities. It extends the {@link UserService} class, inheriting core user
- * management functionality and adding student-specific services like group assignment and name-based retrieval.
+ * Implementation of the {@link StudentService} interface for managing student-related operations.
+ * This service class extends the {@link AbstractService} to handle core CRUD operations and provides additional
+ * functionality specific to student management, such as associating students with groups and schedules.
  *
  * @author Serhii Bohdan
  * @see JpaRepository
  * @see Mapper
  * @see StudentRepository
+ * @see ScheduleRepository
  * @see PasswordEncoder
  */
 @Service
 @Validated
 @Transactional
-public class StudentServiceImpl extends UserService<Student, StudentDto> implements StudentService {
+public class StudentServiceImpl extends AbstractService<Student, StudentDto> implements StudentService {
 
     /**
      * The {@link StudentRepository} used for managing student entities.
      */
     private final StudentRepository studentRepository;
+
+    /**
+     * Mapper for converting between {@link Student} entities and {@link StudentDto} objects.
+     */
+    private final StudentMapper studentMapper;
+
+    /**
+     * The {@link ScheduleRepository} used for managing user schedules.
+     */
+    protected final ScheduleRepository scheduleRepository;
+
+    /**
+     * The {@link PasswordEncoder} used for securely encoding user passwords.
+     */
+    protected final PasswordEncoder passwordEncoder;
 
     /**
      * Constructs a new {@code StudentServiceImpl} instance with the given dependencies.
@@ -48,8 +68,37 @@ public class StudentServiceImpl extends UserService<Student, StudentDto> impleme
      */
     public StudentServiceImpl(JpaRepository<Student, Long> repository, Mapper<Student, StudentDto> mapper,
                               ScheduleRepository scheduleRepository, PasswordEncoder passwordEncoder) {
-        super(repository, mapper, scheduleRepository, passwordEncoder);
+        super(repository, mapper);
         this.studentRepository = (StudentRepository) repository;
+        this.studentMapper = (StudentMapper) mapper;
+        this.scheduleRepository = scheduleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StudentDto save(StudentDto dto, String password) {
+        Schedule studentSchedule = new Schedule();
+        scheduleRepository.save(studentSchedule);
+
+        Student student = studentMapper.toEntity(dto);
+        student.setSchedule(studentSchedule);
+        student.setPasswordHash(passwordEncoder.encode(password));
+
+        return studentMapper.toDto(studentRepository.save(student));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StudentDto update(StudentDto dto) {
+        Student existingStudent = studentRepository.findById(dto.getId())
+            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND, String.format("Student not found with id: %d", dto.getId())));
+        Student updatedStudent = studentMapper.partialUpdate(dto, existingStudent);
+        return studentMapper.toDto(studentRepository.save(updatedStudent));
     }
 
     /**
@@ -63,7 +112,7 @@ public class StudentServiceImpl extends UserService<Student, StudentDto> impleme
      */
     @Override
     public Page<StudentDto> getStudentsPage(Pageable pageable) {
-        return studentRepository.findAll(pageable).map(mapper::toDto);
+        return studentRepository.findAll(pageable).map(studentMapper::toDto);
     }
 
     /**
@@ -78,13 +127,11 @@ public class StudentServiceImpl extends UserService<Student, StudentDto> impleme
     @Override
     public Page<StudentDto> getStudentInPageByName(String fullName, Pageable pageable) {
         List<String> names = getSeparateFirstNameAndLastName(fullName.strip());
-        return studentRepository.findByName_FirstNameAndName_LastNameIgnoreCase(names.get(0), names.get(1), pageable).map(mapper::toDto);
+        return studentRepository.findByName_FirstNameAndName_LastNameIgnoreCase(names.get(0), names.get(1), pageable).map(studentMapper::toDto);
     }
 
     /**
-     * Retrieves a list of all student names in the system.
-     *
-     * @return a list of student names
+     * {@inheritDoc}
      */
     @Override
     public List<String> getAllNamesOfStudents() {
@@ -100,7 +147,7 @@ public class StudentServiceImpl extends UserService<Student, StudentDto> impleme
             return Arrays.asList(firstNameAndLastName);
         }
 
-        throw new ServiceException("Full name must contain at least two words");
+        throw new InvalidFullNameFormatException(HttpStatus.BAD_REQUEST, "Invalid full name");
     }
 
 }

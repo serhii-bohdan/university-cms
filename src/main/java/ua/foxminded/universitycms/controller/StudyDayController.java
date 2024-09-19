@@ -1,5 +1,7 @@
 package ua.foxminded.universitycms.controller;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,7 @@ import java.util.Optional;
  * @author Serhii Bohdan
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/ui/v1/schedule/{scheduleId}/studyDays")
 public class StudyDayController {
 
@@ -22,15 +25,6 @@ public class StudyDayController {
      * The {@link StudyDayService} used to interact with individual study day data.
      */
     private final StudyDayService studyDayService;
-
-    /**
-     * Constructs a new {@code StudyDayController} instance with the given {@link StudyDayService}.
-     *
-     * @param studyDayService the {@link StudyDayService} to use for study day-related operations
-     */
-    public StudyDayController(StudyDayService studyDayService) {
-        this.studyDayService = studyDayService;
-    }
 
     /**
      * Renders a page containing details for a specific study day within a student's schedule.
@@ -46,6 +40,7 @@ public class StudyDayController {
      * @return the logical name of the view template ("schedule/study-day")
      */
     @GetMapping("/{date}")
+    @PreAuthorize("hasAuthority('STUDY_DAYS_READ')")
     public String getPageWithStudyDayFromSchedule(Model model, @PathVariable("scheduleId") long scheduleId,
                                                   @PathVariable("date") LocalDate date) {
         Optional<StudyDayDto> optional = studyDayService.getStudyDayByScheduleIdAndDate(scheduleId, date);

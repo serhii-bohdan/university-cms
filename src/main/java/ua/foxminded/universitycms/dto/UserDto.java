@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * The {@code UserDto} class is a concrete DTO (Data Transfer Object)
@@ -48,10 +48,9 @@ public abstract class UserDto extends AbstractDto {
     private String email;
 
     /**
-     * The user's password.
+     * The ID of the role associated with the user.
      */
-    @NotBlank(message = "Password is mandatory")
-    private String password;
+    private Long roleId;
 
     /**
      * Indicates whether the user account is active.
@@ -65,49 +64,13 @@ public abstract class UserDto extends AbstractDto {
     private Long scheduleId;
 
     /**
-     * The date and time the user was created.
+     * The date and time (including time zone) when the user record was created.
      */
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     /**
-     * The date and time the user information was last updated.
+     * The date and time (including time zone) when the user record was last updated.
      */
-    private LocalDateTime updatedAt;
-
-    /**
-     * Constructs a new {@code UserDto} instance with the specified user details including the schedule ID.
-     *
-     * @param firstName  the user's first name
-     * @param lastName   the user's last name
-     * @param email      the user's email address
-     * @param password   the user's password
-     * @param isActive   indicates whether the user account is active
-     * @param scheduleId the ID of the schedule associated with the user
-     */
-    protected UserDto(String firstName, String lastName, String email, String password, Boolean isActive, Long scheduleId) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.isActive = isActive;
-        this.scheduleId = scheduleId;
-    }
-
-    /**
-     * Constructs a new {@code UserDto} instance with the specified user details.
-     *
-     * @param firstName the user's first name
-     * @param lastName  the user's last name
-     * @param email     the user's email address
-     * @param password  the user's password
-     * @param isActive  indicates whether the user account is active
-     */
-    protected UserDto(String firstName, String lastName, String email, String password, Boolean isActive) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.isActive = isActive;
-    }
+    private ZonedDateTime updatedAt;
 
 }
