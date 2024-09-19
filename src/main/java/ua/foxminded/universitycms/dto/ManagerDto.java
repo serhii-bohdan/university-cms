@@ -1,6 +1,6 @@
 package ua.foxminded.universitycms.dto;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -49,34 +49,18 @@ public class ManagerDto extends AbstractDto {
     private String email;
 
     /**
-     * The manager's password (typically hashed or encrypted).
+     * The ID of the role associated with the manager.
      */
-    @NotBlank(message = "Password is mandatory")
-    private String password;
+    private Long roleId;
 
     /**
-     * The date and time the manager record was created.
+     * The date and time (including time zone) when the manager record was created.
      */
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     /**
-     * The date and time the manager record was last updated.
+     * The date and time (including time zone) when the manager record was last updated.
      */
-    private LocalDateTime updatedAt;
-
-    /**
-     * Constructs a new {@code ManagerDto} object with all fields provided.
-     *
-     * @param firstName the manager's first name
-     * @param lastName  the manager's last name
-     * @param email     the manager's email address
-     * @param password  the manager's password (in plain text, use with caution)
-     */
-    public ManagerDto(String firstName, String lastName, String email, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-    }
+    private ZonedDateTime updatedAt;
 
 }

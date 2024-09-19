@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 /**
@@ -46,31 +46,28 @@ public class CourseDto extends AbstractDto {
     private Long authorId;
 
     /**
-     * The date and time the course was created.
+     * The first name of the teacher who authored the course.
      */
-    private LocalDateTime createdAt;
+    private String authorFirstName;
 
     /**
-     * The date and time the course information was last updated.
+     * The last name of the teacher who authored the course.
      */
-    private LocalDateTime updatedAt;
+    private String authorLastName;
+
+    /**
+     * The date and time (including time zone) when the course record was created.
+     */
+    private ZonedDateTime createdAt;
+
+    /**
+     * The date and time (including time zone) when the course record was last updated.
+     */
+    private ZonedDateTime updatedAt;
 
     /**
      * A collection of {@link TopicDto} objects representing the topics covered in the course.
      */
     private Set<TopicDto> topics;
-
-    /**
-     * Constructs a new {@code CourseDto} instance with the specified course name, description, and author ID.
-     *
-     * @param courseName        the name of the course
-     * @param courseDescription the description of the course
-     * @param authorId          the ID of the user who created or authored the course
-     */
-    public CourseDto(String courseName, String courseDescription, Long authorId) {
-        this.courseName = courseName;
-        this.courseDescription = courseDescription;
-        this.authorId = authorId;
-    }
 
 }

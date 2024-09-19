@@ -8,20 +8,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import ua.foxminded.universitycms.config.SecurityConfig;
 import ua.foxminded.universitycms.dto.TeacherDto;
-import ua.foxminded.universitycms.exception.ServiceException;
+import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.TeacherService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @WebMvcTest(controllers = TeacherController.class)
+@Import(SecurityConfig.class)
 class TeacherControllerTest {
+
+    private static final int DEFAULT_PAGE_NUMBER = 0;
+    private static final int DEFAULT_PAGE_SIZE = 10;
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,10 +37,8 @@ class TeacherControllerTest {
     @MockBean
     private TeacherService teacherServiceMock;
 
-    private static final int DEFAULT_PAGE_NUMBER = 0;
-    private static final int DEFAULT_PAGE_SIZE = 10;
-
     @Test
+    @WithMockUser(authorities = {"TEACHERS_READ"})
     void getPageWithTeachers_shouldReturnPageWithTeachersThatFoundByKeyword_whenKeywordNotNullAndNotBlank() throws Exception {
         String keyword = "FirstName1 LastName1";
         List<String> allNamesOfTeachers = getAllNamesOfTeachersForTest();
@@ -49,13 +55,13 @@ class TeacherControllerTest {
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
             .andExpect(model().attribute("keyword", keyword))
-            .andExpect(model().attribute("hasError", false))
             .andExpect(view().name("teachers/all-teachers"));
 
         verify(teacherServiceMock, times(1)).getTeacherInPageByName(keyword, pageable);
     }
 
     @Test
+    @WithMockUser(authorities = {"TEACHERS_READ"})
     void getPageWithTeachers_shouldReturnPageWithAllTeachers_whenKeywordIsNull() throws Exception {
         List<String> allNamesOfTeachers = getAllNamesOfTeachersForTest();
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
@@ -69,13 +75,13 @@ class TeacherControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("hasError", false))
             .andExpect(view().name("teachers/all-teachers"));
 
         verify(teacherServiceMock, times(1)).getTeachersPage(pageable);
     }
 
     @Test
+    @WithMockUser(authorities = {"TEACHERS_READ"})
     void getPageWithTeachers_shouldReturnPageWithAllTeachers_whenKeywordIsBlank() throws Exception {
         String keyword = "               ";
         List<String> allNamesOfTeachers = getAllNamesOfTeachersForTest();
@@ -92,13 +98,13 @@ class TeacherControllerTest {
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
             .andExpect(model().attribute("keyword", keyword))
-            .andExpect(model().attribute("hasError", false))
             .andExpect(view().name("teachers/all-teachers"));
 
         verify(teacherServiceMock, times(1)).getTeachersPage(pageable);
     }
 
     @Test
+    @WithMockUser(authorities = {"TEACHERS_READ"})
     void getPageWithTeachers_shouldReturnPageWithAllTeachers_whenValidPageNumberAndPageSizeProvided() throws Exception {
         String invalidPageNumber = "-1";
         String invalidPageSize = "0";
@@ -116,26 +122,30 @@ class TeacherControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attribute("size", DEFAULT_PAGE_SIZE))
-            .andExpect(model().attribute("hasError", false))
             .andExpect(view().name("teachers/all-teachers"));
 
         verify(teacherServiceMock, times(1)).getTeachersPage(pageable);
     }
 
     @Test
-    void getPageWithTeachers_shouldSetHasErrorToTrue_whenServiceExceptionIsThrown() throws Exception {
-        List<String> allNamesOfTeachers = getAllNamesOfTeachersForTest();
+    @WithMockUser(authorities = {"TEACHERS_READ"})
+    void getPageWithTeachers_shouldThrowCustomHttpException_whenInvalidFullNameFormatExceptionIsThrown() throws Exception {
+        String invalidKeyWord = "keywordWithInvalidFormat";
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(teacherServiceMock.getAllNamesOfTeachers()).thenReturn(allNamesOfTeachers);
-        when(teacherServiceMock.getTeachersPage(pageable)).thenThrow(ServiceException.class);
+        InvalidFullNameFormatException invalidFullNameFormatExceptionMock = mock(InvalidFullNameFormatException.class);
+        when(invalidFullNameFormatExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(teacherServiceMock.getTeacherInPageByName(invalidKeyWord, pageable)).thenThrow(invalidFullNameFormatExceptionMock);
 
-        mockMvc.perform(get("/ui/v1/teachers"))
+        mockMvc.perform(get("/ui/v1/teachers")
+                .param("keyword", invalidKeyWord))
             .andExpect(status().isOk())
-            .andExpect(model().attributeExists("teachers"))
-            .andExpect(model().attribute("hasError", true))
-            .andExpect(view().name("teachers/all-teachers"));
+            .andExpect(model().attributeExists("message"))
+            .andExpect(model().attribute("httpStatus", httpStatus))
+            .andExpect(view().name("error"));
 
-        verify(teacherServiceMock, times(1)).getTeachersPage(pageable);
+        verify(teacherServiceMock, times(1)).getTeacherInPageByName(invalidKeyWord, pageable);
+        verify(invalidFullNameFormatExceptionMock, times(1)).getHttpStatus();
     }
 
     private List<String> getAllNamesOfTeachersForTest() {

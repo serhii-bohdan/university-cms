@@ -3,13 +3,17 @@ package ua.foxminded.universitycms.service.impl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.TeacherDto;
-import ua.foxminded.universitycms.exception.ServiceException;
+import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
+import ua.foxminded.universitycms.exception.UserNotFoundException;
 import ua.foxminded.universitycms.mapper.Mapper;
+import ua.foxminded.universitycms.mapper.TeacherMapper;
+import ua.foxminded.universitycms.model.Schedule;
 import ua.foxminded.universitycms.model.Teacher;
 import ua.foxminded.universitycms.repository.ScheduleRepository;
 import ua.foxminded.universitycms.repository.TeacherRepository;
@@ -18,9 +22,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The {@code TeacherServiceImpl} class implements the {@link TeacherService} interface, providing concrete
- * implementations for managing teacher entities. It extends the {@link UserService} class, inheriting core user
- * management functionality and adding teacher-specific operations like name-based retrieval.
+ * The {@code TeacherServiceImpl} class provides the concrete implementation for managing {@link Teacher} entities
+ * within the application. It extends the {@link AbstractService} class, inheriting common entity management
+ * capabilities, and adds specialized operations tailored for teachers.
  *
  * @author Serhii Bohdan
  * @see JpaRepository
@@ -32,12 +36,27 @@ import java.util.List;
 @Service
 @Validated
 @Transactional
-public class TeacherServiceImpl extends UserService<Teacher, TeacherDto> implements TeacherService {
+public class TeacherServiceImpl extends AbstractService<Teacher, TeacherDto> implements TeacherService {
 
     /**
      * The {@link TeacherRepository} used for managing teacher entities.
      */
     private final TeacherRepository teacherRepository;
+
+    /**
+     * Mapper for converting between {@link Teacher} entities and {@link TeacherDto} objects.
+     */
+    private final TeacherMapper teacherMapper;
+
+    /**
+     * The {@link ScheduleRepository} used for managing user schedules.
+     */
+    protected final ScheduleRepository scheduleRepository;
+
+    /**
+     * The {@link PasswordEncoder} used for securely encoding user passwords.
+     */
+    protected final PasswordEncoder passwordEncoder;
 
     /**
      * Constructs a new {@code TeacherServiceImpl} instance with the given dependencies.
@@ -49,8 +68,37 @@ public class TeacherServiceImpl extends UserService<Teacher, TeacherDto> impleme
      */
     public TeacherServiceImpl(JpaRepository<Teacher, Long> repository, Mapper<Teacher, TeacherDto> mapper,
                               ScheduleRepository scheduleRepository, PasswordEncoder passwordEncoder) {
-        super(repository, mapper, scheduleRepository, passwordEncoder);
+        super(repository, mapper);
         this.teacherRepository = (TeacherRepository) repository;
+        this.teacherMapper = (TeacherMapper) mapper;
+        this.scheduleRepository = scheduleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TeacherDto save(TeacherDto dto, String password) {
+        Schedule teacherSchedule = new Schedule();
+        scheduleRepository.save(teacherSchedule);
+
+        Teacher teacher = teacherMapper.toEntity(dto);
+        teacher.setSchedule(teacherSchedule);
+        teacher.setPasswordHash(passwordEncoder.encode(password));
+
+        return teacherMapper.toDto(teacherRepository.save(teacher));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TeacherDto update(TeacherDto dto) {
+        Teacher existingTeacher = teacherRepository.findById(dto.getId())
+            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND, String.format("Teacher not found with id: %d", dto.getId())));
+        Teacher updatedTeacher = teacherMapper.partialUpdate(dto, existingTeacher);
+        return teacherMapper.toDto(teacherRepository.save(updatedTeacher));
     }
 
     /**
@@ -102,7 +150,7 @@ public class TeacherServiceImpl extends UserService<Teacher, TeacherDto> impleme
             return Arrays.asList(firstNameAndLastName);
         }
 
-        throw new ServiceException("Full name must contain at least two words");
+        throw new InvalidFullNameFormatException(HttpStatus.BAD_REQUEST, "Full name must contain at least two words");
     }
 
 }

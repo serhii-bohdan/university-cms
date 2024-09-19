@@ -1,12 +1,9 @@
 package ua.foxminded.universitycms.mapper;
 
+import org.mapstruct.*;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import ua.foxminded.universitycms.dto.StudentDto;
-import ua.foxminded.universitycms.model.Student;
-import ua.foxminded.universitycms.model.Name;
-import ua.foxminded.universitycms.model.Schedule;
-import ua.foxminded.universitycms.model.Group;
+import ua.foxminded.universitycms.model.*;
 
 /**
  * Interface defining mappings between {@link Student} entities and {@link StudentDto} data transfer objects.
@@ -26,10 +23,10 @@ public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<
      * <ul>
      *   <li>Maps the first name from the entity's {@link Name} object to the `firstName` field in the DTO.</li>
      *   <li>Maps the last name from the entity's {@link Name} object to the `lastName` field in the DTO.</li>
-     *   <li>Maps the password hash from the entity to the `password` field in the DTO.</li>
      *   <li>Maps the ID of the associated {@link Schedule} to the `scheduleId` field in the DTO.</li>
      *   <li>Maps the ID of the associated {@link Group} to the `groupId` field in the DTO.</li>
      *   <li>Maps the group name from the associated {@link Group} to the `groupName` field in the DTO.</li>
+     *   <li>Maps the `id` field from the entity's {@link Role} to the `roleId` field in the DTO.</li>
      * </ul>
      * </p>
      *
@@ -39,7 +36,7 @@ public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<
     @Override
     @Mapping(source = "name.firstName", target = "firstName")
     @Mapping(source = "name.lastName", target = "lastName")
-    @Mapping(source = "passwordHash", target = "password")
+    @Mapping(source = "role.id", target = "roleId")
     @Mapping(source = "schedule.id", target = "scheduleId")
     @Mapping(source = "group.id", target = "groupId")
     @Mapping(source = "group.groupName", target = "groupName")
@@ -51,10 +48,10 @@ public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<
      * <ul>
      *   <li>Maps the `firstName` field from the DTO to the first name within the entity's {@link Name} object.</li>
      *   <li>Maps the `lastName` field from the DTO to the last name within the entity's {@link Name} object.</li>
-     *   <li>Maps the `password` field from the DTO to the password hash in the entity.</li>
      *   <li>Maps the `scheduleId` field from the DTO to the ID of the associated {@link Schedule} in the entity.</li>
      *   <li>Maps the `groupId` field from the DTO to the ID of the associated {@link Group} in the entity.</li>
      *   <li>Maps the `groupName` field from the DTO to the group name within the associated {@link Group} in the entity.</li>
+     *   <li>Maps the `roleId` field from the DTO to the ID of the associated {@link Role} in the entity.
      * </ul>
      * </p>
      *
@@ -64,10 +61,29 @@ public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<
     @Override
     @Mapping(source = "firstName", target = "name.firstName")
     @Mapping(source = "lastName", target = "name.lastName")
-    @Mapping(source = "password", target = "passwordHash")
+    @Mapping(source = "roleId", target = "role.id")
     @Mapping(source = "scheduleId", target = "schedule.id")
     @Mapping(source = "groupId", target = "group.id")
     @Mapping(source = "groupName", target = "group.groupName")
     Student toEntity(StudentDto dto);
+
+    /**
+     * Performs a partial update of an existing {@link Student} entity using data from a {@link StudentDto}.
+     * <p>
+     * This method selectively updates the `Student` entity with non-null values from the provided DTO.
+     * It utilizes MapStruct's `NullValuePropertyMappingStrategy.IGNORE` to prevent null values in the DTO from
+     * overwriting existing values in the entity.
+     *
+     * @param dto    The {@link StudentDto} containing the data to update (null values are ignored).
+     * @param entity The existing {@link Student} entity to be updated.
+     * @return The updated `Student` entity.
+     */
+    @Mapping(source = "firstName", target = "name.firstName")
+    @Mapping(source = "lastName", target = "name.lastName")
+    @Mapping(source = "roleId", target = "role.id")
+    @Mapping(source = "scheduleId", target = "schedule.id")
+    @Mapping(expression = "java(new Group(dto.getGroupId()))", target = "group")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Student partialUpdate(StudentDto dto, @MappingTarget Student entity);
 
 }

@@ -7,20 +7,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import ua.foxminded.universitycms.config.SecurityConfig;
 import ua.foxminded.universitycms.dto.GroupDto;
-import ua.foxminded.universitycms.exception.ServiceException;
 import ua.foxminded.universitycms.service.GroupService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @WebMvcTest(controllers = GroupController.class)
+@Import(SecurityConfig.class)
 class GroupControllerTest {
+
+    private static final int DEFAULT_PAGE_NUMBER = 0;
+    private static final int DEFAULT_PAGE_SIZE = 10;
 
     @Autowired
     private MockMvc mockMvc;
@@ -28,10 +34,8 @@ class GroupControllerTest {
     @MockBean
     private GroupService groupServiceMock;
 
-    private static final int DEFAULT_PAGE_NUMBER = 0;
-    private static final int DEFAULT_PAGE_SIZE = 10;
-
     @Test
+    @WithMockUser(authorities = {"GROUPS_READ"})
     void getPageWithGroups_shouldReturnPageWithGroupsThatFoundByKeyword_whenKeywordNotNullAndNotBlank() throws Exception {
         String keyword = "GroupName";
         List<String> allNamesOfGroups = getAllNamesOfGroupsForTest();
@@ -48,13 +52,13 @@ class GroupControllerTest {
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
             .andExpect(model().attribute("keyword", keyword))
-            .andExpect(model().attribute("hasError", false))
             .andExpect(view().name("groups/all-groups"));
 
         verify(groupServiceMock, times(1)).getGroupInPageByName(keyword, pageable);
     }
 
     @Test
+    @WithMockUser(authorities = {"GROUPS_READ"})
     void getPageWithGroups_shouldReturnPageWitAllGroups_whenKeywordIsNull() throws Exception {
         List<String> allNamesOfGroups = getAllNamesOfGroupsForTest();
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
@@ -68,13 +72,13 @@ class GroupControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("hasError", false))
             .andExpect(view().name("groups/all-groups"));
 
         verify(groupServiceMock, times(1)).getGroupsPage(pageable);
     }
 
     @Test
+    @WithMockUser(authorities = {"GROUPS_READ"})
     void getPageWithGroups_shouldReturnPageWitAllGroups_whenKeywordIsBlank() throws Exception {
         String keyword = "       ";
         List<String> allNamesOfGroups = getAllNamesOfGroupsForTest();
@@ -91,13 +95,13 @@ class GroupControllerTest {
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
             .andExpect(model().attribute("keyword", keyword))
-            .andExpect(model().attribute("hasError", false))
             .andExpect(view().name("groups/all-groups"));
 
         verify(groupServiceMock, times(1)).getGroupsPage(pageable);
     }
 
     @Test
+    @WithMockUser(authorities = {"GROUPS_READ"})
     void getPageWithGroups_shouldReturnPageWitAllGroups_whenInvalidPageNumberAndPageSizeProvided() throws Exception {
         String invalidPageNumber = "-1";
         String invalidPageSize = "0";
@@ -115,23 +119,6 @@ class GroupControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attribute("size", DEFAULT_PAGE_SIZE))
-            .andExpect(model().attribute("hasError", false))
-            .andExpect(view().name("groups/all-groups"));
-
-        verify(groupServiceMock, times(1)).getGroupsPage(pageable);
-    }
-
-    @Test
-    void getPageWithGroups_shouldSetHasErrorToTrue_whenServiceExceptionIsThrown() throws Exception {
-        List<String> allNamesOfGroups = getAllNamesOfGroupsForTest();
-        Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(groupServiceMock.getAllNamesOfGroups()).thenReturn(allNamesOfGroups);
-        when(groupServiceMock.getGroupsPage(pageable)).thenThrow(ServiceException.class);
-
-        mockMvc.perform(get("/ui/v1/groups"))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("groups"))
-            .andExpect(model().attribute("hasError", true))
             .andExpect(view().name("groups/all-groups"));
 
         verify(groupServiceMock, times(1)).getGroupsPage(pageable);

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>Login</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="text-center login-body">
+<div class="login-container">
+  <form class="form-signin" th:action="@{/login}" method="post">
+    <h2 class="form-signin-heading">Please sign in</h2>
+    <p th:if="${param.error}" class="login-error-message">
+      <span class="error-text">You have entered an invalid email or password. Please try again.</span>
+    </p>
+    <p>
+      <label for="email" class="sr-only">Email</label>
+      <input type="text" id="email" name="username" class="form-control" placeholder="Email" required="" autofocus="">
+    </p>
+    <p>
+      <label for="password" class="sr-only">Password</label>
+      <input type="password" id="password" name="password" class="form-control" placeholder="Password" required="">
+    </p>
+    <button class="btn btn-lg btn-primary btn-block sign-in-btn" type="submit">Sign in</button>
+  </form>
+</div>
+</body>
+</html>

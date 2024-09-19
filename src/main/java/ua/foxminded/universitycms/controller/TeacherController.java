@@ -1,19 +1,20 @@
 package ua.foxminded.universitycms.controller;
 
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ua.foxminded.universitycms.dto.TeacherDto;
-import ua.foxminded.universitycms.exception.ServiceException;
+import ua.foxminded.universitycms.exception.CustomHttpException;
+import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.TeacherService;
-import java.util.ArrayList;
-import java.util.Objects;
 
 /**
  * This Spring Boot Web Controller handles requests related to managing and displaying teachers.
@@ -22,6 +23,7 @@ import java.util.Objects;
  * @author Serhii Bohdan
  */
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/ui/v1/teachers")
 public class TeacherController {
 
@@ -29,15 +31,6 @@ public class TeacherController {
      * The {@link TeacherService} used to interact with teacher data.
      */
     private final TeacherService teacherService;
-
-    /**
-     * Constructs a new {@code TeacherController} instance with the given {@link TeacherService}.
-     *
-     * @param teacherService the {@link TeacherService} to use for teacher-related operations
-     */
-    public TeacherController(TeacherService teacherService) {
-        this.teacherService = teacherService;
-    }
 
     /**
      * Retrieves a page of teacher data for display and populates the model with necessary attributes.
@@ -52,19 +45,17 @@ public class TeacherController {
      * @return the logical view name "teachers/all-teachers" representing the teacher list template
      */
     @GetMapping
+    @PreAuthorize("hasAuthority('TEACHERS_READ')")
     public String getPageWithTeachers(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                       @PageableDefault Pageable pageable) {
-        Page<TeacherDto> teachersPage = new PageImpl<>(new ArrayList<>());
-        boolean hasError = false;
+        Page<TeacherDto> teachersPage;
 
         try {
-            if (Objects.nonNull(keyword) && !keyword.isBlank()) {
-                teachersPage = teacherService.getTeacherInPageByName(keyword, pageable);
-            } else {
-                teachersPage = teacherService.getTeachersPage(pageable);
-            }
-        } catch (ServiceException e) {
-            hasError = true;
+            teachersPage = StringUtils.isBlank(keyword)
+                ? teacherService.getTeachersPage(pageable)
+                : teacherService.getTeacherInPageByName(keyword, pageable);
+        } catch (InvalidFullNameFormatException e) {
+            throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
         }
 
         model.addAttribute("allNamesOfTeachers", teacherService.getAllNamesOfTeachers())
@@ -73,8 +64,7 @@ public class TeacherController {
             .addAttribute("totalItems", teachersPage.getTotalElements())
             .addAttribute("totalPages", teachersPage.getTotalPages())
             .addAttribute("size", pageable.getPageSize())
-            .addAttribute("keyword", keyword)
-            .addAttribute("hasError", hasError);
+            .addAttribute("keyword", keyword);
 
         return "teachers/all-teachers";
     }

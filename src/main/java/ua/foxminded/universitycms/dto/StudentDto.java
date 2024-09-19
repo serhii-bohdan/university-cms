@@ -32,39 +32,4 @@ public class StudentDto extends UserDto {
     @Pattern(regexp = "^[A-Z]{2}-[0-9]{2}$")
     private String groupName;
 
-    /**
-     * Constructs a new {@code StudentDto} instance with the specified student details
-     * including group name and schedule ID.
-     *
-     * @param firstName  the first name of the student
-     * @param lastName   the last name of the student
-     * @param email      the email address of the student
-     * @param password   the password of the student
-     * @param isActive   indicates whether the student account is active
-     * @param groupName  the name of the group the student belongs to
-     * @param scheduleId the ID of the schedule associated with the student
-     */
-    public StudentDto(String firstName, String lastName, String email, String password, Boolean isActive,
-                      String groupName, Long scheduleId) {
-        super(firstName, lastName, email, password, isActive, scheduleId);
-        this.groupName = groupName;
-    }
-
-    /**
-     * Constructs a new {@code StudentDto} instance with the specified student details,
-     * omitting the schedule ID.
-     *
-     * @param firstName the first name of the student
-     * @param lastName  the last name of the student
-     * @param email     the email address of the student
-     * @param password  the password of the student
-     * @param isActive  indicates whether the student account is active
-     * @param groupName the name of the group the student belongs to
-     */
-    public StudentDto(String firstName, String lastName, String email, String password, Boolean isActive,
-                      String groupName) {
-        super(firstName, lastName, email, password, isActive);
-        this.groupName = groupName;
-    }
-
 }

@@ -40,4 +40,16 @@ public abstract class AbstractEntity {
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Protected constructor for creating an `AbstractEntity` with a specific ID.
+     * <p>
+     * This constructor is primarily intended for internal use or for subclasses that need
+     * to set the ID explicitly during object creation.
+     *
+     * @param id The unique identifier for the entity.
+     */
+    protected AbstractEntity(Long id) {
+        this.id = id;
+    }
+
 }

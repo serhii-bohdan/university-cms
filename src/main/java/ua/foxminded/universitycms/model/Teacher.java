@@ -2,17 +2,8 @@ package ua.foxminded.universitycms.model;
 
 import java.util.HashSet;
 import java.util.Set;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -24,11 +15,20 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true, exclude = {"schedule", "courses"})
 @SuperBuilder
 @Entity
 @Table(name = "teachers")
 public class Teacher extends User {
+
+    /**
+     * The role assigned to the teacher. This role defines the teacher's
+     * permissions and access levels within the system.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
     /**
      * The teacher's schedule.
@@ -44,31 +44,33 @@ public class Teacher extends User {
     private Set<Course> courses = new HashSet<>();
 
     /**
-     * Constructs a new {@code Teacher} instance with a complete set of initial data,
-     * including schedule information.
+     * Constructs a new Teacher with complete initial data, including a schedule.
      *
-     * @param name         the teacher's full name
-     * @param email        the teacher's email address
-     * @param passwordHash a securely hashed representation of the teacher's password
-     * @param isActive     indicates whether the teacher's account is active
-     * @param schedule     the teacher's schedule
+     * @param name         The teacher's full name.
+     * @param email        The teacher's email address.
+     * @param passwordHash The hashed representation of the teacher's password.
+     * @param isActive     Whether the teacher's account is active.
+     * @param role         The role assigned to the teacher.
+     * @param schedule     The teacher's personal schedule.
      */
-    public Teacher(Name name, String email, String passwordHash, Boolean isActive, Schedule schedule) {
+    public Teacher(Name name, String email, String passwordHash, Role role, Boolean isActive, Schedule schedule) {
         super(name, email, passwordHash, isActive);
+        this.role = role;
         this.schedule = schedule;
     }
 
     /**
-     * Constructs a new {@code Teacher} instance with basic teacher information,
-     * without specifying a schedule.
+     * Constructs a new Teacher with basic information, without a schedule.
      *
-     * @param name         the teacher's full name
-     * @param email        the teacher's email address
-     * @param passwordHash a securely hashed representation of the teacher's password
-     * @param isActive     indicates whether the teacher's account is active
+     * @param name         The teacher's full name.
+     * @param email        The teacher's email address.
+     * @param passwordHash The hashed representation of the teacher's password.
+     * @param isActive     Whether the teacher's account is active.
+     * @param role         The role assigned to the teacher.
      */
-    public Teacher(Name name, String email, String passwordHash, Boolean isActive) {
+    public Teacher(Name name, String email, String passwordHash, Role role, Boolean isActive) {
         super(name, email, passwordHash, isActive);
+        this.role = role;
     }
 
 }

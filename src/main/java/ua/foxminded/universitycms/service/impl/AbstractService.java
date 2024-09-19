@@ -4,8 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import ua.foxminded.universitycms.dto.AbstractDto;
-import ua.foxminded.universitycms.exception.ServiceException;
+import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.AbstractEntity;
 import ua.foxminded.universitycms.service.Service;
@@ -48,7 +49,6 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
      *
      * @param dto the DTO containing the data for the new entity
      * @return a new DTO representing the saved entity with its generated ID
-     * @throws ServiceException if an error occurs during the saving process
      */
     @Override
     public D save(D dto) {
@@ -66,7 +66,7 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
      */
     @Override
     public Optional<D> getById(long id) {
-            return repository.findById(id).map(mapper::toDto);
+        return repository.findById(id).map(mapper::toDto);
     }
 
     /**
@@ -108,7 +108,7 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
      * Deletes an entity by its ID.
      *
      * @param id the ID of the entity to delete
-     * @throws ServiceException if the entity with the given ID is not found
+     * @throws EntityNotFoundException if the entity with the given ID is not found
      */
     @Override
     public void deleteById(long id) {
@@ -119,8 +119,8 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
             return;
         }
 
-        throw new ServiceException("Error deleting entity. Entity with the " +
-            "passed ID does not exist.");
+        throw new EntityNotFoundException(HttpStatus.NOT_FOUND,
+            String.format("Error deleting entity. Entity with the passed ID does not exist: %d", id));
     }
 
 }

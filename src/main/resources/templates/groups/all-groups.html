@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
@@ -10,7 +11,7 @@
 </head>
 <body>
 <header th:insert="~{fragments/header :: header}"></header>
-<div class="container-fluid" style="max-width: 900px; margin: 0 auto;">
+<div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
   <h2 class="title-center">Groups</h2>
   <div class="my-3">
     <form th:action="@{/ui/v1/groups}" id="searchForm">
@@ -34,7 +35,7 @@
           <button id="btnClear" class="btn btn-secondary">Clear</button>
         </div>
         <div class="col-md-3 mt-2 unsent-width">
-          <a class="btn btn-success" href="#">Create group</a>
+          <a sec:authorize="hasAuthority('GROUPS_CREATE')" class="btn btn-success" href="#">Create group</a>
         </div>
       </div>
     </form>
@@ -55,17 +56,19 @@
         <td th:text="*{group.groupName}"></td>
         <td th:text="*{group.students.size()}"></td>
         <td>
-          <a href="#" title="Edit this group" class="fa-regular fa-pen-to-square icon-dark"></a>
-          &nbsp;
-          <a href="#" title="Delete this group" class="fa-regular fa-trash-can icon-dark btn-delete"></a>
+          <a sec:authorize="hasAuthority('GROUPS_READ')" href="#" class="fa fa-eye icon-dark no-decoration"
+             aria-hidden="true" title="View this group"></a>
+          <a sec:authorize="hasAuthority('GROUPS_UPDATE')" href="#" class="fa-regular fa-pen-to-square icon-dark"
+             title="Update group" style="text-decoration: none; margin-left: 10px;"></a>
+          <a sec:authorize="hasAuthority('GROUPS_DELETE')" href="#" class="fa-regular fa-trash-can icon-dark btn-delete"
+             title="Delete this group" style="margin-left: 10px;"></a>
         </td>
       </tr>
       </tbody>
     </table>
   </div>
-  <div class="message" th:unless="${groups.size()} > 0">
-    <span th:if="${hasError}" th:text="#{error}"></span>
-    <span th:unless="${hasError}" th:text="#{groups.no.found}"></span>
+  <div class="message info-m" th:unless="${groups.size()} > 0">
+    <span th:text="#{groups.no.found}"></span>
   </div>
   <div
     th:insert="~{fragments/pagination :: pagination('groups', ${totalPages}, ${page}, ${size}, ${keyword})}"></div>

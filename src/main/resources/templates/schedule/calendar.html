@@ -10,7 +10,7 @@
 <header th:insert="~{fragments/header :: header}"></header>
 <div class="container-fluid" style="max-width: 900px; margin: 0 auto;">
   <div th:if="${schedule.id} == null">
-    <span class="message" th:text="#{schedule.init.error}" style="height: 520px"></span>
+    <span class="message info-m" th:text="#{schedule.init.error}" style="height: 520px"></span>
   </div>
   <div th:unless="${schedule.id} == null">
     <h2 class="title-center">Schedule</h2>

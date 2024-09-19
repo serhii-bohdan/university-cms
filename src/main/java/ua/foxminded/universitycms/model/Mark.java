@@ -25,7 +25,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = {"student", "topic"})
 @ToString(callSuper = true, exclude = {"student", "topic"})
 @SuperBuilder
 @Entity
@@ -47,7 +47,6 @@ public class Mark extends AbstractEntity {
     /**
      * The student who received the mark.
      */
-    @EqualsAndHashCode.Include
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
@@ -55,7 +54,6 @@ public class Mark extends AbstractEntity {
     /**
      * The topic for which the mark was given.
      */
-    @EqualsAndHashCode.Include
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;

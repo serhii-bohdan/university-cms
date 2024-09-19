@@ -12,10 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -30,11 +27,20 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true, exclude = {"group", "schedule", "courses", "marks"})
 @SuperBuilder
 @Entity
 @Table(name = "students")
 public class Student extends User {
+
+    /**
+     * The role assigned to the student. This role defines the student's permissions
+     * and access levels within the system.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
     /**
      * The student's group.
@@ -66,34 +72,36 @@ public class Student extends User {
     private Set<Mark> marks = new HashSet<>();
 
     /**
-     * Constructs a new {@code Student} instance with a complete set of initial data,
-     * including group and schedule information.
+     * Constructs a new Student with complete initial data, including group and schedule.
      *
-     * @param name         the full name
-     * @param email        the student's email address
-     * @param passwordHash a securely hashed representation of the student's password
-     * @param isActive     indicates whether the student's account is active
-     * @param group        the group to which the student belongs
-     * @param schedule     the student's personal schedule
+     * @param name         The student's full name.
+     * @param email        The student's email address.
+     * @param passwordHash The hashed representation of the student's password.
+     * @param role         The role assigned to the student.
+     * @param isActive     Whether the student's account is active.
+     * @param group        The group to which the student belongs.
+     * @param schedule     The student's personal schedule.
      */
-    public Student(Name name, String email, String passwordHash, Boolean isActive, Group group, Schedule schedule) {
+    public Student(Name name, String email, String passwordHash, Role role, Boolean isActive, Group group, Schedule schedule) {
         super(name, email, passwordHash, isActive);
+        this.role = role;
         this.group = group;
         this.schedule = schedule;
     }
 
     /**
-     * Constructs a new {@code Student} instance with basic student information,
-     * without specifying a schedule.
+     * Constructs a new Student with basic information, without a schedule.
      *
-     * @param name         the student's full name
-     * @param email        the student's email address
-     * @param passwordHash a securely hashed representation of the student's password
-     * @param isActive     indicates whether the student's account is active
-     * @param group        the group to which the student belongs
+     * @param name         The student's full name.
+     * @param email        The student's email address.
+     * @param passwordHash The hashed representation of the student's password.
+     * @param role         The role assigned to the student.
+     * @param isActive     Whether the student's account is active.
+     * @param group        The group to which the student belongs.
      */
-    public Student(Name name, String email, String passwordHash, Boolean isActive, Group group) {
+    public Student(Name name, String email, String passwordHash, Role role, Boolean isActive, Group group) {
         super(name, email, passwordHash, isActive);
+        this.role = role;
         this.group = group;
     }
 

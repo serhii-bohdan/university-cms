@@ -46,19 +46,4 @@ public class MarkDto extends AbstractDto {
     @NotNull
     private TopicDto topic;
 
-    /**
-     * Constructs a new {@code MarkDto} instance with the specified details.
-     *
-     * @param markValue the numerical value of the mark assigned to the student
-     * @param comment   an optional comment or feedback provided by the instructor
-     * @param studentId the ID of the student who received the mark
-     * @param topic     a {@link TopicDto} object representing the topic for which the mark was given
-     */
-    public MarkDto(Integer markValue, String comment, Long studentId, TopicDto topic) {
-        this.markValue = markValue;
-        this.comment = comment;
-        this.studentId = studentId;
-        this.topic = topic;
-    }
-
 }

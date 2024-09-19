@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.MarkDto;
-import ua.foxminded.universitycms.exception.ServiceException;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.Mark;
 import ua.foxminded.universitycms.model.Topic;
@@ -59,7 +58,6 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
      * @param studentId the ID of the student
      * @param courseId  the ID of the course
      * @return a list of {@link MarkDto} objects representing the student's marks in the course
-     * @throws ServiceException if an error occurs during retrieval
      */
     @Override
     public List<MarkDto> getStudentCourseMarks(long studentId, long courseId) {
@@ -87,7 +85,6 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
      *
      * @param courseId the ID of the course
      * @return a list of topic names as strings
-     * @throws ServiceException if an error occurs during retrieval
      */
     @Override
     public List<String> getNamesOfTopicsInCourse(long courseId) {

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.GroupDto;
-import ua.foxminded.universitycms.exception.ServiceException;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.Group;
 import ua.foxminded.universitycms.repository.GroupRepository;
@@ -61,7 +60,6 @@ public class GroupServiceImpl extends AbstractService<Group, GroupDto> implement
      * @param name     the name of the group to filter by
      * @param pageable the pagination information specifying the page number, size
      * @return a page of group DTOs representing the requested page of filtered groups with pagination information
-     * @throws ServiceException if either the `name` or `pageable` argument is null
      */
     @Override
     public Page<GroupDto> getGroupInPageByName(String name, Pageable pageable) {

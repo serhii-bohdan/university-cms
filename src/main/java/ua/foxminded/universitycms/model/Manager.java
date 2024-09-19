@@ -3,7 +3,7 @@ package ua.foxminded.universitycms.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * The {@code Manager} class represents a manager user in the system and inherits
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * This means that instances of this class can be persisted to a database table named "managers"
  * as specified by the {@code @Table} annotation.
  * <p>
- *  Additionally, it defines JPA lifecycle methods {@code onCreate()} and {@code onUpdate()}
+ * Additionally, it defines JPA lifecycle methods {@code onCreate()} and {@code onUpdate()}
  * to automatically set timestamps before persisting or updating the entity.
  *
  * @author Serhii Bohdan
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = {"email", "passwordHash"})
 @ToString(callSuper = true)
 @SuperBuilder
 @Entity
@@ -37,44 +37,49 @@ public class Manager extends AbstractEntity {
     /**
      * The manager's email address.
      */
-    @EqualsAndHashCode.Include
     @Column(name = "email")
     private String email;
 
     /**
      * The hashed password for secure storage.
      */
-    @EqualsAndHashCode.Include
     @Column(name = "password_hash")
     private String passwordHash;
 
     /**
-     * The date and time the manager record was created.
+     * The role assigned to the manager, defining their permissions within the system.
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
+
+    /**
+     * The date and time when the manager record was created in the database,
+     * including time zone information.
      */
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     /**
-     * The date and time the manager record was last updated.
+     * The date and time when the manager record was last updated in the database,
+     * including time zone information.
      */
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 
     /**
-     * Constructs a new {@code Manager} object with all fields provided.
+     * Constructs a new {@code Manager} with the specified details.
      *
      * @param name         the manager's full name
      * @param email        the manager's email address
      * @param passwordHash the hashed password
-     * @param createdAt    the creation date and time (optional)
-     * @param updatedAt    the last update date and time (optional)
+     * @param role         the role assigned to the manager
      */
-    public Manager(Name name, String email, String passwordHash, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Manager(Name name, String email, String passwordHash, Role role) {
         this.name = name;
         this.email = email;
         this.passwordHash = passwordHash;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.role = role;
     }
 
     /**
@@ -83,7 +88,7 @@ public class Manager extends AbstractEntity {
      */
     @PrePersist
     protected void onCreate() {
-        setCreatedAt(LocalDateTime.now());
+        setCreatedAt(ZonedDateTime.now());
     }
 
     /**
@@ -92,7 +97,7 @@ public class Manager extends AbstractEntity {
      */
     @PreUpdate
     protected void onUpdate() {
-        setUpdatedAt(LocalDateTime.now());
+        setUpdatedAt(ZonedDateTime.now());
     }
 
 }

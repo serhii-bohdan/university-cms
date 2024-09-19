@@ -29,7 +29,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = {"topicName", "course"})
 @ToString(callSuper = true, exclude = {"course", "marks"})
 @SuperBuilder
 @Entity
@@ -39,7 +39,6 @@ public class Topic extends AbstractEntity {
     /**
      * The name of the topic.
      */
-    @EqualsAndHashCode.Include
     @Column(name = "topic_name")
     private String topicName;
 
@@ -59,7 +58,6 @@ public class Topic extends AbstractEntity {
     /**
      * The course that this topic belongs to.
      */
-    @EqualsAndHashCode.Include
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;

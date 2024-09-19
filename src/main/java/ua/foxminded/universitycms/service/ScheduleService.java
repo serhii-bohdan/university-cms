@@ -22,4 +22,13 @@ public interface ScheduleService extends Service<Schedule, ScheduleDto> {
      */
     Optional<ScheduleDto> getScheduleForStudent(long studentId);
 
+    /**
+     * Retrieves the schedule for a given teacher.
+     *
+     * @param teacherId the ID of the teacher whose schedule to retrieve
+     * @return an {@link Optional} containing a {@link ScheduleDto} representing the teacher's schedule,
+     * or an empty {@link Optional} if no schedule is found for the teacher
+     */
+    Optional<ScheduleDto> getScheduleForTeacher(long teacherId);
+
 }

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ua.foxminded.universitycms.dto.CourseDto;
 import ua.foxminded.universitycms.model.Course;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -64,19 +65,29 @@ public interface CourseService extends Service<Course, CourseDto> {
     List<CourseDto> getStudentCourseByCourseName(long studentId, @NotNull String courseName);
 
     /**
-     * Retrieves a list of names of courses enrolled by a student identified by the given student ID.
+     * Retrieves a list of courses taught by a teacher identified by the given teacher ID.
      *
-     * @param studentId the ID of the student to retrieve course names for
-     * @return a list of course names representing the student's enrolled courses
+     * @param teacherId the ID of the teacher to retrieve courses for
+     * @return a list of {@link CourseDto} objects representing the teacher's courses
      */
-    List<String> getStudentCoursesNames(long studentId);
+    List<CourseDto> getTeacherCourses(long teacherId);
 
     /**
-     * Retrieves the full name (first name and last name combined) of the course author identified by the given teacher ID.
+     * Retrieves a list of courses taught by a teacher identified by the given teacher ID,
+     * filtered by a specific course name.
      *
-     * @param teacherId the ID of the teacher (course author)
-     * @return the full name of the course author as a String
+     * @param teacherId  the ID of the teacher to retrieve courses for
+     * @param courseName the name of the course to filter by
+     * @return a list of {@link CourseDto} objects representing the teacher's courses matching the provided course name
      */
-    String getAuthorFullNameByTeacherId(long teacherId);
+    List<CourseDto> getTeacherCourseByCourseName(long teacherId, @NotNull String courseName);
+
+    /**
+     * Extracts a list of course names from a collection of {@link CourseDto} objects.
+     *
+     * @param courses the collection of CourseDto objects to extract names from
+     * @return a list of strings representing the names of the courses
+     */
+    List<String> getCoursesNames(@NotNull Collection<CourseDto> courses);
 
 }

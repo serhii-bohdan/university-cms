@@ -50,19 +50,4 @@ public class TopicDto extends AbstractDto {
     @Min(1)
     private Long courseId;
 
-    /**
-     * Constructs a new {@code TopicDto} instance with the specified topic details.
-     *
-     * @param topicName        the name of the topic
-     * @param topicDescription the description of the topic
-     * @param topicOrder       the order (position) of the topic within the course curriculum
-     * @param courseId         the ID of the course that this topic belongs to
-     */
-    public TopicDto(String topicName, String topicDescription, Integer topicOrder, Long courseId) {
-        this.topicName = topicName;
-        this.topicDescription = topicDescription;
-        this.topicOrder = topicOrder;
-        this.courseId = courseId;
-    }
-
 }

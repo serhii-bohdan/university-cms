@@ -1,6 +1,6 @@
 package ua.foxminded.universitycms.model;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import jakarta.persistence.CascadeType;
@@ -30,7 +30,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(of = {"groupName"})
 @ToString(callSuper = true, exclude = "students")
 @SuperBuilder
 @Entity
@@ -40,7 +40,6 @@ public class Group extends AbstractEntity {
     /**
      * The name of the group, with a maximum length of 5 characters.
      */
-    @EqualsAndHashCode.Include
     @Column(name = "group_name", length = 5)
     private String groupName;
 
@@ -51,26 +50,29 @@ public class Group extends AbstractEntity {
     private Set<Student> students = new HashSet<>();
 
     /**
-     * The date and time the group record was created in the system.
-     * This field is automatically populated with the current timestamp before persisting the entity.
+     * The date and time when the group record was created in the database,
+     * including time zone information.
      */
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     /**
-     * The date and time the group record was last updated in the system.
-     * This field is automatically populated with the current timestamp before updating the entity.
+     * The date and time when the group record was last updated in the database,
+     * including time zone information.
      */
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private ZonedDateTime updatedAt;
 
     /**
-     * Constructs a new {@code Group} object with the given group name.
+     * Creates a new `Group` instance with a specified ID.
+     * <p>
+     * This constructor is typically used for internal purposes or in scenarios
+     * where you need to create a `Group` object with a pre-defined ID.
      *
-     * @param groupName the name of the group
+     * @param id the unique identifier for the group
      */
-    public Group(String groupName) {
-        this.groupName = groupName;
+    public Group(Long id) {
+        super(id);
     }
 
     /**
@@ -79,7 +81,7 @@ public class Group extends AbstractEntity {
      */
     @PrePersist
     protected void onCreate() {
-        setCreatedAt(LocalDateTime.now());
+        setCreatedAt(ZonedDateTime.now());
     }
 
     /**
@@ -88,7 +90,7 @@ public class Group extends AbstractEntity {
      */
     @PreUpdate
     protected void onUpdate() {
-        setUpdatedAt(LocalDateTime.now());
+        setUpdatedAt(ZonedDateTime.now());
     }
 
 }

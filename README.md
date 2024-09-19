@@ -8,13 +8,41 @@ When creating the app, I was motivated and encouraged by the following aspects:
 
 **Technologies used:**
 - *Java 17*;
-- *Spring (Boot, MVC, Data)*;
+- *Spring (Boot, MVC, Data, Security)*;
 - *Hibernate*;
 - *PostgreSQL*, *Flyway*;
 - *JUnit 5*, *Mockito*, *Testcontainers*;
 - *Maven*, *Git*;
 - *Docker Compose*, *GitLab CI/CD*;
 - *HTML*, *CSS*, *Thymeleaf*, *JavaScript*.
+
+## Description
+
+- **What is University CMS?** <br>
+The university CMS is a web platform designed to streamline and automate the educational process, fostering more productive interaction between teachers and students.
+- **What problems does the platform solve?** <br>
+Effective time management, planning, and meeting deadlines are crucial factors in successful learning. University CMS offers a comprehensive solution to this challenge by providing a platform that not only allows for posting educational materials but also enables the creation of personalized schedules and lesson planning. Students and teachers can easily allocate time across different courses, promoting better organization of the learning process and the development of time management skills.
+- **How to use it?** <br>
+University CMS facilitates interaction between four types of users: Administrator, Manager, Teacher, and Student. Each user type has unique roles and responsibilities, promoting a clear division of functions and adherence to the Single Responsibility Principle.
+
+  - *Administrator*: <br>
+   Manages managers: adds, edits, and deletes their accounts. <br>
+   Does not have access to manage teachers or students.
+
+  - *Manager*: <br>
+   Manages teachers, students, and groups: creates, edits, and deletes their accounts. <br>
+   Adds and removes students from groups.
+
+  - *Teacher*: <br>
+   Creates, edits, and manages their own courses. <br>
+   Adds students to their courses. <br>
+   Manages their own schedule based on the courses they have created. <br>
+   Evaluates students on topics within the courses they are enrolled in.
+
+  - *Student*: <br>
+   Accesses materials for the courses they are enrolled in. <br>
+   Tracks their progress based on teacher evaluations. <br>
+   Manages their own schedule and plans lessons for the courses they are enrolled in.
 
 ## Install & Run
 To **install** this project, you must have Git version control installed on your device. It would also be nice to have a basic knowledge of using Git. You can download and learn how to use the version control system [here](https://git-scm.com/book/en/v2). Go to the folder where you want to install the project. Open Git Bash in it and enter the command:
@@ -88,6 +116,13 @@ There are several ways to **run** the application **locally**. Consider them.
 
    Next, go to your browser and enter the following URL: `http://localhost:8083/ui/v1/home`. As a result, you should see the welcome page of the application.
 
+## Perform authorization
+In order to log in, you need to click the "Login" button in the upper right corner of the welcome page. Below are the data for authorizing users with different roles. Use them to continue working.
+- admin: `username - anthony.taylor@gmail.com`, `password - admin1234`;
+- manager: `username - alex.brown@gmail.com`, `password - 7aB#3mW8!yT4`;
+- teacher: `username - john.doe@gmail.com`, `password - et!@-Lj^rd123`;
+- student: `username - taylor.smith789@gmail.com`, `password - D1@F3^G%y&`.
+
 ## Tests
 The application has a set of unit tests that you can also run and verify that they pass successfully. What you need to have to run the tests:
 - [x] Java 17 (JDK)
@@ -111,17 +146,17 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 
 ![class diagram](docs/university-cms.svg)
 
+**Admin** - a user who manages managers in the system. <br>
+**Manager** - a user who has advanced management of students, teachers, groups; <br>
 **Student** - reflects the student in the learning process; <br>
 **Teacher** - corresponds to the teacher in a certain educational institution, has a certain set of courses created by him; <br>
 **Course** - corresponds to the training course created by a particular teacher, may have registered students; <br>
 **Topic** - corresponds to a specific topic from the course, which has a name and description; <br>
 **Mark** - has a certain meaning, topic and belongs to the student; <br>
-**Group** - corresponds to a group in an educational institution, consists of a certain number of stuents; <br>
-**Manager** - a person who has advanced management of students, teachers, groups; <br>
+**Group** - corresponds to a group in an educational institution, consists of a certain number of students; <br>
 **Schedule** - contains a set of study days; <br>
 **StudyDay** - corresponds to one study day with the date and day of the week, contains a set of lessons; <br>
 **Lesson** - corresponds to one lesson in the study day, contains the start time of the lesson and the end as well as the course; <br>
-
 
 ### Business Requirements
 
@@ -155,11 +190,50 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 
 - The user as a student can view other students who belong to the same course or group (each student must necessarily belong to a certain group).
 
-**4. Administrator capabilities**
+**4. Manager capabilities**
 
-- The administrator must be able to create/update/delete teachers, students, groups and courses.
+- The manager must be able to create/update/delete teachers, students, groups and courses.
 
-- The administrator distributes and adds students to the groups.
+- The manager distributes and adds students to the groups.
+
+# Task 3.4 Adding Security
+
+**Assignment**
+1. Review your user/roles model, and ask your mentor for clarifications regarding your security model. For example, you can add ADMIN, STUDENT, TEACHER, and STUFF roles.
+2. Use form security for user authentication.
+3. Create an admin panel for assigning a new user's role and create services that help the admin manage users.
+4. Add required changes with login/logout functionality and logged-in user information to UI
+
+Read: <br>
+[https://www.baeldung.com/spring-security-login](https://www.baeldung.com/spring-security-login) <br>
+[https://www.baeldung.com/spring-security-method-security](https://www.baeldung.com/spring-security-method-security )<br>
+[https://www.thymeleaf.org/doc/articles/springsecurity.html](https://www.thymeleaf.org/doc/articles/springsecurity.html) <br>
+[https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/test-method.html](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/test-method.html)
+
+Security configuration example:
+
+```java
+@Bean
+SecurityFilterChain config(HttpSecurity httpSecurity) throws Exception {
+    return httpSecurity.authorizeHttpRequests() .requestMatchers("/css/**", "/webjars/**").permitAll() // public matcher first
+            .requestMatchers("/foo").hasRole("FOO") // single role
+            .requestMatchers("/bar", "/foo-bar").hasAnyRole("FOO", "FOO_BAR") // multiple roles
+            .anyRequest().authenticated() // other requests need to have any role
+            .and().formLogin() .and().build();
+ }
+```
+Example:
+
+<pre style="font-family: monospace">
+User administration flow
+
+Given User `A` logged in with Admin role
+- User 'A' should be able to navigate to admin panel
+- User without admin role should not have access to user admin panel
+- User 'A' should be able to list all registered users on user admin page
+- User 'A' should be able to set required role for each registered user
+... etc
+</pre>
 
 # Task 3.3 Create basic UI
 

@@ -1,18 +1,7 @@
 stages:
-  - test
   - build
-
-unit-test:
-  stage: test
-  tags:
-    - docker
-  image: docker:latest
-  services:
-    - docker:dind
-  before_script:
-    - apk add openjdk17-jdk
-  script:
-    - ./mvnw test
+  - test
+  - docker
 
 maven-build:
   stage: build
@@ -25,8 +14,24 @@ maven-build:
     paths:
       - target/*.jar
 
+unit-test:
+  stage: test
+  needs:
+    - job: maven-build
+  tags:
+    - docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - apk add openjdk17-jdk
+  script:
+    - ./mvnw test
+
 docker-build:
-  stage: build
+  stage: docker
+  needs:
+    - job: unit-test
   tags:
     - docker
   image:

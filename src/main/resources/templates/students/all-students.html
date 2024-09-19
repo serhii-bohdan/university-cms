@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
@@ -34,7 +35,7 @@
           <button id="btnClear" class="btn btn-secondary">Clear</button>
         </div>
         <div class="col-md-3 mt-2 unsent-width">
-          <a class="btn btn-success" href="#">Add student</a>
+          <a sec:authorize="hasAuthority('STUDENTS_CREATE')" class="btn btn-success" href="#">Add student</a>
         </div>
       </div>
     </form>
@@ -45,6 +46,8 @@
       <tr>
         <th scope="col">№</th>
         <th scope="col">Student name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Group</th>
         <th scope="col">Status</th>
         <th scope="col">Actions</th>
       </tr>
@@ -53,22 +56,26 @@
       <tr th:each="student, interStat : ${students}">
         <th scope="row" th:text="${size * page + interStat.count}"></th>
         <td th:text="${student.firstName} + ' ' + ${student.lastName}"></td>
+        <td th:text="${student.email}"></td>
+        <td th:text="${student.groupName}"></td>
         <td>
           <span th:if="${student.isActive}" class="fa-regular fa-square-check icon-dark" title="Active"></span>
           <span th:unless="${student.isActive}" class="far fa-times-circle icon-dark" title="Not active"></span>
         </td>
         <td>
-          <a href="#" title="Edit student information" class="fa-regular fa-pen-to-square icon-dark"></a>
-          &nbsp;
-          <a href="#" title="Delete this student" class="fa-regular fa-trash-can icon-dark btn-delete"></a>
+          <a sec:authorize="hasAuthority('STUDENTS_READ')" href="#" class="fa fa-eye icon-dark no-decoration"
+             aria-hidden="true" title="View this student"></a>
+          <a sec:authorize="hasAuthority('STUDENTS_UPDATE')" href="#" class="fa-regular fa-pen-to-square icon-dark"
+             title="Update student info" style="text-decoration: none; margin-left: 10px;"></a>
+          <a sec:authorize="hasAuthority('STUDENTS_DELETE')" href="#" class="fa-regular fa-trash-can icon-dark btn-delete"
+             title="Delete this student" style="margin-left: 10px;"></a>
         </td>
       </tr>
       </tbody>
     </table>
   </div>
-  <div class="message" th:unless="${students.size()} > 0">
-    <span th:if="${hasError}" th:text="#{error}"></span>
-    <span th:unless="${hasError}" th:text="#{students.no.found}"></span>
+  <div class="message info-m" th:unless="${students.size()} > 0">
+    <span th:text="#{students.no.found}"></span>
   </div>
   <div
     th:insert="~{fragments/pagination :: pagination('students', ${totalPages}, ${page}, ${size}, ${keyword})}"></div>
