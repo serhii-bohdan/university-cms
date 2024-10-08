@@ -32,14 +32,16 @@ class StudyDayControllerTest {
         long scheduleId = 1L;
         String date = "2023-12-03";
         LocalDate localDate = LocalDate.parse("2023-12-03");
-        StudyDayDto studyDay = new StudyDayDto(localDate, localDate.getDayOfWeek(), scheduleId);
+        StudyDayDto studyDay = StudyDayDto.builder()
+            .date(localDate)
+            .weekDay(localDate.getDayOfWeek())
+            .scheduleId(scheduleId)
+            .build();
         when(studyDayServiceMock.getStudyDayByScheduleIdAndDate(scheduleId, localDate)).thenReturn(Optional.of(studyDay));
 
         mockMvc.perform(get("/ui/v1/schedule/{scheduleId}/studyDays/{date}", scheduleId, date))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("studyDay"))
-            .andExpect(model().attributeExists("scheduleId"))
-            .andExpect(model().attributeExists("date"))
             .andExpect(view().name("schedule/study-day"));
 
         verify(studyDayServiceMock, times(1)).getStudyDayByScheduleIdAndDate(scheduleId, localDate);
@@ -56,8 +58,6 @@ class StudyDayControllerTest {
         mockMvc.perform(get("/ui/v1/schedule/{scheduleId}/studyDays/{date}", scheduleId, date))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("studyDay"))
-            .andExpect(model().attributeExists("scheduleId"))
-            .andExpect(model().attributeExists("date"))
             .andExpect(view().name("schedule/study-day"));
 
         verify(studyDayServiceMock, times(1)).getStudyDayByScheduleIdAndDate(scheduleId, localDate);

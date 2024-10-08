@@ -15,6 +15,7 @@ import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.exception.UserNotFoundException;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.mapper.StudentMapper;
+import ua.foxminded.universitycms.model.AbstractEntity;
 import ua.foxminded.universitycms.model.Schedule;
 import ua.foxminded.universitycms.model.Student;
 import ua.foxminded.universitycms.repository.ScheduleRepository;
@@ -96,7 +97,9 @@ public class StudentServiceImpl extends AbstractService<Student, StudentDto> imp
     @Override
     public StudentDto update(StudentDto dto) {
         Student existingStudent = studentRepository.findById(dto.getId())
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND, String.format("Student not found with id: %d", dto.getId())));
+            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Student not found with id: %d", dto.getId())));
+
         Student updatedStudent = studentMapper.partialUpdate(dto, existingStudent);
         return studentMapper.toDto(studentRepository.save(updatedStudent));
     }
@@ -137,6 +140,19 @@ public class StudentServiceImpl extends AbstractService<Student, StudentDto> imp
     public List<String> getAllNamesOfStudents() {
         return studentRepository.findAll().stream()
             .map(s -> s.getName().getFirstName() + " " + s.getName().getLastName())
+            .toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<StudentDto> getListOfStudentsNotEnrolledInCourse(long courseId) {
+        return studentRepository.findAll().stream()
+            .filter(s -> s.getCourses().stream()
+                .map(AbstractEntity::getId)
+                .noneMatch(i -> i == courseId))
+            .map(studentMapper::toDto)
             .toList();
     }
 

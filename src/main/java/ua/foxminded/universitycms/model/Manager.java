@@ -68,21 +68,6 @@ public class Manager extends AbstractEntity {
     private ZonedDateTime updatedAt;
 
     /**
-     * Constructs a new {@code Manager} with the specified details.
-     *
-     * @param name         the manager's full name
-     * @param email        the manager's email address
-     * @param passwordHash the hashed password
-     * @param role         the role assigned to the manager
-     */
-    public Manager(Name name, String email, String passwordHash, Role role) {
-        this.name = name;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.role = role;
-    }
-
-    /**
      * This method is called before persisting the entity. It sets the {@code createdAt} field
      * to the current timestamp.
      */

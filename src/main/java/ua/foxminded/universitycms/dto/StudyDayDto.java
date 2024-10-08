@@ -49,17 +49,4 @@ public class StudyDayDto extends AbstractDto {
      */
     private Set<LessonDto> lessons;
 
-    /**
-     * Constructs a new {@code StudyDayDto} instance with the specified details about the study day.
-     *
-     * @param date       the date of the study day
-     * @param weekDay    the day of the week for the study day
-     * @param scheduleId the ID of the schedule that this study day belongs to
-     */
-    public StudyDayDto(LocalDate date, DayOfWeek weekDay, Long scheduleId) {
-        this.date = date;
-        this.weekDay = weekDay;
-        this.scheduleId = scheduleId;
-    }
-
 }

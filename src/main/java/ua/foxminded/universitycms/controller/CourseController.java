@@ -1,5 +1,6 @@
 package ua.foxminded.universitycms.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
@@ -10,19 +11,21 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import ua.foxminded.universitycms.dto.CourseDto;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ua.foxminded.universitycms.dto.*;
 import ua.foxminded.universitycms.exception.CustomHttpException;
+import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.exception.UserNotFoundException;
+import ua.foxminded.universitycms.exception.ValidationException;
 import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.security.userdetails.CustomUserDetails;
 import ua.foxminded.universitycms.service.CourseService;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import ua.foxminded.universitycms.util.ModelAttributeNames;
+import ua.foxminded.universitycms.util.ViewNames;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This Spring Boot Web Controller handles requests related to managing and displaying courses.
@@ -60,15 +63,15 @@ public class CourseController {
             ? courseService.getAllCoursesInPage(pageable)
             : courseService.getCourseByNameInPage(keyword, pageable);
 
-        model.addAttribute("allNamesOfCourses", courseService.getAllNamesOfCourses())
-            .addAttribute("courses", coursesPage.getContent())
-            .addAttribute("page", pageable.getPageNumber())
-            .addAttribute("totalItems", coursesPage.getTotalElements())
-            .addAttribute("totalPages", coursesPage.getTotalPages())
-            .addAttribute("size", pageable.getPageSize())
-            .addAttribute("keyword", keyword);
+        model.addAttribute(ModelAttributeNames.COURSES_ALL_NAMES_ATTRIBUTE, courseService.getAllNamesOfCourses())
+            .addAttribute(ModelAttributeNames.COURSES_ATTRIBUTE, coursesPage.getContent())
+            .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
+            .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, coursesPage.getTotalElements())
+            .addAttribute(ModelAttributeNames.TOTAL_PAGES_ATTRIBUTE, coursesPage.getTotalPages())
+            .addAttribute(ModelAttributeNames.SIZE_ATTRIBUTE, pageable.getPageSize())
+            .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
-        return "courses/all-courses";
+        return ViewNames.ALL_COURSES_PAGE;
     }
 
     /**
@@ -105,15 +108,15 @@ public class CourseController {
                     : courseService.getStudentCourseByCourseName(userId, keyword);
             }
         } catch (UserNotFoundException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Unable to display courses, user information is missing");
+            throw new CustomHttpException(e.getHttpStatus(),
+                "Unable to display courses, user information is missing.");
         }
 
-        List<String> userCoursesNames = courseService.getCoursesNames(userCourses);
-        model.addAttribute("userCoursesNames", userCoursesNames)
-            .addAttribute("userCourses", userCourses)
-            .addAttribute("keyword", keyword);
+        model.addAttribute(ModelAttributeNames.USER_COURSES_NAMES_ATTRIBUTE, getCoursesNames(userCourses))
+            .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, userCourses)
+            .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
-        return "courses/user-courses";
+        return ViewNames.USER_COURSES;
     }
 
     /**
@@ -132,12 +135,289 @@ public class CourseController {
         Optional<CourseDto> optional = courseService.getById(courseId);
 
         if (optional.isPresent()) {
-            model.addAttribute("course", optional.get());
-        } else {
-            throw new CustomHttpException(HttpStatus.NOT_FOUND, "Course not found");
+            CourseDto course = optional.get();
+            model.addAttribute(ModelAttributeNames.COURSE_ATTRIBUTE, course)
+                .addAttribute(ModelAttributeNames.TOPICS_ATTRIBUTE, getSortedTopicsByTopicOrder(course.getTopics()));
+            return ViewNames.SPECIFIC_COURSE;
         }
 
-        return "courses/course";
+        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Course not found.");
+    }
+
+    /**
+     * Retrieves the creation form for a new course.
+     * <p>
+     * This method handles GET requests to the `/my/new` endpoint. It checks if the authenticated user
+     * has the "TEACHER" role. If so, it creates a new `CourseDto` object with the user's ID set as the author
+     * and adds it to the model for the creation form. Otherwise, it throws a `CustomHttpException` with a bad request status.
+     *
+     * @param model             the Spring MVC Model object used to store data for the view
+     * @param customUserDetails details of the authenticated user
+     * @return the logical view name "courses/creation-form" representing the course creation template
+     * @throws CustomHttpException if the user does not have the "TEACHER" role
+     */
+    @GetMapping("my/new")
+    @PreAuthorize("hasAuthority('COURSES_CREATE')")
+    public String getCreationForm(Model model, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        if (RoleName.TEACHER.equals(customUserDetails.getRoleName())) {
+            CourseDto course = CourseDto.builder()
+                .authorId(customUserDetails.getId())
+                .build();
+
+            model.addAttribute(ModelAttributeNames.COURSE_ATTRIBUTE, course);
+            return ViewNames.COURSE_CREATION_FORM;
+        }
+
+        throw new CustomHttpException(HttpStatus.BAD_REQUEST, "Wrong course author.");
+    }
+
+    /**
+     * Attempts to create a new course.
+     * <p>
+     * This method handles POST requests to the `/my/create` endpoint. It binds the request parameters to a {@link CourseDto} object
+     * and validates it. If there are validation errors, it returns the creation form view name. Otherwise, it attempts to save the
+     * course using the `courseService`. If successful, it redirects the user to the "my courses" page. If a validation exception
+     * occurs, it adds an error message to the model and returns the creation form view name.
+     *
+     * @param model         the Spring MVC Model object used to store data for the view
+     * @param course        the course data to be created (received from the form)
+     * @param bindingResult the binding result containing any validation errors
+     * @return a redirect URL on success, the creation form view name on validation errors, or throws an exception
+     * @throws CustomHttpException if an unexpected error occurs during course creation
+     */
+    @PostMapping("my/create")
+    @PreAuthorize("hasAuthority('COURSES_CREATE')")
+    public String performCourseCreation(Model model, @ModelAttribute("course") @Valid CourseDto course,
+                                        BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ViewNames.COURSE_CREATION_FORM;
+        }
+
+        try {
+            courseService.save(course);
+            return "redirect:/ui/v1/courses/my";
+        } catch (ValidationException e) {
+            model.addAttribute(ModelAttributeNames.ERROR_MESSAGE_ATTRIBUTE, """
+                An error occurred while creating the new course. Rules of uniqueness are
+                violated. The name of the course and its description should be unique among
+                the courses of an individual teacher.""");
+            return ViewNames.COURSE_CREATION_FORM;
+        }
+    }
+
+    /**
+     * Retrieves the update form for an existing course.
+     * <p>
+     * This method handles GET requests to the `/my/{courseId}/edit` endpoint. It attempts to retrieve the course data with the
+     * provided course ID using the `courseService`. If the course is found, it adds the course data to the model and returns the
+     * update form view name. Otherwise, it throws a `CustomHttpException` with a not found status.
+     *
+     * @param model    the Spring MVC Model object used to store data for the view
+     * @param courseId the ID of the course to be updated
+     * @return the logical view name "courses/update-form" representing the course update template
+     * @throws CustomHttpException if the course with the provided ID is not found
+     */
+    @GetMapping("my/{courseId}/edit")
+    @PreAuthorize("hasAuthority('COURSES_UPDATE')")
+    public String getUpdateForm(Model model, @PathVariable("courseId") long courseId) {
+        Optional<CourseDto> optional = courseService.getById(courseId);
+
+        if (optional.isPresent()) {
+            model.addAttribute(ModelAttributeNames.COURSE_ATTRIBUTE, optional.get());
+            return ViewNames.COURSE_UPDATE_FORM;
+        }
+
+        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Editing failed. Course not found.");
+    }
+
+    /**
+     * Attempts to update an existing course.
+     * <p>
+     * This method handles PUT requests to the `/my/update` endpoint. It binds the request parameters to a {@link CourseDto} object
+     * and validates it. If there are validation errors, it returns the update form view name. Otherwise, it attempts to update the
+     * course using the `courseService`. If successful, it redirects the user to the specific course details page. If a validation
+     * exception occurs, it adds an error message to the model and returns the update form view name. If the course is not found, it
+     * throws a `CustomHttpException` with a not found status.
+     *
+     * @param model         the Spring MVC Model object used to store data for the view
+     * @param course        the course data to be updated (received from the form)
+     * @param bindingResult the binding result containing any validation errors
+     * @param courseId      the ID of the course to be updated (might be different from the one in the course object)
+     * @return a redirect URL on success, the update form view name on validation errors, or throws an exception
+     * @throws CustomHttpException if the course with the provided ID is not found or an unexpected error occurs
+     */
+    @PutMapping("my/update")
+    @PreAuthorize("hasAuthority('COURSES_UPDATE')")
+    public String performCourseUpdate(Model model, @ModelAttribute("course") @Valid CourseDto course,
+                                      BindingResult bindingResult, @RequestParam("cid") long courseId) {
+        if (bindingResult.hasErrors()) {
+            return ViewNames.COURSE_UPDATE_FORM;
+        }
+
+        try {
+            courseService.update(course);
+            return String.format("redirect:/ui/v1/courses/my/%s", courseId);
+        } catch (ValidationException e) {
+            model.addAttribute(ModelAttributeNames.ERROR_MESSAGE_ATTRIBUTE, """
+                An error occurred while updating an existing course. Rules of uniqueness are violated.
+                The name of the course and its description should be unique among the courses of an
+                individual teacher.""");
+            return ViewNames.COURSE_UPDATE_FORM;
+        } catch (EntityNotFoundException e) {
+            throw new CustomHttpException(e.getHttpStatus(), "Update failed. Course not found.");
+        }
+    }
+
+    /**
+     * Deletes a specified course.
+     * <p>
+     * This method handles DELETE requests to the `/my/{courseId}/delete` endpoint. It attempts to delete the course
+     * with the provided `courseId` using the `courseService`. If successful, it redirects the user to the "my courses" page.
+     * If the course is not found, it throws a `CustomHttpException` with a not found status.
+     *
+     * @param courseId the ID of the course to be deleted
+     * @return a redirect URL on success or throws an exception
+     * @throws CustomHttpException if the course with the provided ID is not found
+     */
+    @DeleteMapping("/my/{courseId}/delete")
+    @PreAuthorize("hasAuthority('COURSES_DELETE')")
+    public String performCourseDeletion(@PathVariable("courseId") long courseId) {
+        try {
+            courseService.deleteById(courseId);
+            return "redirect:/ui/v1/courses/my";
+        } catch (EntityNotFoundException e) {
+            throw new CustomHttpException(e.getHttpStatus(), "Deletion failed. Course not found.");
+        }
+    }
+
+    /**
+     * Retrieves a list of students enrolled in a specified course.
+     * <p>
+     * This method handles GET requests to the `/my/{courseId}/students` endpoint. It retrieves the course with the provided
+     * `courseId` using the `courseService`. If the course is found, it filters the course students based on an optional keyword
+     * and adds the course and student information to the model for display. Otherwise, it throws a `CustomHttpException` with a
+     * not found status.
+     *
+     * @param model    the Spring MVC Model object used to store data for the view
+     * @param courseId the ID of the course
+     * @param keyword  an optional search keyword for filtering students by email (can be blank)
+     * @return the logical view name "courses/course-students" representing the course students list template
+     * @throws CustomHttpException if the course with the provided ID is not found
+     */
+    @GetMapping("/my/{courseId}/students")
+    @PreAuthorize("hasAuthority('STUDENTS_READ')")
+    public String getCourseStudents(Model model, @PathVariable("courseId") long courseId,
+                                    @RequestParam(value = "keyword", required = false) String keyword) {
+        Optional<CourseDto> optional = courseService.getById(courseId);
+
+        if (optional.isPresent()) {
+            CourseDto course = optional.get();
+            Set<StudentDto> courseStudents = StringUtils.isBlank(keyword)
+                ? course.getStudents()
+                : findStudentByEmail(course.getStudents(), keyword);
+
+            model.addAttribute(ModelAttributeNames.COURSE_ATTRIBUTE, course)
+                .addAttribute(ModelAttributeNames.COURSE_STUDENTS_ATTRIBUTE, courseStudents)
+                .addAttribute(ModelAttributeNames.STUDENT_EMAILS_ATTRIBUTE, getStudentEmails(course.getStudents()))
+                .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
+
+            return ViewNames.COURSE_STUDENTS;
+        }
+
+        throw new CustomHttpException(HttpStatus.NOT_FOUND,
+            "This course was not found. Cannot view optional students.");
+    }
+
+    /**
+     * Deducts a student from a specified course.
+     * <p>
+     * This method handles DELETE requests to the `/my/{courseId}/students/{studentId}/deduct` endpoint. It attempts to
+     * deduct the student with the provided `studentId` from the course with the provided `courseId` using the `courseService`.
+     * If the student is not enrolled in the course, it throws a `ValidationException`. If the course or student is not found,
+     * it throws a `CustomHttpException` with a not found status.
+     *
+     * @param courseId           the ID of the course
+     * @param studentId          the ID of the student to be deducted
+     * @param redirectAttributes the redirect attributes to add a flash message if necessary
+     * @return a redirect URL to the course students page
+     * @throws CustomHttpException if the course or student is not found
+     * @throws ValidationException if the student is not enrolled in the course
+     */
+    @DeleteMapping("/my/{courseId}/students/{studentId}/deduct")
+    @PreAuthorize("hasAuthority('COURSES_UPDATE')")
+    public String performDeductionStudentFromCourse(@PathVariable("courseId") long courseId, @PathVariable("studentId") long studentId,
+                                                    RedirectAttributes redirectAttributes) {
+        try {
+            courseService.deductStudentFromCourse(courseId, studentId);
+        } catch (ValidationException e) {
+            redirectAttributes.addFlashAttribute(ModelAttributeNames.ERROR_MESSAGE_ATTRIBUTE, """
+                An error occurred while trying to deduct a student from the course. The student
+                is not enrolled in this course.""");
+        } catch (EntityNotFoundException e) {
+            throw new CustomHttpException(e.getHttpStatus(), """
+                The requested resource was not found. Please check the provided information and
+                try again.""");
+        }
+
+        return "redirect:/ui/v1/courses/my/{courseId}/students";
+    }
+
+    /**
+     * Enrolls a student in a specified course.
+     * <p>
+     * This method handles POST requests to the `/my/{courseId}/students/{studentId}/enroll` endpoint. It attempts to
+     * enroll the student with the provided `studentId` in the course with the provided `courseId` using the `courseService`.
+     * If the student is already enrolled in the course, it throws a `ValidationException`. If the course or student is not found,
+     * it throws a `CustomHttpException` with a not found status.
+     *
+     * @param courseId           the ID of the course
+     * @param studentId          the ID of the student to be enrolled
+     * @param redirectAttributes the redirect attributes to add a flash message if necessary
+     * @return a redirect URL to the course students page
+     * @throws CustomHttpException if the course or student is not found
+     * @throws ValidationException if the student is already enrolled in the course
+     */
+    @PostMapping("/my/{courseId}/students/{studentId}/enroll")
+    @PreAuthorize("hasAuthority('COURSES_UPDATE')")
+    public String performEnrollingStudentToCourse(@PathVariable("courseId") long courseId, @PathVariable("studentId") long studentId,
+                                                  RedirectAttributes redirectAttributes) {
+        try {
+            courseService.enrollStudentInCourse(courseId, studentId);
+        } catch (ValidationException e) {
+            redirectAttributes.addFlashAttribute(ModelAttributeNames.ERROR_MESSAGE_ATTRIBUTE, """
+                An error occurred while enrolling a student in the course. The student is already
+                enrolled in this course.""");
+        } catch (EntityNotFoundException e) {
+            throw new CustomHttpException(e.getHttpStatus(), """
+                The requested resource was not found. Please check the provided information
+                and try again.""");
+        }
+
+        return "redirect:/ui/v1/courses/my/{courseId}/students";
+    }
+
+    private List<String> getCoursesNames(Collection<CourseDto> courses) {
+        return courses.stream()
+            .map(CourseDto::getCourseName)
+            .toList();
+    }
+
+    private List<TopicDto> getSortedTopicsByTopicOrder(Set<TopicDto> topics) {
+        return topics.stream()
+            .sorted(Comparator.comparing(TopicDto::getTopicOrder))
+            .toList();
+    }
+
+    private List<String> getStudentEmails(Collection<StudentDto> students) {
+        return students.stream()
+            .map(UserDto::getEmail)
+            .toList();
+    }
+
+    private Set<StudentDto> findStudentByEmail(Collection<StudentDto> students, String email) {
+        return students.stream()
+            .filter(s -> s.getEmail().equals(email))
+            .collect(Collectors.toSet());
     }
 
 }

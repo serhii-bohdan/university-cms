@@ -25,7 +25,7 @@ public class MarkDto extends AbstractDto {
      * The numerical value of the mark assigned to the student.
      */
     @NotNull(message = "Mark value is mandatory")
-    @Min(1)
+    @Min(value = 1, message = "Mark value must be greater than zero")
     private Integer markValue;
 
     /**
@@ -41,9 +41,15 @@ public class MarkDto extends AbstractDto {
     private Long studentId;
 
     /**
-     * A {@link TopicDto} object representing the topic for which the mark was given.
+     * The ID of the topic for which the mark was assigned.
      */
     @NotNull
-    private TopicDto topic;
+    @Min(1)
+    private Long topicId;
+
+    /**
+     * The name of the topic for which the mark was assigned.
+     */
+    private String topicName;
 
 }

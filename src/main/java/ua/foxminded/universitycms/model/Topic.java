@@ -68,19 +68,4 @@ public class Topic extends AbstractEntity {
     @OneToMany(mappedBy = "topic", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<Mark> marks = new HashSet<>();
 
-    /**
-     * Constructs a new {@code Topic} object with the given parameters.
-     *
-     * @param topicName        the name of the topic
-     * @param topicDescription the description of the topic
-     * @param topicOrder       the order (position) of the topic within the course
-     * @param course           the course that the topic belongs to
-     */
-    public Topic(String topicName, String topicDescription, Integer topicOrder, Course course) {
-        this.topicName = topicName;
-        this.topicDescription = topicDescription;
-        this.topicOrder = topicOrder;
-        this.course = course;
-    }
-
 }

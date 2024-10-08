@@ -1,5 +1,6 @@
 package ua.foxminded.universitycms.dto;
 
+import java.util.Set;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -27,7 +28,7 @@ public class TopicDto extends AbstractDto {
      * The name of the topic.
      */
     @NotBlank(message = "Topic name is mandatory")
-    @Size(max = 255)
+    @Size(max = 255, message = "Topic name cannot be longer than 255 characters")
     private String topicName;
 
     /**
@@ -40,7 +41,7 @@ public class TopicDto extends AbstractDto {
      * The order (position) of the topic within the course curriculum.
      */
     @NotNull(message = "Topic order is mandatory")
-    @Min(1)
+    @Min(value = 1, message = "Topic order must be greater than zero")
     private Integer topicOrder;
 
     /**
@@ -49,5 +50,10 @@ public class TopicDto extends AbstractDto {
     @NotNull
     @Min(1)
     private Long courseId;
+
+    /**
+     * A collection of {@link MarkDto} objects representing the marks assigned to students for this topic.
+     */
+    private Set<MarkDto> marks;
 
 }

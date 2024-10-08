@@ -1,0 +1,81 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>Course</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" style="max-width: 600px; margin: 0 auto;">
+  <h2 class="title-center" th:text="Rate + ' ' + ${studentFullName}"></h2>
+  <form th:method="post" th:action="@{/ui/v1/marks/create}" th:object="${mark}">
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="topicSelect">Select topic name</label>
+      <select id="topicSelect" class="form-control"></select>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="markValue">Enter mark value</label>
+      <input type="number" class="form-control" id="markValue" th:field="*{markValue}">
+      <div th:if="${#fields.hasErrors('markValue')}" th:errors="*{markValue}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="comment">Enter comment (not necessarily)</label>
+      <input type="text" class="form-control" id="comment" th:field="*{comment}">
+      <div th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}" class="invalid-validation"></div>
+    </div>
+    <input type="hidden" class="form-control" th:field="*{studentId}">
+    <input type="hidden" class="form-control" th:field="*{topicId}">
+    <input type="hidden" name="cid" th:value="${courseId}">
+    <input type="hidden" name="sid" th:value="${studentId}">
+    <input type="hidden" name="fullName" th:value="${studentFullName}">
+    <button sec:authorize="hasAuthority('MARKS_CREATE')" type="submit" id="rateButton" class="btn btn-success form-group-margin" th:text="Rate"></button>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" th:href="@{../../../ui/v1/marks(sid=${studentId}, cid=${courseId}, fullName=${studentFullName})}" th:text="Cancle"></a>
+  </form>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+<script th:src="@{/webjars/jquery-ui/1.13.2/jquery-ui.min.js}"></script>
+<script th:inline="javascript">
+  const unratedTopics = /*[[${unratedTopics}]]*/ {};
+
+  $(document).ready(function() {
+    const topicNames = Object.keys(unratedTopics);
+    const selectElement = document.getElementById('topicSelect');
+    const rateButton = document.getElementById('rateButton');
+
+    if (topicNames.length === 0) {
+      selectElement.disabled = true;
+      rateButton.disabled = true;
+    } else {
+      topicNames.forEach(topicName => {
+        const option = document.createElement('option');
+        option.value = topicName;
+        option.text = topicName;
+        selectElement.appendChild(option);
+      });
+
+      const initialTopic = selectElement.options[0].value;
+      const initialTopicId = unratedTopics[initialTopic];
+
+      if (initialTopicId) {
+        $('#topicId').val(initialTopicId);
+      }
+    }
+
+    $('#topicSelect').on('change', function() {
+      const selectedTopic = $(this).val();
+      const topicId = unratedTopics[selectedTopic];
+
+      if (topicId) {
+        $('#topicId').val(topicId);
+      }
+    });
+  });
+</script>
+</body>
+</html>

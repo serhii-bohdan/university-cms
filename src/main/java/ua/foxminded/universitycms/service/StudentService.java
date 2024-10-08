@@ -61,4 +61,12 @@ public interface StudentService extends Service<Student, StudentDto> {
      */
     List<String> getAllNamesOfStudents();
 
+    /**
+     * Retrieves a list of students who are not enrolled in the specified course.
+     *
+     * @param courseId the ID of the course
+     * @return a list of {@link StudentDto} objects representing the students who are not enrolled in the course
+     */
+    List<StudentDto> getListOfStudentsNotEnrolledInCourse(long courseId);
+
 }

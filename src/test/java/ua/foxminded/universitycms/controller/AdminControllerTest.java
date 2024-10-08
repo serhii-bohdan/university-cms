@@ -97,7 +97,7 @@ class AdminControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("keyword", keyword))
+            .andExpect(model().attribute("keyword", ""))
             .andExpect(view().name("admins/all-admins"));
 
         verify(adminServiceMock, times(1)).getAdminsPage(pageable);
@@ -140,9 +140,8 @@ class AdminControllerTest {
         mockMvc.perform(get("/ui/v1/admins")
                 .param("keyword", invalidKeyWord))
             .andExpect(status().isOk())
-            .andExpect(model().attributeExists("message"))
-            .andExpect(model().attribute("httpStatus", httpStatus))
-            .andExpect(view().name("error"));
+            .andExpect(model().attributeExists("exception"))
+            .andExpect(view().name("error-page"));
 
         verify(adminServiceMock, times(1)).getAdminInPageByName(invalidKeyWord, pageable);
         verify(invalidFullNameFormatExceptionMock, times(1)).getHttpStatus();

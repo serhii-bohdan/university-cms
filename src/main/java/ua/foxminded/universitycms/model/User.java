@@ -68,22 +68,6 @@ public abstract class User extends AbstractEntity {
     private ZonedDateTime updatedAt;
 
     /**
-     * Constructs a new {@code User} instance with essential user information.
-     * This protected constructor is designed to be used by subclasses to create specific user types.
-     *
-     * @param name         the user's full name
-     * @param email        the user's email address
-     * @param passwordHash a securely hashed representation of the user's password
-     * @param isActive     indicates whether the user's account is active
-     */
-    protected User(Name name, String email, String passwordHash, Boolean isActive) {
-        this.name = name;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.isActive = isActive;
-    }
-
-    /**
      * This callback method is called before persisting the entity. It sets the {@code createdAt} field
      * to the current timestamp.
      */

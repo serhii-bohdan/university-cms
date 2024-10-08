@@ -78,6 +78,7 @@ public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<
      * @param entity The existing {@link Student} entity to be updated.
      * @return The updated `Student` entity.
      */
+    @Override
     @Mapping(source = "firstName", target = "name.firstName")
     @Mapping(source = "lastName", target = "name.lastName")
     @Mapping(source = "roleId", target = "role.id")

@@ -93,19 +93,6 @@ public class Course extends AbstractEntity {
     private ZonedDateTime updatedAt;
 
     /**
-     * Constructs a new {@code Course} object with the given parameters.
-     *
-     * @param courseName        the name of the course
-     * @param courseDescription the description of the course
-     * @param author            the teacher who authored the course
-     */
-    public Course(String courseName, String courseDescription, Teacher author) {
-        this.courseName = courseName;
-        this.courseDescription = courseDescription;
-        this.author = author;
-    }
-
-    /**
      * Sets the {@code createdAt} field to the current time when the course is
      * created.
      */
@@ -121,6 +108,36 @@ public class Course extends AbstractEntity {
     @PreUpdate
     protected void onUpdate() {
         setUpdatedAt(ZonedDateTime.now());
+    }
+
+    /**
+     * Enrolls a student in this course.
+     * <p>
+     * This method adds the specified student to the course's `students` set
+     * and also calls the `addCourse` method of the student to add this course
+     * to the student's `courses` set. This ensures a bidirectional relationship
+     * is maintained between courses and students.
+     *
+     * @param student The {@link Student} object to be enrolled.
+     */
+    public void addStudent(Student student) {
+        this.students.add(student);
+        student.addCourse(this);
+    }
+
+    /**
+     * Removes a student from this course.
+     * <p>
+     * This method removes the specified student from the course's `students` set
+     * and also calls the `removeCourse` method of the student to remove this course
+     * from the student's `courses` set. This ensures a bidirectional relationship
+     * is maintained between courses and students.
+     *
+     * @param student The {@link Student} object to be removed.
+     */
+    public void removeStudent(Student student) {
+        this.students.remove(student);
+        student.removeCourse(this);
     }
 
 }

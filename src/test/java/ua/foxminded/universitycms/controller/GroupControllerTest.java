@@ -94,7 +94,7 @@ class GroupControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("keyword", keyword))
+            .andExpect(model().attribute("keyword", ""))
             .andExpect(view().name("groups/all-groups"));
 
         verify(groupServiceMock, times(1)).getGroupsPage(pageable);

@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ua.foxminded.universitycms.dto.CourseDto;
 import ua.foxminded.universitycms.model.Course;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -83,11 +82,19 @@ public interface CourseService extends Service<Course, CourseDto> {
     List<CourseDto> getTeacherCourseByCourseName(long teacherId, @NotNull String courseName);
 
     /**
-     * Extracts a list of course names from a collection of {@link CourseDto} objects.
+     * Deducts a student from a specified course.
      *
-     * @param courses the collection of CourseDto objects to extract names from
-     * @return a list of strings representing the names of the courses
+     * @param courseId  the ID of the course to deduct the student from
+     * @param studentId the ID of the student to be deducted
      */
-    List<String> getCoursesNames(@NotNull Collection<CourseDto> courses);
+    void deductStudentFromCourse(long courseId, long studentId);
+
+    /**
+     * Enrolls a student in a specified course.
+     *
+     * @param courseId  the ID of the course to enroll the student in
+     * @param studentId the ID of the student to be enrolled
+     */
+    void enrollStudentInCourse(long courseId, long studentId);
 
 }

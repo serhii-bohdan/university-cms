@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.CourseDto;
+import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.exception.UserNotFoundException;
+import ua.foxminded.universitycms.exception.ValidationException;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.Course;
 import ua.foxminded.universitycms.model.Student;
@@ -68,6 +70,34 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
         this.studentRepository = studentRepository;
     }
 
+    @Override
+    public CourseDto save(CourseDto courseDto) {
+        List<Course> teacherCourses = courseRepository.findByAuthorId(courseDto.getAuthorId());
+
+        if (isCourseNameUniqueAmongTeacherCoursesForSave(courseDto, teacherCourses) &&
+            isDescriptionUniqueAmongTeacherCoursesForSave(courseDto, teacherCourses)) {
+            return super.save(courseDto);
+        }
+
+        throw new ValidationException(HttpStatus.BAD_REQUEST, """
+            Error creating new course. The name of the course and its description
+            should be unique among the courses of an individual teacher.""");
+    }
+
+    @Override
+    public CourseDto update(CourseDto courseDto) {
+        List<Course> teacherCourses = courseRepository.findByAuthorId(courseDto.getAuthorId());
+
+        if (isCourseNameUniqueAmongTeacherCoursesForUpdate(courseDto, teacherCourses) &&
+            isDescriptionUniqueAmongTeacherCoursesForUpdate(courseDto, teacherCourses)) {
+            return super.update(courseDto);
+        }
+
+        throw new ValidationException(HttpStatus.BAD_REQUEST, """
+            Error updating existing course. The name of the course and its description
+            should be unique among the courses of an individual teacher.""");
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -101,7 +131,8 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
     public List<CourseDto> getStudentCourses(long studentId) {
         return studentRepository.findById(studentId)
             .map(s -> getCourseDtoList(s.getCourses()))
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND, String.format("Student with given ID does not exist: %d", studentId)));
+            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Student with given ID does not exist: %d", studentId)));
     }
 
     /**
@@ -120,7 +151,8 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
     @Override
     public List<CourseDto> getTeacherCourses(long teacherId) {
         return getCourseDtoList(teacherRepository.findById(teacherId).map(Teacher::getCourses)
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND, String.format("Teacher with given ID does not exist: %d", teacherId))));
+            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Teacher with given ID does not exist: %d", teacherId))));
     }
 
     /**
@@ -135,18 +167,80 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
 
     /**
      * {@inheritDoc}
+     *
+     * @throws EntityNotFoundException if the course or student is not found
+     * @throws ValidationException     if the student is not enrolled in the course
      */
     @Override
-    public List<String> getCoursesNames(Collection<CourseDto> courses) {
-        return courses.stream()
-            .map(CourseDto::getCourseName)
-            .toList();
+    public void deductStudentFromCourse(long courseId, long studentId) {
+        Course course = courseRepository.findById(courseId)
+            .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Course with ID %d not found", courseId)
+            ));
+
+        Student student = studentRepository.findById(studentId)
+            .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Student with ID %d not found", studentId)
+            ));
+
+        if (!course.getStudents().contains(student)) {
+            throw new ValidationException(HttpStatus.BAD_REQUEST,
+                "Student is not enrolled in this course");
+        }
+
+        course.removeStudent(student);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws EntityNotFoundException if the course or student is not found
+     * @throws ValidationException     if the student is not enrolled in the course
+     */
+    @Override
+    public void enrollStudentInCourse(long courseId, long studentId) {
+        Course course = courseRepository.findById(courseId)
+            .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Course with ID %d not found", courseId)
+            ));
+
+        Student student = studentRepository.findById(studentId)
+            .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Student with ID %d not found", studentId)
+            ));
+
+        if (course.getStudents().contains(student)) {
+            throw new ValidationException(HttpStatus.BAD_REQUEST,
+                "Student already enrolled in this course");
+        }
+
+        course.addStudent(student);
     }
 
     private List<CourseDto> getCourseDtoList(Collection<Course> courses) {
         return courses.stream()
             .map(mapper::toDto)
             .toList();
+    }
+
+    private boolean isCourseNameUniqueAmongTeacherCoursesForSave(CourseDto courseDto, List<Course> teacherCourses) {
+        return teacherCourses.stream().noneMatch(c -> c.getCourseName().equals(courseDto.getCourseName()));
+    }
+
+    private boolean isDescriptionUniqueAmongTeacherCoursesForSave(CourseDto courseDto, List<Course> teacherCourses) {
+        return teacherCourses.stream().noneMatch(c -> c.getCourseDescription().equals(courseDto.getCourseDescription()));
+    }
+
+    private boolean isCourseNameUniqueAmongTeacherCoursesForUpdate(CourseDto courseDto, List<Course> teacherCourses) {
+        return teacherCourses.stream()
+            .filter(c -> !c.getId().equals(courseDto.getId()))
+            .noneMatch(c -> c.getCourseName().equals(courseDto.getCourseName()));
+    }
+
+    private boolean isDescriptionUniqueAmongTeacherCoursesForUpdate(CourseDto courseDto, List<Course> teacherCourses) {
+        return teacherCourses.stream()
+            .filter(c -> !c.getId().equals(courseDto.getId()))
+            .noneMatch(c -> c.getCourseDescription().equals(courseDto.getCourseDescription()));
     }
 
 }

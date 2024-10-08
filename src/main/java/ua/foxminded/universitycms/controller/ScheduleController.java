@@ -11,6 +11,8 @@ import ua.foxminded.universitycms.dto.ScheduleDto;
 import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.security.userdetails.CustomUserDetails;
 import ua.foxminded.universitycms.service.ScheduleService;
+import ua.foxminded.universitycms.util.ModelAttributeNames;
+import ua.foxminded.universitycms.util.ViewNames;
 import java.util.Optional;
 
 /**
@@ -50,8 +52,8 @@ public class ScheduleController {
             optional = scheduleService.getScheduleForStudent(userId);
         }
 
-        model.addAttribute("schedule", optional.orElseGet(ScheduleDto::new));
-        return "schedule/calendar";
+        model.addAttribute(ModelAttributeNames.SCHEDULE_ATTRIBUTE, optional.orElseGet(ScheduleDto::new));
+        return ViewNames.CALENDAR;
     }
 
 }

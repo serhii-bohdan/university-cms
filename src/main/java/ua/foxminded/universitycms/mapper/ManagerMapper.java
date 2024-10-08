@@ -65,6 +65,7 @@ public interface ManagerMapper extends ua.foxminded.universitycms.mapper.Mapper<
      * @param entity The existing {@link Manager} entity to be updated.
      * @return The updated `Manager` entity.
      */
+    @Override
     @Mapping(source = "firstName", target = "name.firstName")
     @Mapping(source = "lastName", target = "name.lastName")
     @Mapping(source = "roleId", target = "role.id")

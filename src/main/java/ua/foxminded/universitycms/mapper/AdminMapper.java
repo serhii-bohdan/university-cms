@@ -63,6 +63,7 @@ public interface AdminMapper extends ua.foxminded.universitycms.mapper.Mapper<Ad
      * @param entity the existing {@link Admin} entity to be updated
      * @return the updated {@link Admin} entity
      */
+    @Override
     @Mapping(source = "firstName", target = "name.firstName")
     @Mapping(source = "lastName", target = "name.lastName")
     @Mapping(source = "roleId", target = "role.id")

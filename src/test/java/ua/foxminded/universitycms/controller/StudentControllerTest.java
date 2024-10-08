@@ -97,7 +97,7 @@ class StudentControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("keyword", keyword))
+            .andExpect(model().attribute("keyword", ""))
             .andExpect(view().name("students/all-students"));
 
         verify(studentServiceMock, times(1)).getStudentsPage(pageable);
@@ -140,9 +140,8 @@ class StudentControllerTest {
         mockMvc.perform(get("/ui/v1/students")
                 .param("keyword", invalidKeyWord))
             .andExpect(status().isOk())
-            .andExpect(model().attributeExists("message"))
-            .andExpect(model().attribute("httpStatus", httpStatus))
-            .andExpect(view().name("error"));
+            .andExpect(model().attributeExists("exception"))
+            .andExpect(view().name("error-page"));
 
         verify(studentServiceMock, times(1)).getStudentInPageByName(invalidKeyWord, pageable);
         verify(invalidFullNameFormatExceptionMock, times(1)).getHttpStatus();

@@ -2,6 +2,7 @@ package ua.foxminded.universitycms.service.impl;
 
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import ua.foxminded.universitycms.service.Service;
  * @param <D> the type of DTO representing the entity
  * @author Serhii Bohdan
  */
+@RequiredArgsConstructor
 @Transactional
 public abstract class AbstractService<E extends AbstractEntity, D extends AbstractDto> implements Service<E, D> {
 
@@ -32,17 +34,6 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
      * The {@link Mapper} used for converting between entities of type {@code E} and DTOs of type {@code D}.
      */
     protected final Mapper<E, D> mapper;
-
-    /**
-     * Constructs a new {@code AbstractService} instance with the given repository and mapper.
-     *
-     * @param repository the repository to use for entity management
-     * @param mapper     the mapper to use for entity-DTO conversions
-     */
-    protected AbstractService(JpaRepository<E, Long> repository, Mapper<E, D> mapper) {
-        this.repository = repository;
-        this.mapper = mapper;
-    }
 
     /**
      * Saves a new entity based on the provided DTO representation.
@@ -98,8 +89,12 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
      */
     @Override
     public D update(D dto) {
-        E entity = repository.save(mapper.toEntity(dto));
-        return mapper.toDto(entity);
+        E existingEntity = repository.findById(dto.getId())
+            .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Entity not found with id: %d", dto.getId())));
+
+        E updatedEntity = mapper.partialUpdate(dto, existingEntity);
+        return mapper.toDto(repository.save(updatedEntity));
     }
 
     /**

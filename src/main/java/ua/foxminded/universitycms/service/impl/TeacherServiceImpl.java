@@ -96,7 +96,9 @@ public class TeacherServiceImpl extends AbstractService<Teacher, TeacherDto> imp
     @Override
     public TeacherDto update(TeacherDto dto) {
         Teacher existingTeacher = teacherRepository.findById(dto.getId())
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND, String.format("Teacher not found with id: %d", dto.getId())));
+            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Teacher not found with id: %d", dto.getId())));
+
         Teacher updatedTeacher = teacherMapper.partialUpdate(dto, existingTeacher);
         return teacherMapper.toDto(teacherRepository.save(updatedTeacher));
     }
@@ -150,7 +152,8 @@ public class TeacherServiceImpl extends AbstractService<Teacher, TeacherDto> imp
             return Arrays.asList(firstNameAndLastName);
         }
 
-        throw new InvalidFullNameFormatException(HttpStatus.BAD_REQUEST, "Full name must contain at least two words");
+        throw new InvalidFullNameFormatException(HttpStatus.BAD_REQUEST,
+            "Full name must contain at least two words");
     }
 
 }

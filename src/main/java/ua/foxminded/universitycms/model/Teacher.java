@@ -43,34 +43,4 @@ public class Teacher extends User {
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Course> courses = new HashSet<>();
 
-    /**
-     * Constructs a new Teacher with complete initial data, including a schedule.
-     *
-     * @param name         The teacher's full name.
-     * @param email        The teacher's email address.
-     * @param passwordHash The hashed representation of the teacher's password.
-     * @param isActive     Whether the teacher's account is active.
-     * @param role         The role assigned to the teacher.
-     * @param schedule     The teacher's personal schedule.
-     */
-    public Teacher(Name name, String email, String passwordHash, Role role, Boolean isActive, Schedule schedule) {
-        super(name, email, passwordHash, isActive);
-        this.role = role;
-        this.schedule = schedule;
-    }
-
-    /**
-     * Constructs a new Teacher with basic information, without a schedule.
-     *
-     * @param name         The teacher's full name.
-     * @param email        The teacher's email address.
-     * @param passwordHash The hashed representation of the teacher's password.
-     * @param isActive     Whether the teacher's account is active.
-     * @param role         The role assigned to the teacher.
-     */
-    public Teacher(Name name, String email, String passwordHash, Role role, Boolean isActive) {
-        super(name, email, passwordHash, isActive);
-        this.role = role;
-    }
-
 }

@@ -1,5 +1,6 @@
 package ua.foxminded.universitycms.repository;
 
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,5 +32,13 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * @return a {@link Page} of matching courses, or an empty {@link Page} if none found
      */
     Page<Course> findCourseByCourseNameIgnoreCase(String name, Pageable pageable);
+
+    /**
+     * Finds courses authored by the specified teacher.
+     *
+     * @param authorId the ID of the author (teacher)
+     * @return a list of courses authored by the specified teacher, or an empty list if none found
+     */
+    List<Course> findByAuthorId(long authorId);
 
 }

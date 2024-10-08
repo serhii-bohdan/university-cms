@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ua.foxminded.universitycms.dto.GroupDto;
 import ua.foxminded.universitycms.service.GroupService;
+import ua.foxminded.universitycms.util.ModelAttributeNames;
+import ua.foxminded.universitycms.util.ViewNames;
 
 /**
  * This Spring Boot Web Controller handles requests related to managing and displaying groups.
@@ -47,18 +49,18 @@ public class GroupController {
     public String getPageWithGroups(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                     @PageableDefault Pageable pageable) {
         Page<GroupDto> groupsPage = StringUtils.isBlank(keyword)
-                ? groupService.getGroupsPage(pageable)
-                : groupService.getGroupInPageByName(keyword, pageable);
+            ? groupService.getGroupsPage(pageable)
+            : groupService.getGroupInPageByName(keyword, pageable);
 
-        model.addAttribute("allNamesOfGroups", groupService.getAllNamesOfGroups())
-            .addAttribute("groups", groupsPage.getContent())
-            .addAttribute("page", pageable.getPageNumber())
-            .addAttribute("totalItems", groupsPage.getTotalElements())
-            .addAttribute("totalPages", groupsPage.getTotalPages())
-            .addAttribute("size", pageable.getPageSize())
-            .addAttribute("keyword", keyword);
+        model.addAttribute(ModelAttributeNames.GROUPS_ALL_NAMES_ATTRIBUTE, groupService.getAllNamesOfGroups())
+            .addAttribute(ModelAttributeNames.GROUPS_ATTRIBUTE, groupsPage.getContent())
+            .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
+            .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, groupsPage.getTotalElements())
+            .addAttribute(ModelAttributeNames.TOTAL_PAGES_ATTRIBUTE, groupsPage.getTotalPages())
+            .addAttribute(ModelAttributeNames.SIZE_ATTRIBUTE, pageable.getPageSize())
+            .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
-        return "groups/all-groups";
+        return ViewNames.ALL_GROUPS_PAGE;
     }
 
 }
