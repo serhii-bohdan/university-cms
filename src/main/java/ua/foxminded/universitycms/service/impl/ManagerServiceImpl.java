@@ -81,7 +81,9 @@ public class ManagerServiceImpl extends AbstractService<Manager, ManagerDto> imp
     @Override
     public ManagerDto update(ManagerDto dto) {
         Manager existingManager = managerRepository.findById(dto.getId())
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND, String.format("Manager not found with id: %d", dto.getId())));
+            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Manager not found with id: %d", dto.getId())));
+
         Manager updatedManager = managerMapper.partialUpdate(dto, existingManager);
         return managerMapper.toDto(managerRepository.save(updatedManager));
     }
@@ -120,7 +122,8 @@ public class ManagerServiceImpl extends AbstractService<Manager, ManagerDto> imp
             return Arrays.asList(firstNameAndLastName);
         }
 
-        throw new InvalidFullNameFormatException(HttpStatus.BAD_REQUEST, "Full name must contain at least two words");
+        throw new InvalidFullNameFormatException(HttpStatus.BAD_REQUEST,
+            "Full name must contain at least two words");
     }
 
 }

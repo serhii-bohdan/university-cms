@@ -1,12 +1,15 @@
 package ua.foxminded.universitycms.service.impl;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.MarkDto;
 import ua.foxminded.universitycms.mapper.Mapper;
+import ua.foxminded.universitycms.model.AbstractEntity;
 import ua.foxminded.universitycms.model.Mark;
 import ua.foxminded.universitycms.model.Topic;
 import ua.foxminded.universitycms.repository.MarkRepository;
@@ -74,10 +77,9 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
      */
     @Override
     public List<MarkDto> getStudentCourseMarksByTopicName(long studentId, long courseId, String topicName) {
-        return markRepository.findMarksByStudentIdAndCourseId(studentId, courseId).stream()
+        return getMarkDtoList(markRepository.findMarksByStudentIdAndCourseId(studentId, courseId).stream()
             .filter(m -> m.getTopic().getTopicName().equals(topicName.strip()))
-            .map(mapper::toDto)
-            .toList();
+            .toList());
     }
 
     /**
@@ -91,6 +93,20 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
         return topicRepository.findByCourseId(courseId).stream()
             .map(Topic::getTopicName)
             .toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String, Long> getUnratedTopics(long studentId, long courseId) {
+        List<Long> ratedTopicIds = getStudentCourseMarks(studentId, courseId).stream()
+            .map(MarkDto::getTopicId)
+            .toList();
+
+        return topicRepository.findByCourseId(courseId).stream()
+            .filter(t -> !ratedTopicIds.contains(t.getId()))
+            .collect(Collectors.toMap(Topic::getTopicName, AbstractEntity::getId));
     }
 
     private List<MarkDto> getMarkDtoList(List<Mark> marks) {

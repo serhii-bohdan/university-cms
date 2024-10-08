@@ -15,6 +15,8 @@ import ua.foxminded.universitycms.dto.AdminDto;
 import ua.foxminded.universitycms.exception.CustomHttpException;
 import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.AdminService;
+import ua.foxminded.universitycms.util.ModelAttributeNames;
+import ua.foxminded.universitycms.util.ViewNames;
 
 /**
  * Spring MVC Controller for handling web requests related to managing and displaying admin users.
@@ -63,15 +65,15 @@ public class AdminController {
             throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
         }
 
-        model.addAttribute("allNamesOfAdmins", adminService.getAllNamesOfAdmins())
-            .addAttribute("admins", adminsPage.getContent())
-            .addAttribute("page", pageable.getPageNumber())
-            .addAttribute("totalItems", adminsPage.getTotalElements())
-            .addAttribute("totalPages", adminsPage.getTotalPages())
-            .addAttribute("size", pageable.getPageSize())
-            .addAttribute("keyword", keyword);
+        model.addAttribute(ModelAttributeNames.ADMINS_ALL_NAMES_ATTRIBUTE, adminService.getAllNamesOfAdmins())
+            .addAttribute(ModelAttributeNames.ADMINS_ATTRIBUTE, adminsPage.getContent())
+            .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
+            .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, adminsPage.getTotalElements())
+            .addAttribute(ModelAttributeNames.TOTAL_PAGES_ATTRIBUTE, adminsPage.getTotalPages())
+            .addAttribute(ModelAttributeNames.SIZE_ATTRIBUTE, pageable.getPageSize())
+            .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
-        return "admins/all-admins";
+        return ViewNames.ALL_ADMINS_PAGE;
     }
 
 }

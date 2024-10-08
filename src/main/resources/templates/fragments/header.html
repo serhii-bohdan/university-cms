@@ -7,23 +7,50 @@
       <img th:src="@{/images/logo-header.svg}" width="45" height="45" alt="">
       <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
         <li><a th:href="@{/ui/v1/home}" class="nav-link px-2 text-white">Home</a></li>
-        <li><a sec:authorize="hasAuthority('ADMINS_READ')" th:href="@{/ui/v1/admins}" class="nav-link px-2 text-white">Admins</a></li>
-        <li><a sec:authorize="hasAuthority('MANAGERS_READ')" th:href="@{/ui/v1/managers}" class="nav-link px-2 text-white">Managers</a></li>
-        <li><a sec:authorize="hasAuthority('STUDENTS_CREATE')" th:href="@{/ui/v1/students}" class="nav-link px-2 text-white">Students</a></li>
-        <li><a sec:authorize="hasAuthority('TEACHERS_CREATE')" th:href="@{/ui/v1/teachers}" class="nav-link px-2 text-white">Teachers</a></li>
-        <li><a sec:authorize="hasAuthority('GROUPS_CREATE')" th:href="@{/ui/v1/groups}" class="nav-link px-2 text-white">Groups</a></li>
-        <li><a sec:authorize="hasAuthority('COURSES_READ')" th:href="@{/ui/v1/courses/my}" class="nav-link px-2 text-white">Courses</a></li>
-        <li><a sec:authorize="hasAuthority('SCHEDULE_READ')" th:href="@{/ui/v1/schedule}" class="nav-link px-2 text-white">Schedule</a></li>
+        <li><a sec:authorize="hasAuthority('ADMINS_READ')" th:href="@{/ui/v1/admins}" class="nav-link px-2 text-white">Admins</a>
+        </li>
+        <li><a sec:authorize="hasAuthority('MANAGERS_READ')" th:href="@{/ui/v1/managers}"
+               class="nav-link px-2 text-white">Managers</a></li>
+        <li><a sec:authorize="hasAuthority('STUDENTS_CREATE')" th:href="@{/ui/v1/students}"
+               class="nav-link px-2 text-white">Students</a></li>
+        <li><a sec:authorize="hasAuthority('TEACHERS_CREATE')" th:href="@{/ui/v1/teachers}"
+               class="nav-link px-2 text-white">Teachers</a></li>
+        <li><a sec:authorize="hasAuthority('GROUPS_CREATE')" th:href="@{/ui/v1/groups}"
+               class="nav-link px-2 text-white">Groups</a></li>
+        <li><a sec:authorize="hasAuthority('COURSES_READ')" th:href="@{/ui/v1/courses/my}"
+               class="nav-link px-2 text-white">Courses</a></li>
+        <li><a sec:authorize="hasAuthority('SCHEDULE_READ')" th:href="@{/ui/v1/schedule}"
+               class="nav-link px-2 text-white">Schedule</a></li>
       </ul>
       <div class="text-end">
         <a sec:authorize="isAnonymous()" type="button" class="btn btn-outline-light me-2"
            th:href="@{/form-login}">Login
         </a>
         <div sec:authorize="isAuthenticated()" style="display: flex; align-items: center;">
-          <a th:if="${#authentication.principal != null && T(ua.foxminded.universitycms.security.userdetails.CustomUserDetails).isInstance(#authentication.principal)}"
-             href="#" th:text="${#authentication.principal.firstName + ' ' + #authentication.principal.lastName}"
-             style="margin-right: 15px; color: #ffdd00; text-decoration: none;"></a>
-          <a type="button" class="btn btn-outline-light me-2" th:href="@{/logout-confirmation}">Logout</a>
+          <a
+            th:if="${#authentication.principal != null && T(ua.foxminded.universitycms.security.userdetails.CustomUserDetails).isInstance(#authentication.principal)}"
+            href="#" th:text="${#authentication.principal.firstName + ' ' + #authentication.principal.lastName}"
+            style="margin-right: 15px; color: #ffdd00; text-decoration: none;"></a>
+          <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
+                  data-bs-target="#confirmModal">Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" style="color: black" id="confirmModalLabel">Please confirm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="color: black">Are you sure you want to log out?</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form th:action="@{/logout}" method="post">
+            <button class="btn btn-danger" type="submit">Logout</button>
+          </form>
         </div>
       </div>
     </div>

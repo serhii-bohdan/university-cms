@@ -1,7 +1,7 @@
 package ua.foxminded.universitycms.mapper;
 
+import org.mapstruct.*;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import ua.foxminded.universitycms.dto.CourseDto;
 import ua.foxminded.universitycms.model.Course;
 import ua.foxminded.universitycms.model.Teacher;
@@ -18,7 +18,7 @@ import ua.foxminded.universitycms.model.Teacher;
  *
  * @author Serhii Bohdan
  */
-@Mapper(componentModel = "spring", uses = TopicMapper.class)
+@Mapper(componentModel = "spring", uses = {TopicMapper.class, StudentMapper.class})
 public interface CourseMapper extends ua.foxminded.universitycms.mapper.Mapper<Course, CourseDto> {
 
     /**
@@ -53,5 +53,20 @@ public interface CourseMapper extends ua.foxminded.universitycms.mapper.Mapper<C
     @Override
     @Mapping(source = "authorId", target = "author.id")
     Course toEntity(CourseDto dto);
+
+    /**
+     * Partially updates an existing {@link Course} entity with the data from a {@link CourseDto} object.
+     * Only the fields in the DTO that are not null will be updated in the entity. This method utilizes the
+     * `@BeanMapping` annotation with the `NullValuePropertyMappingStrategy.IGNORE` strategy to ensure that
+     * null values in the DTO are not used to overwrite existing values in the entity.
+     *
+     * @param dto    the {@link CourseDto} object containing the updated data (may contain null values)
+     * @param entity the existing {@link Course} entity to be partially updated
+     * @return the updated {@link Course} entity
+     */
+    @Override
+    @Mapping(source = "authorId", target = "author.id")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Course partialUpdate(CourseDto dto, @MappingTarget Course entity);
 
 }

@@ -15,6 +15,8 @@ import ua.foxminded.universitycms.dto.TeacherDto;
 import ua.foxminded.universitycms.exception.CustomHttpException;
 import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.TeacherService;
+import ua.foxminded.universitycms.util.ModelAttributeNames;
+import ua.foxminded.universitycms.util.ViewNames;
 
 /**
  * This Spring Boot Web Controller handles requests related to managing and displaying teachers.
@@ -58,15 +60,15 @@ public class TeacherController {
             throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
         }
 
-        model.addAttribute("allNamesOfTeachers", teacherService.getAllNamesOfTeachers())
-            .addAttribute("teachers", teachersPage.getContent())
-            .addAttribute("page", pageable.getPageNumber())
-            .addAttribute("totalItems", teachersPage.getTotalElements())
-            .addAttribute("totalPages", teachersPage.getTotalPages())
-            .addAttribute("size", pageable.getPageSize())
-            .addAttribute("keyword", keyword);
+        model.addAttribute(ModelAttributeNames.TEACHERS_ALL_NAMES_ATTRIBUTE, teacherService.getAllNamesOfTeachers())
+            .addAttribute(ModelAttributeNames.TEACHERS_ATTRIBUTE, teachersPage.getContent())
+            .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
+            .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, teachersPage.getTotalElements())
+            .addAttribute(ModelAttributeNames.TOTAL_PAGES_ATTRIBUTE, teachersPage.getTotalPages())
+            .addAttribute(ModelAttributeNames.SIZE_ATTRIBUTE, pageable.getPageSize())
+            .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
-        return "teachers/all-teachers";
+        return ViewNames.ALL_TEACHERS_PAGE;
     }
 
 }

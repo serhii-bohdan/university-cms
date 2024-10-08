@@ -65,21 +65,4 @@ public class Lesson extends AbstractEntity {
     @JoinColumn(name = "study_day_id", nullable = false)
     private StudyDay studyDay;
 
-    /**
-     * Constructs a new {@code Lesson} object with the given parameters.
-     *
-     * @param lessonStartTime the start time of the lesson
-     * @param lessonEndTime   the end time of the lesson
-     * @param timezone        the timezone in which the lesson times are specified
-     * @param course          the course that the lesson belongs to
-     * @param studyDay        the study day that the lesson is part of
-     */
-    public Lesson(LocalTime lessonStartTime, LocalTime lessonEndTime, String timezone, Course course, StudyDay studyDay) {
-        this.lessonStartTime = lessonStartTime;
-        this.lessonEndTime = lessonEndTime;
-        this.timezone = timezone;
-        this.course = course;
-        this.studyDay = studyDay;
-    }
-
 }

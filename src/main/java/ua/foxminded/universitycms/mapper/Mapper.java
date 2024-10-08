@@ -1,5 +1,6 @@
 package ua.foxminded.universitycms.mapper;
 
+import org.mapstruct.MappingTarget;
 import ua.foxminded.universitycms.dto.AbstractDto;
 import ua.foxminded.universitycms.model.AbstractEntity;
 
@@ -30,5 +31,15 @@ public interface Mapper<E extends AbstractEntity, D extends AbstractDto> {
      * @return the converted DTO object
      */
     D toDto(E entity);
+
+    /**
+     * Partially updates an existing entity object with the data from a DTO object.
+     * Only the fields in the DTO that are not null will be updated in the entity.
+     *
+     * @param dto    the DTO object containing the updated data
+     * @param entity the existing entity object to be updated
+     * @return the updated entity object
+     */
+    E partialUpdate(D dto, @MappingTarget E entity);
 
 }

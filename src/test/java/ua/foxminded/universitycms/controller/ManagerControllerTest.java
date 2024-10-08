@@ -97,7 +97,7 @@ class ManagerControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("keyword", keyword))
+            .andExpect(model().attribute("keyword", ""))
             .andExpect(view().name("managers/all-managers"));
 
         verify(managerServiceMock, times(1)).getManagersPage(pageable);
@@ -140,9 +140,8 @@ class ManagerControllerTest {
         mockMvc.perform(get("/ui/v1/managers")
                 .param("keyword", invalidKeyWord))
             .andExpect(status().isOk())
-            .andExpect(model().attributeExists("message"))
-            .andExpect(model().attribute("httpStatus", httpStatus))
-            .andExpect(view().name("error"));
+            .andExpect(model().attributeExists("exception"))
+            .andExpect(view().name("error-page"));
 
         verify(managerServiceMock, times(1)).getManagerInPageByName(invalidKeyWord, pageable);
         verify(invalidFullNameFormatExceptionMock, times(1)).getHttpStatus();

@@ -61,21 +61,6 @@ public class Admin extends AbstractEntity {
     private ZonedDateTime updatedAt;
 
     /**
-     * Creates a new Admin instance with the given name, email, password hash, and role.
-     *
-     * @param name         The admin's full name.
-     * @param email        The admin's email address.
-     * @param passwordHash The hashed password of the admin.
-     * @param role         The role assigned to the admin.
-     */
-    public Admin(Name name, String email, String passwordHash, Role role) {
-        this.name = name;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.role = role;
-    }
-
-    /**
      * JPA lifecycle callback method called before the entity is persisted.
      * This method sets the `createdAt` field to the current timestamp.
      */

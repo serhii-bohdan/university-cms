@@ -1,7 +1,7 @@
 package ua.foxminded.universitycms.mapper;
 
+import org.mapstruct.*;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import ua.foxminded.universitycms.dto.MarkDto;
 import ua.foxminded.universitycms.model.Mark;
 import ua.foxminded.universitycms.model.Student;
@@ -16,7 +16,7 @@ import ua.foxminded.universitycms.model.Topic;
  *
  * @author Serhii Bohdan
  */
-@Mapper(componentModel = "spring", uses = TopicMapper.class)
+@Mapper(componentModel = "spring")
 public interface MarkMapper extends ua.foxminded.universitycms.mapper.Mapper<Mark, MarkDto> {
 
     /**
@@ -31,6 +31,8 @@ public interface MarkMapper extends ua.foxminded.universitycms.mapper.Mapper<Mar
      */
     @Override
     @Mapping(source = "student.id", target = "studentId")
+    @Mapping(source = "topic.id", target = "topicId")
+    @Mapping(source = "topic.topicName", target = "topicName")
     MarkDto toDto(Mark entity);
 
     /**
@@ -45,6 +47,23 @@ public interface MarkMapper extends ua.foxminded.universitycms.mapper.Mapper<Mar
      */
     @Override
     @Mapping(source = "studentId", target = "student.id")
+    @Mapping(source = "topicId", target = "topic.id")
     Mark toEntity(MarkDto dto);
+
+    /**
+     * Partially updates an existing {@link Mark} entity with the data from a {@link MarkDto} object.
+     * Only the fields in the DTO that are not null will be updated in the entity.
+     * This method utilizes the `@BeanMapping` annotation with the `NullValuePropertyMappingStrategy.IGNORE` strategy
+     * to ensure that null values in the DTO are not used to overwrite existing values in the entity.
+     *
+     * @param dto    the {@link MarkDto} object containing the updated data (may contain null values)
+     * @param entity the existing {@link Mark} entity to be partially updated
+     * @return the updated {@link Mark} entity
+     */
+    @Override
+    @Mapping(source = "studentId", target = "student.id")
+    @Mapping(source = "topicId", target = "topic.id")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    Mark partialUpdate(MarkDto dto, @MappingTarget Mark entity);
 
 }

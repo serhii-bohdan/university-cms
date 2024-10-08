@@ -72,37 +72,21 @@ public class Student extends User {
     private Set<Mark> marks = new HashSet<>();
 
     /**
-     * Constructs a new Student with complete initial data, including group and schedule.
+     * Adds a course to the student's list of enrolled courses.
      *
-     * @param name         The student's full name.
-     * @param email        The student's email address.
-     * @param passwordHash The hashed representation of the student's password.
-     * @param role         The role assigned to the student.
-     * @param isActive     Whether the student's account is active.
-     * @param group        The group to which the student belongs.
-     * @param schedule     The student's personal schedule.
+     * @param course The {@link Course} object to be added.
      */
-    public Student(Name name, String email, String passwordHash, Role role, Boolean isActive, Group group, Schedule schedule) {
-        super(name, email, passwordHash, isActive);
-        this.role = role;
-        this.group = group;
-        this.schedule = schedule;
+    public void addCourse(Course course) {
+        this.courses.add(course);
     }
 
     /**
-     * Constructs a new Student with basic information, without a schedule.
+     * Removes a course from the student's list of enrolled courses.
      *
-     * @param name         The student's full name.
-     * @param email        The student's email address.
-     * @param passwordHash The hashed representation of the student's password.
-     * @param role         The role assigned to the student.
-     * @param isActive     Whether the student's account is active.
-     * @param group        The group to which the student belongs.
+     * @param course The {@link Course} object to be removed.
      */
-    public Student(Name name, String email, String passwordHash, Role role, Boolean isActive, Group group) {
-        super(name, email, passwordHash, isActive);
-        this.role = role;
-        this.group = group;
+    public void removeCourse(Course course) {
+        this.courses.remove(course);
     }
 
 }

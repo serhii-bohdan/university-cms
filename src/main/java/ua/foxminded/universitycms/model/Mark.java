@@ -58,19 +58,4 @@ public class Mark extends AbstractEntity {
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
 
-    /**
-     * Constructs a new {@code Mark} object with the given parameters.
-     *
-     * @param markValue the value of the mark
-     * @param comment an optional comment about the mark
-     * @param student the student who received the mark
-     * @param topic the topic for which the mark was given
-     */
-    public Mark(Integer markValue, String comment, Student student, Topic topic) {
-        this.markValue = markValue;
-        this.comment = comment;
-        this.student = student;
-        this.topic = topic;
-    }
-
 }

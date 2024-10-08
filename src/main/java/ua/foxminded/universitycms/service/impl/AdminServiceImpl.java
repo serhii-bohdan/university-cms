@@ -57,7 +57,7 @@ public class AdminServiceImpl extends AbstractService<Admin, AdminDto> implement
      * @param passwordEncoder the {@link PasswordEncoder} instance for securely hashing admin passwords
      * @param adminRepository the specialized repository for performing custom queries related to {@link Admin} entities
      */
-    protected AdminServiceImpl(JpaRepository<Admin, Long> repository, Mapper<Admin, AdminDto> mapper,
+    public AdminServiceImpl(JpaRepository<Admin, Long> repository, Mapper<Admin, AdminDto> mapper,
                                PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
         super(repository, mapper);
         this.passwordEncoder = passwordEncoder;
@@ -81,7 +81,9 @@ public class AdminServiceImpl extends AbstractService<Admin, AdminDto> implement
     @Override
     public AdminDto update(AdminDto dto) {
         Admin existingAdmin = adminRepository.findById(dto.getId())
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND, String.format("Admin not found with id: %d", dto.getId())));
+            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Admin not found with id: %d", dto.getId())));
+
         Admin updatedAdmin = adminMapper.partialUpdate(dto, existingAdmin);
         return adminMapper.toDto(adminRepository.save(updatedAdmin));
     }
@@ -120,7 +122,8 @@ public class AdminServiceImpl extends AbstractService<Admin, AdminDto> implement
             return Arrays.asList(firstNameAndLastName);
         }
 
-        throw new InvalidFullNameFormatException(HttpStatus.BAD_REQUEST, "Full name must contain at least two words");
+        throw new InvalidFullNameFormatException(HttpStatus.BAD_REQUEST,
+            "Full name must contain at least two words");
     }
 
 }

@@ -41,7 +41,7 @@ public class ScheduleServiceImpl extends AbstractService<Schedule, ScheduleDto> 
     }
 
     /**
-     * {{@inheritDoc}}
+     * {@inheritDoc}
      */
     @Override
     public Optional<ScheduleDto> getScheduleForStudent(long studentId) {
@@ -49,7 +49,7 @@ public class ScheduleServiceImpl extends AbstractService<Schedule, ScheduleDto> 
     }
 
     /**
-     * {{@inheritDoc}}
+     * {@inheritDoc}
      */
     @Override
     public Optional<ScheduleDto> getScheduleForTeacher(long teacherId) {

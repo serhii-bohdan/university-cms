@@ -6,6 +6,11 @@ spring:
     username: postgres
     password: pass
 
+  mvc:
+    hidden method:
+      filter:
+        enabled: true
+
   jpa:
     open-in-view: false
 

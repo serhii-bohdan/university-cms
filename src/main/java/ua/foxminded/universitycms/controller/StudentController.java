@@ -1,5 +1,7 @@
 package ua.foxminded.universitycms.controller;
 
+import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
@@ -12,9 +14,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ua.foxminded.universitycms.dto.StudentDto;
+import ua.foxminded.universitycms.dto.UserDto;
 import ua.foxminded.universitycms.exception.CustomHttpException;
 import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.StudentService;
+import ua.foxminded.universitycms.util.ModelAttributeNames;
+import ua.foxminded.universitycms.util.ViewNames;
 
 /**
  * This Spring Boot Web Controller handles requests related to managing and displaying students.
@@ -58,15 +63,57 @@ public class StudentController {
             throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
         }
 
-        model.addAttribute("allNamesOfStudents", studentService.getAllNamesOfStudents())
-            .addAttribute("students", studentsPage.getContent())
-            .addAttribute("page", pageable.getPageNumber())
-            .addAttribute("totalItems", studentsPage.getTotalElements())
-            .addAttribute("totalPages", studentsPage.getTotalPages())
-            .addAttribute("size", pageable.getPageSize())
-            .addAttribute("keyword", keyword);
+        model.addAttribute(ModelAttributeNames.STUDENTS_ALL_NAMES_ATTRIBUTE, studentService.getAllNamesOfStudents())
+            .addAttribute(ModelAttributeNames.STUDENTS_ATTRIBUTE, studentsPage.getContent())
+            .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
+            .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, studentsPage.getTotalElements())
+            .addAttribute(ModelAttributeNames.TOTAL_PAGES_ATTRIBUTE, studentsPage.getTotalPages())
+            .addAttribute(ModelAttributeNames.SIZE_ATTRIBUTE, pageable.getPageSize())
+            .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
-        return "students/all-students";
+        return ViewNames.ALL_STUDENTS_PAGE;
+    }
+
+    /**
+     * Retrieves a list of students not enrolled in a specified course.
+     * <p>
+     * This method handles GET requests to the `/not-enrolled` endpoint. It retrieves a list of students not currently
+     * enrolled in the course with the provided `courseId` using the `studentService`. Students can be optionally filtered
+     * based on a search keyword for email addresses. The list of students and any extracted student emails are added to
+     * the model for display.
+     *
+     * @param model    the Spring MVC Model object used to store data for the view
+     * @param courseId the ID of the course
+     * @param keyword  an optional search keyword for filtering students by email (can be blank)
+     * @return the logical view name "students/not-enrolled-in-course" representing the list of not enrolled students
+     * @throws CustomHttpException if an unexpected error occurs while retrieving student data
+     */
+    @GetMapping("/not-enrolled")
+    @PreAuthorize("hasAuthority('COURSES_READ')")
+    public String getPageWithListOfStudentsNotEnrolledInCourse(Model model, @RequestParam("cid") long courseId,
+                                                               @RequestParam(value = "keyword", required = false) String keyword) {
+        List<StudentDto> notEnrolledStudents = StringUtils.isBlank(keyword)
+            ? studentService.getListOfStudentsNotEnrolledInCourse(courseId)
+            : findStudentByEmail(studentService.getListOfStudentsNotEnrolledInCourse(courseId), keyword.strip());
+
+        model.addAttribute(ModelAttributeNames.NOT_ENROLLED_STUDENTS_ATTRIBUTE, notEnrolledStudents)
+            .addAttribute(ModelAttributeNames.STUDENT_EMAILS_ATTRIBUTE, getStudentEmails(notEnrolledStudents))
+            .addAttribute(ModelAttributeNames.COURSE_ID_ATTRIBUTE, courseId)
+            .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
+
+        return ViewNames.STUDENTS_NOT_ENROLLED_IN_COURSE;
+    }
+
+    private List<StudentDto> findStudentByEmail(Collection<StudentDto> students, String email) {
+        return students.stream()
+            .filter(s -> s.getEmail().equals(email))
+            .toList();
+    }
+
+    private List<String> getStudentEmails(Collection<StudentDto> students) {
+        return students.stream()
+            .map(UserDto::getEmail)
+            .toList();
     }
 
 }

@@ -7,6 +7,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ua.foxminded.universitycms.dto.StudyDayDto;
 import ua.foxminded.universitycms.service.StudyDayService;
+import ua.foxminded.universitycms.util.ModelAttributeNames;
+import ua.foxminded.universitycms.util.ViewNames;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -44,13 +46,15 @@ public class StudyDayController {
     public String getPageWithStudyDayFromSchedule(Model model, @PathVariable("scheduleId") long scheduleId,
                                                   @PathVariable("date") LocalDate date) {
         Optional<StudyDayDto> optional = studyDayService.getStudyDayByScheduleIdAndDate(scheduleId, date);
-        StudyDayDto studyDay = optional.orElseGet(() -> new StudyDayDto(date, date.getDayOfWeek(), scheduleId));
+        StudyDayDto studyDay = optional.orElseGet(() -> StudyDayDto.builder()
+            .date(date)
+            .weekDay(date.getDayOfWeek())
+            .scheduleId(scheduleId)
+            .build()
+        );
 
-        model.addAttribute("studyDay", studyDay)
-            .addAttribute("scheduleId", scheduleId)
-            .addAttribute("date", date);
-
-        return "schedule/study-day";
+        model.addAttribute(ModelAttributeNames.STUDY_DAY_ATTRIBUTE, studyDay);
+        return ViewNames.STUDY_DAY_PAGE;
     }
 
 }

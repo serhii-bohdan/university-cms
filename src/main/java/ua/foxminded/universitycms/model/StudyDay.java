@@ -67,17 +67,4 @@ public class StudyDay extends AbstractEntity {
     @OneToMany(mappedBy = "studyDay", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<Lesson> lessons = new HashSet<>();
 
-    /**
-     * Constructs a new {@code StudyDay} object with the given parameters.
-     *
-     * @param date     the date of the study day
-     * @param weekDay  the day of the week of the study day
-     * @param schedule the schedule that the study day belongs to
-     */
-    public StudyDay(LocalDate date, DayOfWeek weekDay, Schedule schedule) {
-        this.date = date;
-        this.weekDay = weekDay;
-        this.schedule = schedule;
-    }
-
 }

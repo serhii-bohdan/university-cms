@@ -29,7 +29,7 @@ public class CourseDto extends AbstractDto {
      * The name of the course.
      */
     @NotBlank(message = "Course name is mandatory")
-    @Size(max = 255)
+    @Size(max = 255, message = "Course name cannot be longer than 255 characters")
     private String courseName;
 
     /**
@@ -69,5 +69,10 @@ public class CourseDto extends AbstractDto {
      * A collection of {@link TopicDto} objects representing the topics covered in the course.
      */
     private Set<TopicDto> topics;
+
+    /**
+     * A collection of {@link StudentDto} objects representing the students enrolled in the course.
+     */
+    private Set<StudentDto> students;
 
 }

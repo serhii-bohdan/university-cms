@@ -196,6 +196,31 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 
 - The manager distributes and adds students to the groups.
 
+# Task 3.5 Implement Course view + edit feature
+
+**Assignment**
+1) Using your flows descriptions from task 3.1 create a list of flows to implement, call it features, consult with Mentor if required. <br>
+   Example:
+
+   <pre style="font-family: monospace">
+   User administration flow
+   Given User A logged in with Admin role
+   - User 'A' should be able to create/read/update/delete courses.
+
+   Given User B logged in with Student or Teacher role
+   - User 'B' should be able to list all courses (read access).
+
+   Given User C logged in with Stuff rolef
+   - User 'C' should be able to create/read/update all courses
+   - User 'C' should be able to assign/reassign teacher to a course
+   - User 'C' should be able to assign/reassign groups to a course.
+   ... etc
+   </pre>
+
+2) Consider feature implementation as subtask (made in new branch and merged into main/master on completion) <br>
+   For each feature, implement UI pages(usually list, create, edit, delete, etc), controller/controller methods, service/service methods, repository methods. <br>
+   Controller tests are mandatory, add other components tests if required.
+
 # Task 3.4 Adding Security
 
 **Assignment**

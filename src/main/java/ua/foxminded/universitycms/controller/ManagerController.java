@@ -15,6 +15,8 @@ import ua.foxminded.universitycms.dto.ManagerDto;
 import ua.foxminded.universitycms.exception.CustomHttpException;
 import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.ManagerService;
+import ua.foxminded.universitycms.util.ModelAttributeNames;
+import ua.foxminded.universitycms.util.ViewNames;
 
 /**
  * Spring MVC Controller for handling web requests related to managing and displaying managers.
@@ -63,15 +65,15 @@ public class ManagerController {
             throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
         }
 
-        model.addAttribute("allNamesOfManagers", managerService.getAllNamesOfManagers())
-            .addAttribute("managers", managersPage.getContent())
-            .addAttribute("page", pageable.getPageNumber())
-            .addAttribute("totalItems", managersPage.getTotalElements())
-            .addAttribute("totalPages", managersPage.getTotalPages())
-            .addAttribute("size", pageable.getPageSize())
-            .addAttribute("keyword", keyword);
+        model.addAttribute(ModelAttributeNames.MANAGERS_ALL_NAMES_ATTRIBUTE, managerService.getAllNamesOfManagers())
+            .addAttribute(ModelAttributeNames.MANAGERS_ATTRIBUTE, managersPage.getContent())
+            .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
+            .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, managersPage.getTotalElements())
+            .addAttribute(ModelAttributeNames.TOTAL_PAGES_ATTRIBUTE, managersPage.getTotalPages())
+            .addAttribute(ModelAttributeNames.SIZE_ATTRIBUTE, pageable.getPageSize())
+            .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
-        return "managers/all-managers";
+        return ViewNames.ALL_MANAGERS_PAGE;
     }
 
 }

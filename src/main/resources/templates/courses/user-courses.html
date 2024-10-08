@@ -16,10 +16,10 @@
   <div class="my-3">
     <form th:action="@{/ui/v1/courses/my}" id="searchForm">
       <div class="row d-flex">
-        <div class="col-md-5 mt-2">
+        <div class="col-md-6 mt-2">
           <div class="search">
             <i class="fa fa-search"></i>
-            <input id="keyword" type="search" name="keyword" th:value="${#strings.trim(keyword)}" required
+            <input id="keyword" type="search" name="keyword" th:value="${keyword}" required
                    class="form-control" placeholder="Enter course name">
             <button type="submit" class="btn btn-primary">Search</button>
           </div>
@@ -27,41 +27,54 @@
         <div class="col-md-3 mt-2 unsent-width">
           <button id="btnClear" class="btn btn-secondary">Clear</button>
         </div>
-        <div sec:authorize="hasAuthority('COURSES_CREATE')" class="col-md-3 mt-2 unsent-width">
-          <a class="btn btn-success" href="#">Create course</a>
-        </div>
-        <div class="col-md-3 mt-2 unsent-width"><a th:href="@{/ui/v1/courses}">All courses</a></div>
       </div>
     </form>
   </div>
+  <div class="my-2">
+    <div class="row d-flex">
+      <a class="col-md-3 mt-2 unsent-width btn btn-light btn-light-cus" th:href="@{/ui/v1/courses}"
+         style="margin-left: 12px;">All courses</a>
+      <a sec:authorize="hasAuthority('COURSES_CREATE')" class="col-md-3 mt-2 unsent-width btn btn-success ms-auto"
+         style="margin-right: 30px;" th:href="@{/ui/v1/courses/my/new}">Create course</a>
+    </div>
+  </div>
   <div th:if="${userCourses.size()} > 0">
-    <table class="table table-striped table-hover table-responsive-xl">
-      <thead class="table-light">
-      <tr>
-        <th scope="col">№</th>
-        <th scope="col">Course name</th>
-        <th scope="col">Author name</th>
-        <th scope="col">Number of topics</th>
-        <th scope="col">Actions</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="course, interStat : ${userCourses}">
-        <th scope="row" th:text="${interStat.count}"></th>
-        <td th:text="*{course.courseName}"></td>
-        <td th:text="*{course.authorFirstName + ' ' + course.authorLastName}"></td>
-        <td th:text="*{course.topics.size()}"></td>
-        <td>
-          <a sec:authorize="hasAuthority('COURSES_READ')" th:href="@{/ui/v1/courses/my/{courseId}(courseId=${course.id})}"
-             class="fa fa-eye icon-dark no-decoration" aria-hidden="true" title="View this course"></a>
-          <a sec:authorize="hasAuthority('COURSES_UPDATE')" href="#" class="fa-regular fa-pen-to-square icon-dark"
-             title="Edit this course" style="text-decoration: none; margin-left: 10px;"></a>
-          <a sec:authorize="hasAuthority('COURSES_DELETE')" href="#"  style="margin-left: 10px;"
-             class="fa-regular fa-trash-can icon-dark btn-delete" title="Delete this course"></a>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-container">
+      <table class="table table-striped table-hover table-responsive-xl">
+        <thead class="table-light">
+        <tr>
+          <th scope="col">№</th>
+          <th scope="col">Course name</th>
+          <th scope="col">Author name</th>
+          <th scope="col">Number of topics</th>
+          <th scope="col">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="course, interStat : ${userCourses}">
+          <th scope="row" th:text="${interStat.count}"></th>
+          <td th:text="*{course.courseName}"></td>
+          <td th:text="*{course.authorFirstName + ' ' + course.authorLastName}"></td>
+          <td th:text="*{course.topics.size()}"></td>
+          <td>
+            <a sec:authorize="hasAuthority('COURSES_READ')"
+               th:href="@{/ui/v1/courses/my/{courseId}(courseId=${course.id})}"
+               class="fa fa-eye icon-dark no-decoration" aria-hidden="true" title="View this course"></a>
+            <a sec:authorize="hasAuthority('COURSES_UPDATE')"
+               th:href="@{/ui/v1/courses/my/{courseId}/edit(courseId=${course.id})}"
+               class="fa-regular fa-pen-to-square icon-dark" title="Edit this course"
+               style="text-decoration: none; margin-left: 10px;"></a>
+            <form sec:authorize="hasAuthority('COURSES_DELETE')" th:method="delete"
+                  th:action="@{/ui/v1/courses/my/{courseId}/delete(courseId=${course.id})}"
+                  onclick="event.preventDefault(); this.submit();" style="margin-left: 10px; cursor: pointer;"
+                  class="fa-regular fa-trash-can icon-dark btn-delete" title="Delete this course">
+              <input type="submit" style="display: none;">
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <div class="message info-m" th:unless="${userCourses.size()} > 0">
     <span th:text="#{courses.no.found}"></span>
@@ -71,7 +84,6 @@
 <script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
 <script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
 <script th:src="@{/webjars/jquery-ui/1.13.2/jquery-ui.min.js}"></script>
-<script type="text/javascript" th:src="@{/js/script.js}"></script>
 <script th:inline="javascript">
   $(document).ready(function () {
     function clearAndRedirect(url) {

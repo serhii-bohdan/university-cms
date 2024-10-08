@@ -188,17 +188,13 @@ footer {
   height: 30rem;
 }
 
-/*Course*/
-#course .row > * {
-  padding-right: unset;
+/* Specific Course*/
+.row > .pn-lf-unsent {
+  padding-left: unset !important;
 }
 
 .bold {
   font-weight: bold;
-}
-
-.empty-space {
-  height: 25px;
 }
 
 .no-decoration {
@@ -614,4 +610,59 @@ ul.pagination.justify-content-center {
 .cancel {
   background-color: #f44336;
   color: white;
+}
+
+/*Creation form*/
+.form-group-margin {
+  margin-top: 20px;
+}
+
+.form-control-label-margin {
+  margin-bottom: 5px;
+}
+
+.invalid-validation {
+  color: red;
+  font-size: small;
+}
+
+/*Course students table*/
+.table-container {
+  max-height: 60vh;
+  overflow-y: auto;
+  border-radius: 7px;
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    max-height: 40vh;
+  }
+}
+
+/*Modal*/
+.error-modal {
+  background-color: #ff5f5f;
+  color: white;
+}
+
+/*Marks*/
+.marks-modal-dialog {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-dialog-scrollable .marks-modal-content {
+  max-height: 80%;
+  overflow: hidden;
+}
+
+.marks-modal-content {
+  width: 70%;
+}
+
+/*Buttons*/
+.btn-light-cus {
+  border-radius: unset; !important;
+  --bs-btn-hover-border-color: var(--bs-white);
 }
