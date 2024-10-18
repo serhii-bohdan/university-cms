@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import ua.foxminded.universitycms.util.annotation.UniqueGroup;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -19,13 +20,14 @@ import java.util.Set;
 @NoArgsConstructor
 @ToString(callSuper = true, exclude = "students")
 @SuperBuilder
+@UniqueGroup
 public class GroupDto extends AbstractDto {
 
     /**
      * The name of the group.
      */
     @NotNull(message = "Group name is mandatory")
-    @Pattern(regexp = "^[A-Z]{2}-[0-9]{2}$")
+    @Pattern(regexp = "^[A-Z]{2}-\\d{2}$", message = "The group name must match the following template XX-00")
     private String groupName;
 
     /**

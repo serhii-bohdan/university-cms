@@ -35,8 +35,9 @@
       <a class="col-md-3 mt-2 unsent-width btn btn-light btn-light-cus"
          th:href="@{/ui/v1/courses/my/{courseId}(courseId=${course.id})}" style="margin-left: 12px;">Back to course</a>
       <a sec:authorize="hasAuthority('COURSES_UPDATE')" class="col-md-3 mt-2 unsent-width btn btn-success ms-auto"
-         style="margin-right: 30px;"
-         th:href="@{/ui/v1/students/not-enrolled(cid=${course.id})}">Enroll student</a>
+         style="margin-right: 20px;" th:href="@{/ui/v1/students/not-enrolled(cid=${course.id})}">Enroll student</a>
+      <a sec:authorize="hasAuthority('COURSES_UPDATE')" class="col-md-3 mt-2 unsent-width btn btn-success"
+         style="margin-right: 30px;" th:href="@{/ui/v1/groups/for-enroll(cid=${course.id})}">Enroll all group</a>
     </div>
   </div>
   <div th:if="${courseStudents.size()} > 0">
@@ -98,7 +99,7 @@
 
     const message = /*[[${validationErrorMessage}]]*/ null;
 
-    if (message !== null ) {
+    if (message !== null) {
       const modal = $('#errorModal');
       modal.modal('show');
     }

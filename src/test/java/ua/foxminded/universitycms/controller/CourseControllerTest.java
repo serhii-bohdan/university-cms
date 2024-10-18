@@ -56,9 +56,8 @@ class CourseControllerTest {
     @WithMockUser(authorities = {"COURSES_READ"})
     void getPageWithCourses_shouldReturnPageWithCoursesThatFoundByKeyword_whenKeywordNotNullAndNotBlank() throws Exception {
         String keyword = "CourseName1";
-        List<String> allNamesOfCourses = getNamesOfCoursesForTest();
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(courseServiceMock.getAllNamesOfCourses()).thenReturn(allNamesOfCourses);
+        when(courseServiceMock.getAll()).thenReturn(getCoursesForTest());
         when(courseServiceMock.getCourseByNameInPage(keyword, pageable)).thenReturn(getEmptyPageForTest());
 
         mockMvc.perform(get("/ui/v1/courses")
@@ -79,9 +78,8 @@ class CourseControllerTest {
     @Test
     @WithMockUser(authorities = {"COURSES_READ"})
     void getPageWithCourses_shouldReturnPageWithAllCourses_whenKeywordIsNull() throws Exception {
-        List<String> allNamesOfCourses = getNamesOfCoursesForTest();
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(courseServiceMock.getAllNamesOfCourses()).thenReturn(allNamesOfCourses);
+        when(courseServiceMock.getAll()).thenReturn(getCoursesForTest());
         when(courseServiceMock.getAllCoursesInPage(pageable)).thenReturn(getEmptyPageForTest());
 
         mockMvc.perform(get("/ui/v1/courses"))
@@ -102,9 +100,8 @@ class CourseControllerTest {
     @WithMockUser(authorities = {"COURSES_READ"})
     void getPageWithCourses_shouldReturnPageWithAllCourses_whenKeywordIsBlank() throws Exception {
         String keyword = "       ";
-        List<String> allNamesOfCourses = getNamesOfCoursesForTest();
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(courseServiceMock.getAllNamesOfCourses()).thenReturn(allNamesOfCourses);
+        when(courseServiceMock.getAll()).thenReturn(getCoursesForTest());
         when(courseServiceMock.getAllCoursesInPage(pageable)).thenReturn(getEmptyPageForTest());
 
         mockMvc.perform(get("/ui/v1/courses")
@@ -127,9 +124,8 @@ class CourseControllerTest {
     void getPageWithCourses_shouldReturnPageWithAllCourses_whenInvalidPageNumberAndPageSizeProvided() throws Exception {
         String invalidPageNumber = "-1";
         String invalidPageSize = "0";
-        List<String> allNamesOfCourses = getNamesOfCoursesForTest();
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(courseServiceMock.getAllNamesOfCourses()).thenReturn(allNamesOfCourses);
+        when(courseServiceMock.getAll()).thenReturn(getCoursesForTest());
         when(courseServiceMock.getAllCoursesInPage(pageable)).thenReturn(getEmptyPageForTest());
 
         mockMvc.perform(get("/ui/v1/courses")
@@ -483,7 +479,7 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_UPDATE"})
-    void getCreationForm_shouldPageWithErrorMessage_whenCourseWithGivenIdDoesNotExist() throws Exception {
+    void getUpdateForm_shouldPageWithErrorMessage_whenCourseWithGivenIdDoesNotExist() throws Exception {
         long courseId = 1L;
         when(courseServiceMock.getById(courseId)).thenReturn(Optional.empty());
 
@@ -769,7 +765,40 @@ class CourseControllerTest {
         verify(courseServiceMock, times(1)).enrollStudentInCourse(courseId, studentId);
     }
 
-    private List<String> getNamesOfCoursesForTest() {
+    @Test
+    @WithMockUser(authorities = {"COURSES_UPDATE"})
+    void performEnrollingGroupInCourse_shouldEnrollInCourseAllStudentsFromGroupAndRedirectToAnotherUrl_whenCourseWithGivenIdExist() throws Exception {
+        long groupId = 1L;
+        long courseId = 1L;
+
+        mockMvc.perform(post("/ui/v1/courses/my/{courseId}/group/{groupId}/enroll", courseId, groupId)
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%d/students", courseId)));
+
+        verify(courseServiceMock, times(1)).enrollAllStudentsFromGroupInCourse(courseId, groupId);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"COURSES_UPDATE"})
+    void performEnrollingGroupInCourse_shouldPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
+        long groupId = 1L;
+        long courseId = 1L;
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        doThrow(entityNotFoundExceptionMock).when(courseServiceMock).enrollAllStudentsFromGroupInCourse(courseId, groupId);
+
+        mockMvc.perform(post("/ui/v1/courses/my/{courseId}/group/{groupID}/enroll", courseId, groupId)
+                .with(csrf()))
+            .andExpect(status().isOk())
+            .andExpect(model().attributeExists("exception"))
+            .andExpect(view().name("error-page"));
+
+        verify(courseServiceMock, times(1)).enrollAllStudentsFromGroupInCourse(courseId, groupId);
+    }
+
+    private List<CourseDto> getCoursesForTest() {
         return new ArrayList<>();
     }
 

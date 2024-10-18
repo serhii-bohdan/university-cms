@@ -47,6 +47,26 @@ public class ViewNames {
     public static final String ALL_GROUPS_PAGE = "groups/all-groups";
 
     /**
+     * The view name for the group creation form.
+     */
+    public static final String GROUP_CREATION_FORM = "groups/creation-form";
+
+    /**
+     * The view name for the group update form.
+     */
+    public static final String GROUP_UPDATE_FORM = "groups/update-form";
+
+    /**
+     * The view name for displaying a specific group.
+     */
+    public static final String SPECIFIC_GROUP = "groups/specific-group";
+
+    /**
+     * The view name for displaying groups available for enrollment in a course.
+     */
+    public static final String GROUPS_FOR_ENROLL_IN_COURSE = "groups/groups-for-enroll-in-course";
+
+    /**
      * View name for the page that displays all managers.
      */
     public static final String ALL_MANAGERS_PAGE = "managers/all-managers";

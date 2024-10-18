@@ -2,6 +2,8 @@ package ua.foxminded.universitycms.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -153,6 +155,48 @@ class CourseServiceImplTest {
         verify(courseRepositoryMock, times(1)).findById(courseId);
         verify(studentRepositoryMock, times(1)).findById(studentId);
         verify(courseMock, times(1)).addStudent(studentMock);
+    }
+
+    @Test
+    void enrollAllStudentsFromGroupInCourse_shouldEntityNotFoundException_whenNoCourseWasFoundForGivenCourseId() {
+        long courseId = 1L;
+        long groupId = 1L;
+        when(courseRepositoryMock.findById(courseId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> courseService.enrollAllStudentsFromGroupInCourse(courseId, groupId));
+        verify(courseRepositoryMock, times(1)).findById(courseId);
+    }
+
+    @Test
+    void enrollAllStudentsFromGroupInCourse_shouldNotAddAnyStudentToSetOfCourseStudents_whenNoStudentWithGivenGroupIdWasFound() {
+        long courseId = 1L;
+        long groupId = 1L;
+        Course courseMock = mock(Course.class);
+        when(courseRepositoryMock.findById(courseId)).thenReturn(Optional.of(courseMock));
+        when(studentRepositoryMock.findByGroupId(groupId)).thenReturn(new ArrayList<>());
+
+        courseService.enrollAllStudentsFromGroupInCourse(courseId, groupId);
+
+        verify(courseRepositoryMock, times(1)).findById(courseId);
+        verify(studentRepositoryMock, times(1)).findByGroupId(groupId);
+        verify(courseMock, never()).addStudent(any(Student.class));
+    }
+
+    @Test
+    void enrollAllStudentsFromGroupInCourse_shouldAddStudentsToSetOfStudentsEnrolledInCourse_whenFoundStudentsWithGivenGroupId() {
+        long courseId = 1L;
+        long groupId = 1L;
+        Course courseMock = mock(Course.class);
+        Student firstStudentMock = mock(Student.class);
+        Student secondStudentMock = mock(Student.class);
+        when(courseRepositoryMock.findById(courseId)).thenReturn(Optional.of(courseMock));
+        when(studentRepositoryMock.findByGroupId(groupId)).thenReturn(List.of(firstStudentMock, secondStudentMock));
+
+        courseService.enrollAllStudentsFromGroupInCourse(courseId, groupId);
+
+        verify(courseRepositoryMock, times(1)).findById(courseId);
+        verify(studentRepositoryMock, times(1)).findByGroupId(groupId);
+        verify(courseMock, times(2)).addStudent(any(Student.class));
     }
 
 }

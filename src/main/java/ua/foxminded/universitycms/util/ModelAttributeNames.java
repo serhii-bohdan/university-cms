@@ -70,6 +70,11 @@ public class ModelAttributeNames {
     public static final String GROUPS_ATTRIBUTE = "groups";
 
     /**
+     * The attribute name used to store a group object in the Spring MVC Model.
+     */
+    public static final String GROUP_ATTRIBUTE = "group";
+
+    /**
      * The attribute name used to store all names of groups in the Spring MVC Model.
      */
     public static final String GROUPS_ALL_NAMES_ATTRIBUTE = "allNamesOfGroups";

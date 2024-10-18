@@ -3,7 +3,7 @@ package ua.foxminded.universitycms.service.impl;
 import java.util.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.ScheduleDto;
 import ua.foxminded.universitycms.mapper.Mapper;
@@ -24,7 +24,6 @@ import ua.foxminded.universitycms.service.ScheduleService;
  */
 @Service
 @Validated
-@Transactional
 public class ScheduleServiceImpl extends AbstractService<Schedule, ScheduleDto> implements ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
@@ -44,6 +43,7 @@ public class ScheduleServiceImpl extends AbstractService<Schedule, ScheduleDto> 
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<ScheduleDto> getScheduleForStudent(long studentId) {
         return scheduleRepository.findStudentScheduleByStudentId(studentId).map(mapper::toDto);
     }
@@ -52,6 +52,7 @@ public class ScheduleServiceImpl extends AbstractService<Schedule, ScheduleDto> 
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<ScheduleDto> getScheduleForTeacher(long teacherId) {
         return scheduleRepository.findTeacherScheduleByTeacherId(teacherId).map(mapper::toDto);
     }

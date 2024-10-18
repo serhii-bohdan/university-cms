@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import ua.foxminded.universitycms.dto.AbstractDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.mapper.Mapper;
@@ -22,7 +22,6 @@ import ua.foxminded.universitycms.service.Service;
  * @author Serhii Bohdan
  */
 @RequiredArgsConstructor
-@Transactional
 public abstract class AbstractService<E extends AbstractEntity, D extends AbstractDto> implements Service<E, D> {
 
     /**
@@ -56,6 +55,7 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
      * @return an Optional containing the entity's DTO if found, or empty Optional if not found
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<D> getById(long id) {
         return repository.findById(id).map(mapper::toDto);
     }
@@ -68,6 +68,7 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
      * @return a list of DTOs representing all entities
      */
     @Override
+    @Transactional(readOnly = true)
     public List<D> getAll() {
         return repository.findAll().stream()
             .map(mapper::toDto)
@@ -88,6 +89,7 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
      * @return a DTO representing the updated entity
      */
     @Override
+    @Transactional
     public D update(D dto) {
         E existingEntity = repository.findById(dto.getId())
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,

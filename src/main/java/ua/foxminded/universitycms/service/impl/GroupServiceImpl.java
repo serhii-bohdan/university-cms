@@ -4,11 +4,12 @@ import java.util.List;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.GroupDto;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.Group;
+import ua.foxminded.universitycms.model.Student;
 import ua.foxminded.universitycms.repository.GroupRepository;
 import ua.foxminded.universitycms.service.GroupService;
 
@@ -24,7 +25,6 @@ import ua.foxminded.universitycms.service.GroupService;
  */
 @Service
 @Validated
-@Transactional
 public class GroupServiceImpl extends AbstractService<Group, GroupDto> implements GroupService {
 
     /**
@@ -50,6 +50,7 @@ public class GroupServiceImpl extends AbstractService<Group, GroupDto> implement
      * @return a page of group DTOs representing the requested page of groups with pagination information
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<GroupDto> getGroupsPage(Pageable pageable) {
         return groupRepository.findAll(pageable).map(mapper::toDto);
     }
@@ -62,20 +63,31 @@ public class GroupServiceImpl extends AbstractService<Group, GroupDto> implement
      * @return a page of group DTOs representing the requested page of filtered groups with pagination information
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<GroupDto> getGroupInPageByName(String name, Pageable pageable) {
         return groupRepository.findByGroupNameIgnoreCase(name.strip(), pageable).map(mapper::toDto);
     }
 
     /**
-     * Retrieves a list of all group names in the system.
-     *
-     * @return a list of group names
+     * {@inheritDoc}
      */
     @Override
-    public List<String> getAllNamesOfGroups() {
+    @Transactional(readOnly = true)
+    public List<GroupDto> getListOfGroupsWhoseStudentsNotEnrolledInCourse(long courseId) {
         return groupRepository.findAll().stream()
-            .map(Group::getGroupName)
+            .filter(g -> isNotAllStudentsFromGroupEnrolledInCourse(g, courseId))
+            .map(mapper::toDto)
             .toList();
+    }
+
+    private boolean isNotAllStudentsFromGroupEnrolledInCourse(Group group, long courseId) {
+        return !group.getStudents().stream()
+            .allMatch(s -> isStudentEnrolledInCourse(s, courseId));
+    }
+
+    private boolean isStudentEnrolledInCourse(Student student, long courseId) {
+        return student.getCourses().stream()
+            .anyMatch(c -> c.getId().equals(courseId));
     }
 
 }

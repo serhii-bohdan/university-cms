@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ua.foxminded.universitycms.dto.CourseDto;
+import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.model.Course;
 import java.util.List;
 
@@ -37,13 +38,6 @@ public interface CourseService extends Service<Course, CourseDto> {
      * @return a Page object containing a list of CourseDto objects representing the requested page of filtered courses
      */
     Page<CourseDto> getCourseByNameInPage(@NotNull String name, @NotNull Pageable pageable);
-
-    /**
-     * Retrieves a list of all course names in the system.
-     *
-     * @return a list of course names, providing a concise overview of available courses
-     */
-    List<String> getAllNamesOfCourses();
 
     /**
      * Retrieves a list of courses enrolled by a student identified by the given student ID.
@@ -96,5 +90,18 @@ public interface CourseService extends Service<Course, CourseDto> {
      * @param studentId the ID of the student to be enrolled
      */
     void enrollStudentInCourse(long courseId, long studentId);
+
+    /**
+     * Enrolls all students from a specific group in a course.
+     * <p>
+     * This method fetches a course by its ID and retrieves all students belonging
+     * to a group with the specified ID. Then, it adds all retrieved students to
+     * the course's student roster.
+     *
+     * @param courseId the ID of the course to enroll students in.
+     * @param groupId  the ID of the group whose students should be enrolled.
+     * @throws EntityNotFoundException if the course with the specified ID is not found.
+     */
+    void enrollAllStudentsFromGroupInCourse(long courseId, long groupId);
 
 }

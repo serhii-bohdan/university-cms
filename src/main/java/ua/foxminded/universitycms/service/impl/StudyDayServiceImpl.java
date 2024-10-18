@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.LessonDto;
 import ua.foxminded.universitycms.dto.StudyDayDto;
@@ -25,7 +25,6 @@ import ua.foxminded.universitycms.service.StudyDayService;
  */
 @Service
 @Validated
-@Transactional
 public class StudyDayServiceImpl extends AbstractService<StudyDay, StudyDayDto> implements StudyDayService {
 
     /**
@@ -53,9 +52,10 @@ public class StudyDayServiceImpl extends AbstractService<StudyDay, StudyDayDto> 
      * @return an {@link Optional} potentially containing the retrieved {@link StudyDayDto}
      */
     @Override
+    @Transactional(readOnly = true)
     public Optional<StudyDayDto> getStudyDayByScheduleIdAndDate(long scheduleId, LocalDate date) {
-        return studyDayRepository.findByScheduleIdAndDate(scheduleId, date).map(schedule -> {
-            StudyDayDto dto = mapper.toDto(schedule);
+        return studyDayRepository.findByScheduleIdAndDate(scheduleId, date).map(s -> {
+            StudyDayDto dto = mapper.toDto(s);
             dto.setLessons(getSortedLessons(dto.getLessons()));
             return dto;
         });

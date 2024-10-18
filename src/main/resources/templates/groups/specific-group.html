@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>Groups</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
+  <h2 class="title-center" th:text="Group + ' ' + ${group.groupName}"></h2>
+  <hr class="my-1">
+  <div class="my-2">
+    <div class="row d-flex">
+      <a sec:authorize="hasAuthority('GROUPS_READ')" class="col-md-3 mt-4 unsent-width btn btn-light btn-light-cus"
+         th:href="@{/ui/v1/groups}" style="margin-left: 12px;">Back to groups</a>
+    </div>
+  </div>
+  <div th:if="${group.students.size()} > 0">
+    <h4 style="margin-top: unset; text-align: center !important;">Students</h4>
+    <div class="table-container">
+      <table class="table table-striped table-hover table-responsive-xl">
+        <thead class="table-light">
+        <tr>
+          <th scope="col">№</th>
+          <th scope="col">Student name</th>
+          <th scope="col">Email</th>
+          <th scope="col">Group</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="student, interStat : ${group.students}">
+          <th scope="row" th:text="${interStat.count}"></th>
+          <td th:text="${student.firstName} + ' ' + ${student.lastName}"></td>
+          <td th:text="${student.email}"></td>
+          <td th:text="${student.groupName}"></td>
+          <td>
+            <span th:if="${student.isActive}" class="fa-regular fa-square-check icon-dark" title="Active"></span>
+            <span th:unless="${student.isActive}" class="far fa-times-circle icon-dark" title="Not active"></span>
+          </td>
+          <td>
+            <a sec:authorize="hasAuthority('STUDENTS_READ')" href="#" class="fa fa-eye icon-dark no-decoration"
+               aria-hidden="true" title="View this student"></a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="message info-m" th:unless="${group.students.size()} > 0">
+    <span th:text="#{students.list.empty}"></span>
+  </div>
+  <div class="my-4">
+    <div class="row d-flex">
+      <a sec:authorize="hasAuthority('GROUPS_UPDATE')" class="col-md-3 unsent-width btn btn-secondary"
+         th:href="@{/ui/v1/groups/{groupId}/edit(groupId=${group.id})}"
+         style="margin-right: 15px; margin-left: 12px">Edit group</a>
+      <span sec:authorize="hasAuthority('GROUPS_DELETE')" class="col-md-3 unsent-width btn btn-danger"
+            data-bs-toggle="modal" data-bs-target="#groupDeleteModal">Delete group</span>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="groupDeleteModal" tabindex="-1" aria-labelledby="groupDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel"
+            th:text="'Are you sure you want to delete the ' + ${group.groupName}"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">By deleting this group you will delete the students who belong to it.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form th:method="delete" th:action="@{/ui/v1/groups/{groupId}/delete(groupId=${group.id})}">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+<script th:src="@{/webjars/jquery-ui/1.13.2/jquery-ui.min.js}"></script>
+</body>
+</html>
