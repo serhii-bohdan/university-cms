@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.MarkDto;
 import ua.foxminded.universitycms.mapper.Mapper;
@@ -29,7 +29,6 @@ import ua.foxminded.universitycms.service.MarkService;
  */
 @Service
 @Validated
-@Transactional
 public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements MarkService {
 
     /**
@@ -63,6 +62,7 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
      * @return a list of {@link MarkDto} objects representing the student's marks in the course
      */
     @Override
+    @Transactional(readOnly = true)
     public List<MarkDto> getStudentCourseMarks(long studentId, long courseId) {
         return getMarkDtoList(markRepository.findMarksByStudentIdAndCourseId(studentId, courseId));
     }
@@ -76,6 +76,7 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
      * @return a list of {@link MarkDto} objects representing the student's marks for the specified topic
      */
     @Override
+    @Transactional(readOnly = true)
     public List<MarkDto> getStudentCourseMarksByTopicName(long studentId, long courseId, String topicName) {
         return getMarkDtoList(markRepository.findMarksByStudentIdAndCourseId(studentId, courseId).stream()
             .filter(m -> m.getTopic().getTopicName().equals(topicName.strip()))
@@ -99,6 +100,7 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Map<String, Long> getUnratedTopics(long studentId, long courseId) {
         List<Long> ratedTopicIds = getStudentCourseMarks(studentId, courseId).stream()
             .map(MarkDto::getTopicId)

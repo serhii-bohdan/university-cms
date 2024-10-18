@@ -11,15 +11,16 @@
 </head>
 <body>
 <header th:insert="~{fragments/header :: header}"></header>
-<div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
+<div class="container-fluid" style="max-width: 750px; margin: 0 auto;">
   <h2 class="title-center">Groups</h2>
   <div class="my-3">
     <form th:action="@{/ui/v1/groups}" id="searchForm">
       <div class="row d-flex">
-        <div class="col-md-5 mt-2">
+        <div class="col-md-6 mt-2">
           <div class="search">
             <i class="fa fa-search"></i>
-            <input id="keyword" type="search" name="keyword" th:value="${#strings.trim(keyword)}" required class="form-control" placeholder="Enter group name">
+            <input id="keyword" type="search" name="keyword" th:value="${keyword}" required class="form-control"
+                   placeholder="Enter group name">
             <button type="submit" class="btn btn-primary">Search</button>
           </div>
         </div>
@@ -27,19 +28,19 @@
           <div class="input-group-prepend">
             <label class="input-group-text" for="size">Items per page:</label>
           </div>
-          <select form="searchForm" name="size" th:value="${size}" onchange="changePageSize()" class="size-select" id="size">
-            <option th:each="s : ${#numbers.sequence(1, 20)}" th:value="${s}" th:text="${s}" th:selected="${s == size}"></option>
+          <select form="searchForm" name="size" th:value="${size}" onchange="changePageSize()" class="size-select"
+                  id="size">
+            <option th:each="s : ${#numbers.sequence(1, 20)}" th:value="${s}" th:text="${s}"
+                    th:selected="${s == size}"></option>
           </select>
         </div>
         <div class="col-md-3 mt-2 unsent-width">
           <button id="btnClear" class="btn btn-secondary">Clear</button>
         </div>
-        <div class="col-md-3 mt-2 unsent-width">
-          <a sec:authorize="hasAuthority('GROUPS_CREATE')" class="btn btn-success" href="#">Create group</a>
-        </div>
       </div>
     </form>
   </div>
+  <div class="my-5"></div>
   <div th:if="${groups.size()} > 0">
     <table class="table table-striped table-hover table-responsive-xl">
       <thead class="table-light">
@@ -56,12 +57,15 @@
         <td th:text="*{group.groupName}"></td>
         <td th:text="*{group.students.size()}"></td>
         <td>
-          <a sec:authorize="hasAuthority('GROUPS_READ')" href="#" class="fa fa-eye icon-dark no-decoration"
-             aria-hidden="true" title="View this group"></a>
-          <a sec:authorize="hasAuthority('GROUPS_UPDATE')" href="#" class="fa-regular fa-pen-to-square icon-dark"
-             title="Update group" style="text-decoration: none; margin-left: 10px;"></a>
-          <a sec:authorize="hasAuthority('GROUPS_DELETE')" href="#" class="fa-regular fa-trash-can icon-dark btn-delete"
-             title="Delete this group" style="margin-left: 10px;"></a>
+          <a sec:authorize="hasAuthority('GROUPS_READ')" th:href="@{/ui/v1/groups/{groupId}(groupId=${group.id})}"
+             class="fa fa-eye icon-dark no-decoration" aria-hidden="true" title="View this group"></a>
+          <a sec:authorize="hasAuthority('GROUPS_UPDATE')" class="fa-regular fa-pen-to-square icon-dark"
+             th:href="@{/ui/v1/groups/{groupId}/edit(groupId=${group.id})}"
+             title="Edit this group" style="text-decoration: none; margin-left: 10px;"></a>
+          <span sec:authorize="hasAuthority('GROUPS_DELETE')" class="fa-regular fa-trash-can icon-dark btn-delete"
+                title="Delete this group" style="margin-left: 10px; cursor: pointer;" data-bs-toggle="modal"
+                data-bs-target="#groupDeleteModal" th:data-group-id="${group.id}"
+                th:data-group-name="${group.groupName}"></span>
         </td>
       </tr>
       </tbody>
@@ -70,8 +74,31 @@
   <div class="message info-m" th:unless="${groups.size()} > 0">
     <span th:text="#{groups.no.found}"></span>
   </div>
+  <div class="my-3">
+    <div class="row d-flex">
+      <a sec:authorize="hasAuthority('GROUPS_CREATE')" class="col-md-3 mt-2 unsent-width btn btn-success ms-auto"
+         style="margin-right: 30px;" th:href="@{/ui/v1/groups/new}">Create group</a>
+    </div>
+  </div>
   <div
     th:insert="~{fragments/pagination :: pagination('groups', ${totalPages}, ${page}, ${size}, ${keyword})}"></div>
+</div>
+<div class="modal fade" id="groupDeleteModal" tabindex="-1" aria-labelledby="groupDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">Are you sure you want to delete this group?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">By deleting this group you will delete the students who belong to it.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form th:method="delete" th:action="@{/ui/v1/groups/groupId/delete}">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>
 <script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
@@ -94,6 +121,14 @@
 
     $("#keyword").autocomplete({
       source: allNamesOfGroups
+    });
+
+    $('.btn-delete').click(function () {
+      const groupId = $(this).data('group-id');
+      const groupName = $(this).data('group-name');
+
+      $('#groupDeleteModal .modal-title').text(`Are you sure you want to delete the ${groupName}?`);
+      $('#groupDeleteModal form').attr('action', `/ui/v1/groups/${groupId}/delete`);
     });
   });
 </script>

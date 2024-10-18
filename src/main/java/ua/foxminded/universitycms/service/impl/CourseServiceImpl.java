@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.CourseDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
@@ -36,8 +36,17 @@ import ua.foxminded.universitycms.service.CourseService;
  */
 @Service
 @Validated
-@Transactional
 public class CourseServiceImpl extends AbstractService<Course, CourseDto> implements CourseService {
+
+    /**
+     * The error message used when a course with a specified ID is not found.
+     */
+    private static final String COURSE_NOT_FOUND_MESSAGE = "Course with ID %d not found";
+
+    /**
+     * The error message used when a student with a specified ID is not found.
+     */
+    private static final String STUDENT_NOT_FOUND_MESSAGE = "Student with ID %d not found";
 
     /**
      * Repository for interacting with {@link Course} entities.
@@ -70,6 +79,11 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
         this.studentRepository = studentRepository;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws ValidationException if the course name and description are not unique among the author's courses.
+     */
     @Override
     public CourseDto save(CourseDto courseDto) {
         List<Course> teacherCourses = courseRepository.findByAuthorId(courseDto.getAuthorId());
@@ -84,6 +98,12 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
             should be unique among the courses of an individual teacher.""");
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws ValidationException if the course name and description are not unique among the author's courses
+     *                             after update (excluding the updated course itself).
+     */
     @Override
     public CourseDto update(CourseDto courseDto) {
         List<Course> teacherCourses = courseRepository.findByAuthorId(courseDto.getAuthorId());
@@ -102,6 +122,7 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<CourseDto> getAllCoursesInPage(Pageable pageable) {
         return courseRepository.findAll(pageable).map(mapper::toDto);
     }
@@ -110,6 +131,7 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<CourseDto> getCourseByNameInPage(String name, Pageable pageable) {
         return courseRepository.findCourseByCourseNameIgnoreCase(name.strip(), pageable).map(mapper::toDto);
     }
@@ -118,16 +140,7 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      * {@inheritDoc}
      */
     @Override
-    public List<String> getAllNamesOfCourses() {
-        return courseRepository.findAll().stream()
-            .map(Course::getCourseName)
-            .toList();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
+    @Transactional(readOnly = true)
     public List<CourseDto> getStudentCourses(long studentId) {
         return studentRepository.findById(studentId)
             .map(s -> getCourseDtoList(s.getCourses()))
@@ -139,6 +152,7 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public List<CourseDto> getStudentCourseByCourseName(long studentId, String courseName) {
         return getStudentCourses(studentId).stream()
             .filter(c -> c.getCourseName().equals(courseName.strip()))
@@ -149,6 +163,7 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public List<CourseDto> getTeacherCourses(long teacherId) {
         return getCourseDtoList(teacherRepository.findById(teacherId).map(Teacher::getCourses)
             .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
@@ -159,6 +174,7 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public List<CourseDto> getTeacherCourseByCourseName(long teacherId, String courseName) {
         return getTeacherCourses(teacherId).stream()
             .filter(c -> c.getCourseName().equals(courseName.strip()))
@@ -172,15 +188,16 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      * @throws ValidationException     if the student is not enrolled in the course
      */
     @Override
+    @Transactional
     public void deductStudentFromCourse(long courseId, long studentId) {
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format("Course with ID %d not found", courseId)
+                String.format(COURSE_NOT_FOUND_MESSAGE, courseId)
             ));
 
         Student student = studentRepository.findById(studentId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format("Student with ID %d not found", studentId)
+                String.format(STUDENT_NOT_FOUND_MESSAGE, studentId)
             ));
 
         if (!course.getStudents().contains(student)) {
@@ -198,15 +215,16 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      * @throws ValidationException     if the student is not enrolled in the course
      */
     @Override
+    @Transactional
     public void enrollStudentInCourse(long courseId, long studentId) {
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format("Course with ID %d not found", courseId)
+                String.format(COURSE_NOT_FOUND_MESSAGE, courseId)
             ));
 
         Student student = studentRepository.findById(studentId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format("Student with ID %d not found", studentId)
+                String.format(STUDENT_NOT_FOUND_MESSAGE, studentId)
             ));
 
         if (course.getStudents().contains(student)) {
@@ -215,6 +233,24 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
         }
 
         course.addStudent(student);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void enrollAllStudentsFromGroupInCourse(long courseId, long groupId) {
+        Course course = courseRepository.findById(courseId)
+            .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
+                String.format(COURSE_NOT_FOUND_MESSAGE, courseId)
+            ));
+
+        List<Student> groupStudents = studentRepository.findByGroupId(groupId);
+
+        for (Student student : groupStudents) {
+            course.addStudent(student);
+        }
     }
 
     private List<CourseDto> getCourseDtoList(Collection<Course> courses) {

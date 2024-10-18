@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.ManagerDto;
 import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
@@ -32,7 +32,6 @@ import java.util.List;
  */
 @Service
 @Validated
-@Transactional
 public class ManagerServiceImpl extends AbstractService<Manager, ManagerDto> implements ManagerService {
 
     /**
@@ -92,6 +91,7 @@ public class ManagerServiceImpl extends AbstractService<Manager, ManagerDto> imp
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<ManagerDto> getManagersPage(Pageable pageable) {
         return managerRepository.findAll(pageable).map(managerMapper::toDto);
     }
@@ -100,6 +100,7 @@ public class ManagerServiceImpl extends AbstractService<Manager, ManagerDto> imp
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<ManagerDto> getManagerInPageByName(String fullName, Pageable pageable) {
         List<String> names = getSeparateFirstNameAndLastName(fullName.strip());
         return managerRepository.findByName_FirstNameAndName_LastNameIgnoreCase(names.get(0), names.get(1), pageable).map(mapper::toDto);

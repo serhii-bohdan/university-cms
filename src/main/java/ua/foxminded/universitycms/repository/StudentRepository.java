@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ua.foxminded.universitycms.model.Student;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -42,5 +43,14 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * @return a {@link Page} of matching students, or an empty {@link Page} if none found
      */
     Page<Student> findByName_FirstNameAndName_LastNameIgnoreCase(String firstName, String lastName, Pageable pageable);
+
+    /**
+     * Finds a list of students belonging to a specific group by its ID.
+     *
+     * @param groupId The unique identifier of the group to search for students in.
+     * @return a list of {@link Student} objects that belong to the specified group,
+     * or an empty list if no students are found in that group.
+     */
+    List<Student> findByGroupId(Long groupId);
 
 }

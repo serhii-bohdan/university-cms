@@ -1,11 +1,11 @@
 package ua.foxminded.universitycms.service;
 
+import java.util.List;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ua.foxminded.universitycms.dto.GroupDto;
 import ua.foxminded.universitycms.model.Group;
-import java.util.List;
 
 /**
  * The {@code GroupService} interface defines a set of operations for managing {@link Group} entities and their
@@ -39,11 +39,14 @@ public interface GroupService extends Service<Group, GroupDto> {
     Page<GroupDto> getGroupInPageByName(@NotNull String name, @NotNull Pageable pageable);
 
     /**
-     * Retrieves a list of all group names in the system, providing a concise overview of available groups for
-     * display or further processing.
+     * Retrieves a list of groups whose students are not all enrolled in a specified course.
+     * <p>
+     * This method fetches all groups from the `groupRepository` and filters them based on whether all students
+     * in the group are enrolled in the course. The filtered groups are then converted to DTOs using the mapper.
      *
-     * @return a list of group names, enabling efficient listing and selection of groups
+     * @param courseId the ID of the course to check for student enrollment.
+     * @return a list of {@link GroupDto} objects representing the groups whose students are not fully enrolled in the course.
      */
-    List<String> getAllNamesOfGroups();
+    List<GroupDto> getListOfGroupsWhoseStudentsNotEnrolledInCourse(long courseId);
 
 }

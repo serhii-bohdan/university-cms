@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.TeacherDto;
 import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
@@ -35,7 +35,6 @@ import java.util.List;
  */
 @Service
 @Validated
-@Transactional
 public class TeacherServiceImpl extends AbstractService<Teacher, TeacherDto> implements TeacherService {
 
     /**
@@ -113,6 +112,7 @@ public class TeacherServiceImpl extends AbstractService<Teacher, TeacherDto> imp
      * @return a Page object containing a list of TeacherDto objects representing the requested page of teachers
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<TeacherDto> getTeachersPage(Pageable pageable) {
         return teacherRepository.findAll(pageable).map(mapper::toDto);
     }
@@ -129,6 +129,7 @@ public class TeacherServiceImpl extends AbstractService<Teacher, TeacherDto> imp
      * @return a Page object containing a list of TeacherDto objects representing the requested page of filtered teachers
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<TeacherDto> getTeacherInPageByName(String fullName, Pageable pageable) {
         List<String> names = getSeparateFirstNameAndLastName(fullName.strip());
         return teacherRepository.findByName_FirstNameAndName_LastNameIgnoreCase(names.get(0), names.get(1), pageable).map(mapper::toDto);

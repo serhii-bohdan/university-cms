@@ -1,12 +1,12 @@
 package ua.foxminded.universitycms.service.impl;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.AdminDto;
 import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
@@ -31,7 +31,6 @@ import java.util.List;
  */
 @Service
 @Validated
-@Transactional
 public class AdminServiceImpl extends AbstractService<Admin, AdminDto> implements AdminService {
 
     /**
@@ -92,6 +91,7 @@ public class AdminServiceImpl extends AbstractService<Admin, AdminDto> implement
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<AdminDto> getAdminsPage(Pageable pageable) {
         return adminRepository.findAll(pageable).map(adminMapper::toDto);
     }
@@ -100,6 +100,7 @@ public class AdminServiceImpl extends AbstractService<Admin, AdminDto> implement
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<AdminDto> getAdminInPageByName(String fullName, Pageable pageable) {
         List<String> names = getSeparateFirstNameAndLastName(fullName.strip());
         return adminRepository.findByName_FirstNameAndName_LastNameIgnoreCase(names.get(0), names.get(1), pageable).map(mapper::toDto);

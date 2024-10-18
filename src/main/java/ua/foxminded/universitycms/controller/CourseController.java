@@ -39,6 +39,11 @@ import java.util.stream.Collectors;
 public class CourseController {
 
     /**
+     * The redirect URL format used to redirect the user to the course students page.
+     */
+    private static final String COURSE_STUDENTS_REDIRECT_URL = "redirect:/ui/v1/courses/my/{courseId}/students";
+
+    /**
      * The {@link CourseService} used to interact with course data.
      */
     private final CourseService courseService;
@@ -63,7 +68,7 @@ public class CourseController {
             ? courseService.getAllCoursesInPage(pageable)
             : courseService.getCourseByNameInPage(keyword, pageable);
 
-        model.addAttribute(ModelAttributeNames.COURSES_ALL_NAMES_ATTRIBUTE, courseService.getAllNamesOfCourses())
+        model.addAttribute(ModelAttributeNames.COURSES_ALL_NAMES_ATTRIBUTE, getCoursesNames(courseService.getAll()))
             .addAttribute(ModelAttributeNames.COURSES_ATTRIBUTE, coursesPage.getContent())
             .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
             .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, coursesPage.getTotalElements())
@@ -183,7 +188,6 @@ public class CourseController {
      * @param course        the course data to be created (received from the form)
      * @param bindingResult the binding result containing any validation errors
      * @return a redirect URL on success, the creation form view name on validation errors, or throws an exception
-     * @throws CustomHttpException if an unexpected error occurs during course creation
      */
     @PostMapping("my/create")
     @PreAuthorize("hasAuthority('COURSES_CREATE')")
@@ -359,7 +363,7 @@ public class CourseController {
                 try again.""");
         }
 
-        return "redirect:/ui/v1/courses/my/{courseId}/students";
+        return COURSE_STUDENTS_REDIRECT_URL;
     }
 
     /**
@@ -393,7 +397,32 @@ public class CourseController {
                 and try again.""");
         }
 
-        return "redirect:/ui/v1/courses/my/{courseId}/students";
+        return COURSE_STUDENTS_REDIRECT_URL;
+    }
+
+    /**
+     * Enrolls all students from a specific group in a course.
+     * <p>
+     * This method handles POST requests to the `/my/{courseId}/group/{groupId}/enroll` endpoint. It attempts to enroll all
+     * students from the group with the provided `groupId` in the course with the provided `courseId` using the `courseService`.
+     * If the course is not found, it throws a `CustomHttpException` with a not found status.
+     *
+     * @param courseId the ID of the course
+     * @param groupId  the ID of the group to be enrolled
+     * @return a redirect URL to the course students page
+     * @throws CustomHttpException if the course or group is not found
+     */
+    @PostMapping("/my/{courseId}/group/{groupId}/enroll")
+    @PreAuthorize("hasAuthority('COURSES_UPDATE')")
+    public String performEnrollingGroupInCourse(@PathVariable("courseId") long courseId, @PathVariable("groupId") long groupId) {
+        try {
+            courseService.enrollAllStudentsFromGroupInCourse(courseId, groupId);
+            return COURSE_STUDENTS_REDIRECT_URL;
+        } catch (EntityNotFoundException e) {
+            throw new CustomHttpException(e.getHttpStatus(), """
+                The requested resource was not found. Please check the provided information
+                and try again.""");
+        }
     }
 
     private List<String> getCoursesNames(Collection<CourseDto> courses) {

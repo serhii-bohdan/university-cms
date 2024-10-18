@@ -4,7 +4,6 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.TopicDto;
 import ua.foxminded.universitycms.exception.ValidationException;
@@ -24,7 +23,6 @@ import ua.foxminded.universitycms.service.TopicService;
  */
 @Service
 @Validated
-@Transactional
 public class TopicServiceImpl extends AbstractService<Topic, TopicDto> implements TopicService {
 
     /**
@@ -45,6 +43,8 @@ public class TopicServiceImpl extends AbstractService<Topic, TopicDto> implement
 
     /**
      * {@inheritDoc}
+     *
+     * @throws ValidationException if the topic name or order is not unique within the course.
      */
     @Override
     public TopicDto save(TopicDto topicDto) {
@@ -62,6 +62,8 @@ public class TopicServiceImpl extends AbstractService<Topic, TopicDto> implement
 
     /**
      * {@inheritDoc}
+     *
+     * @throws ValidationException if the topic name or order is not unique within the course after update.
      */
     @Override
     public TopicDto update(TopicDto topicDto) {

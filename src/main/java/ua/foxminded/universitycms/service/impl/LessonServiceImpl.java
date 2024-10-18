@@ -2,7 +2,6 @@ package ua.foxminded.universitycms.service.impl;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.LessonDto;
 import ua.foxminded.universitycms.mapper.Mapper;
@@ -20,7 +19,6 @@ import ua.foxminded.universitycms.service.LessonService;
  */
 @Service
 @Validated
-@Transactional
 public class LessonServiceImpl extends AbstractService<Lesson, LessonDto> implements LessonService {
 
     /**
