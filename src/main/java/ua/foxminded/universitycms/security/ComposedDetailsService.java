@@ -35,6 +35,12 @@ import java.util.function.Function;
 public class ComposedDetailsService implements UserDetailsService {
 
     /**
+     * This constant is used as a flag to filter out only activated users during
+     * the loading of user details.
+     */
+    private static final Boolean USER_ACTIVATED = true;
+
+    /**
      * A map that associates each user class (Admin, Manager, Teacher, Student) with a function that
      * loads the corresponding user details based on the provided username (email).
      */
@@ -52,7 +58,7 @@ public class ComposedDetailsService implements UserDetailsService {
     public ComposedDetailsService(AdminRepository adminRepository, ManagerRepository managerRepository,
                                   TeacherRepository teacherRepository, StudentRepository studentRepository) {
         userLoaders = Map.of(
-            Student.class, username -> studentRepository.findByEmail(username).map(StudentDetails::new),
+            Student.class, username -> studentRepository.findByEmailAndIsActive(username, USER_ACTIVATED).map(StudentDetails::new),
             Teacher.class, username -> teacherRepository.findByEmail(username).map(TeacherDetails::new),
             Manager.class, username -> managerRepository.findByEmail(username).map(ManagerDetails::new),
             Admin.class, username -> adminRepository.findByEmail(username).map(AdminDetails::new)

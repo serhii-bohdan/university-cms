@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import ua.foxminded.universitycms.TestConfiguration;
 import ua.foxminded.universitycms.exception.ValidationException;
 import ua.foxminded.universitycms.mapper.CourseMapper;
 import ua.foxminded.universitycms.model.Course;
@@ -22,7 +20,6 @@ import ua.foxminded.universitycms.repository.TeacherRepository;
 import ua.foxminded.universitycms.service.CourseService;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
 
-@ContextConfiguration(classes = {TestConfiguration.class})
 @SpringBootTest(classes = {CourseServiceImpl.class})
 class CourseServiceImplTest {
 

@@ -18,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import ua.foxminded.universitycms.TestConfiguration;
+import ua.foxminded.universitycms.ControllerTestConfig;
 import ua.foxminded.universitycms.config.SecurityConfig;
 import ua.foxminded.universitycms.dto.GroupDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 @WebMvcTest(controllers = GroupController.class)
-@ContextConfiguration(classes = TestConfiguration.class)
+@ContextConfiguration(classes = ControllerTestConfig.class)
 @Import(SecurityConfig.class)
 class GroupControllerTest {
 
@@ -290,14 +290,16 @@ class GroupControllerTest {
     @Test
     @WithMockUser(authorities = {"GROUPS_UPDATE"})
     void performGroupUpdate_shouldUpdateGroupAndRedirectToAnotherUrl_whenAllRequiredFieldsAreFilled() throws Exception {
+        long groupId = 1L;
         String groupName = "HL-09";
 
         mockMvc.perform(put("/ui/v1/groups/update")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .with(csrf())
+                .param("id", String.valueOf(groupId))
                 .param("groupName", groupName))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/ui/v1/groups"));
+            .andExpect(redirectedUrl(String.format("/ui/v1/groups/%s", groupId)));
 
         verify(groupServiceMock, times(1)).update(any(GroupDto.class));
     }

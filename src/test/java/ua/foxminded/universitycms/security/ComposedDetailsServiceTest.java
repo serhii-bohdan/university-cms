@@ -40,17 +40,17 @@ class ComposedDetailsServiceTest {
     private ComposedDetailsService composedDetailsService;
 
     @Test
-    void loadUserByUsername_shouldFindStudent_whenEmailExistsInStudentRepository() {
+    void loadUserByUsername_shouldFindStudent_whenStudentWithGivenEmailExistsAndStudentIsActive() {
         Student studentMock = mock(Student.class);
         when(studentMock.getEmail()).thenReturn(TEST_EMAIL);
         when(adminRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
         when(managerRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
         when(teacherRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
-        when(studentRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(studentMock));
+        when(studentRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.of(studentMock));
 
         CustomUserDetails customUserDetails = (CustomUserDetails) composedDetailsService.loadUserByUsername(TEST_EMAIL);
 
-        verify(studentRepositoryMock, times(1)).findByEmail(TEST_EMAIL);
+        verify(studentRepositoryMock, times(1)).findByEmailAndIsActive(TEST_EMAIL, true);
         assertEquals(TEST_EMAIL, customUserDetails.getUsername());
     }
 

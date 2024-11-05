@@ -27,7 +27,7 @@
     </div>
     <input type="hidden" class="form-control" th:field="*{authorId}">
     <button sec:authorize="hasAuthority('COURSES_UPDATE')" type="submit" class="btn btn-success form-group-margin" th:text="Update"></button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" th:href="@{../../../../../ui/v1/courses/my}" th:text="Cancle"></a>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
   </form>
 </div>
 <div th:insert="~{fragments/error-modal :: errorModal(${validationErrorMessage})}"></div>

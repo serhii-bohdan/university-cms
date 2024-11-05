@@ -32,6 +32,11 @@ public class ViewNames {
     public static final String LOGIN_PAGE = "security/login";
 
     /**
+     * The view name for the password update form.
+     */
+    public static final String PASSWORD_UPDATE_FORM = "security/password-update-form";
+
+    /**
      * View name for the home page.
      */
     public static final String HOME_PAGE = "home";
@@ -82,9 +87,24 @@ public class ViewNames {
     public static final String ALL_STUDENTS_PAGE = "students/all-students";
 
     /**
+     * The view name for the student creation form.
+     */
+    public static final String STUDENT_CREATION_FORM = "students/creation-form";
+
+    /**
+     * The view name for the student update form.
+     */
+    public static final String STUDENT_UPDATE_FORM = "students/update-form";
+
+    /**
      * View name for the page that displays students who are not enrolled in any course.
      */
     public static final String STUDENTS_NOT_ENROLLED_IN_COURSE = "students/not-enrolled-in-course";
+
+    /**
+     * The view name used to display details of a particular student.
+     */
+    public static final String PARTICULAR_STUDENT = "students/particular-student";
 
     /**
      * View name for the page that displays a study day.

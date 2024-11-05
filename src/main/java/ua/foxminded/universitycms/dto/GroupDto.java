@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import ua.foxminded.universitycms.util.annotation.UniqueGroup;
+import ua.foxminded.universitycms.util.annotation.UniqueGroupName;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -20,7 +20,7 @@ import java.util.Set;
 @NoArgsConstructor
 @ToString(callSuper = true, exclude = "students")
 @SuperBuilder
-@UniqueGroup
+@UniqueGroupName
 public class GroupDto extends AbstractDto {
 
     /**

@@ -6,9 +6,11 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.model.Student;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The {@code StudentService} interface defines a set of operations for managing {@link Student} entities and their
@@ -44,22 +46,16 @@ public interface StudentService extends Service<Student, StudentDto> {
     Page<StudentDto> getStudentsPage(@NotNull Pageable pageable);
 
     /**
-     * Retrieves a page of student data filtered by full name. This method retrieves a paginated list of
-     * students whose full names contain (case-insensitive) the provided keyword. It utilizes the `Pageable`
-     * object to specify the page number, size.
+     * Retrieves a paginated list of students by their email address.
+     * <p>
+     * This method queries students based on the specified email address, returning
+     * results as a {@link Page} of {@link StudentDto} objects.
      *
-     * @param fullName the keyword to filter students by full name (can be blank)
-     * @param pageable the Pageable object containing pagination information (size, page number)
-     * @return a Page object containing a list of StudentDto objects representing the requested page of filtered students
+     * @param email    the email address of the students to search for
+     * @param pageable the pagination information, including page number and size
+     * @return a {@link Page} containing {@link StudentDto} objects matching the specified email
      */
-    Page<StudentDto> getStudentInPageByName(@NotNull String fullName, @NotNull Pageable pageable);
-
-    /**
-     * Retrieves a list of all student names in the system.
-     *
-     * @return a list of student names
-     */
-    List<String> getAllNamesOfStudents();
+    Page<StudentDto> getStudentInPageByEmail(@NotNull String email, @NotNull Pageable pageable);
 
     /**
      * Retrieves a list of students who are not enrolled in the specified course.
@@ -68,5 +64,26 @@ public interface StudentService extends Service<Student, StudentDto> {
      * @return a list of {@link StudentDto} objects representing the students who are not enrolled in the course
      */
     List<StudentDto> getListOfStudentsNotEnrolledInCourse(long courseId);
+
+    /**
+     * Retrieves a map of all existing groups.
+     * <p>
+     * The map contains group names as keys and group IDs as values, allowing
+     * quick access to all existing group information.
+     *
+     * @return a map with group names as keys and corresponding group IDs as values
+     */
+    Map<String, Long> getAllExistingGroups();
+
+    /**
+     * Updates the password of an existing student.
+     * <p>
+     * This method takes a {@link PasswordUpdateRequestDto} object containing the student ID, current password,
+     * new password, and password confirmation. It validates the request and, if successful, updates the student's
+     * password in the system.
+     *
+     * @param passwordUpdateRequest the DTO containing the password update information
+     */
+    void updateStudentPassword(@NotNull PasswordUpdateRequestDto passwordUpdateRequest);
 
 }

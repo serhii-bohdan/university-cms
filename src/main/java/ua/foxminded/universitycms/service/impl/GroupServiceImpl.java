@@ -44,10 +44,7 @@ public class GroupServiceImpl extends AbstractService<Group, GroupDto> implement
     }
 
     /**
-     * Retrieves a page of all groups from the database using pagination.
-     *
-     * @param pageable the pagination information specifying the page number
-     * @return a page of group DTOs representing the requested page of groups with pagination information
+     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
@@ -56,11 +53,7 @@ public class GroupServiceImpl extends AbstractService<Group, GroupDto> implement
     }
 
     /**
-     * Retrieves a page of groups filtered by name using pagination.
-     *
-     * @param name     the name of the group to filter by
-     * @param pageable the pagination information specifying the page number, size
-     * @return a page of group DTOs representing the requested page of filtered groups with pagination information
+     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)

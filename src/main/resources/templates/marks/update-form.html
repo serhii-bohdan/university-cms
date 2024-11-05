@@ -29,10 +29,10 @@
     <input type="hidden" name="cid" th:value="${courseId}">
     <input type="hidden" name="sid" th:value="${studentId}">
     <input type="hidden" name="fullName" th:value="${studentFullName}">
-    <button sec:authorize="hasAuthority('MARKS_UPDATE')" type="submit" class="btn btn-success form-group-margin"
-            th:text="Update"></button>
-    <a th:href="@{../../../../ui/v1/marks(sid=${studentId}, cid=${courseId}, fullName=${studentFullName})}"
-       class="btn btn-secondary form-group-margin" style="margin-left: 20px" th:text="Cancle"></a>
+    <button sec:authorize="hasAuthority('MARKS_UPDATE')" type="submit" class="btn btn-success form-group-margin">
+      Update
+    </button>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>

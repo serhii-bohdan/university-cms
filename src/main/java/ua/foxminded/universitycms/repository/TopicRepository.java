@@ -25,7 +25,7 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
      *
      * @param courseId the ID of the course to search for topics within
      * @return a list of topics associated with the specified course,
-     *         or an empty list if none found
+     * or an empty list if none found
      */
     List<Topic> findByCourseId(Long courseId);
 

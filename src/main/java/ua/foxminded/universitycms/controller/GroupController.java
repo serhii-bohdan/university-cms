@@ -32,7 +32,15 @@ import ua.foxminded.universitycms.util.ViewNames;
 @RequestMapping("/ui/v1/groups")
 public class GroupController {
 
-    private static final String ALL_GROUPS_REDIRECT = "redirect:/ui/v1/groups";
+    /**
+     * The URL used to redirect to the page displaying all groups.
+     */
+    private static final String ALL_GROUPS_REDIRECT_URL = "redirect:/ui/v1/groups";
+
+    /**
+     * The URL template used to redirect to a specific group page, with the group ID dynamically inserted.
+     */
+    private static final String SPECIFIC_GROUP_REDIRECT_URL = "redirect:/ui/v1/groups/%s";
 
     /**
      * The {@link GroupService} used to interact with group data.
@@ -70,6 +78,18 @@ public class GroupController {
         return ViewNames.ALL_GROUPS_PAGE;
     }
 
+    /**
+     * Retrieves a page displaying groups whose students are not enrolled in a specific course.
+     * <p>
+     * This method handles GET requests to the `/ui/v1/groups/for-enroll` endpoint and returns
+     * a view containing a list of groups that are eligible for enrollment in a specified course.
+     * It supports optional keyword-based filtering for group names.
+     *
+     * @param model    the Spring MVC Model object used to store data for the view
+     * @param keyword  an optional keyword for filtering group names (can be null or blank)
+     * @param courseId the ID of the course to find groups for enrollment
+     * @return the logical view name `ViewNames.GROUPS_FOR_ENROLL_IN_COURSE` representing the page with groups eligible for enrollment
+     */
     @GetMapping("/for-enroll")
     @PreAuthorize("hasAuthority('GROUPS_READ')")
     public String getPageWithGroupsForEnrollInCourse(Model model, @RequestParam(name = "keyword", required = false) String keyword,
@@ -151,7 +171,7 @@ public class GroupController {
         }
 
         groupService.save(group);
-        return ALL_GROUPS_REDIRECT;
+        return ALL_GROUPS_REDIRECT_URL;
     }
 
     /**
@@ -206,7 +226,7 @@ public class GroupController {
 
         try {
             groupService.update(group);
-            return ALL_GROUPS_REDIRECT;
+            return String.format(SPECIFIC_GROUP_REDIRECT_URL, group.getId());
         } catch (EntityNotFoundException e) {
             throw new CustomHttpException(e.getHttpStatus(), "Update failed. Group not found.");
         }
@@ -230,7 +250,7 @@ public class GroupController {
     public String performGroupDeletion(@PathVariable("groupId") long groupId) {
         try {
             groupService.deleteById(groupId);
-            return ALL_GROUPS_REDIRECT;
+            return ALL_GROUPS_REDIRECT_URL;
         } catch (EntityNotFoundException e) {
             throw new CustomHttpException(e.getHttpStatus(), "Deletion failed. Group not found.");
         }

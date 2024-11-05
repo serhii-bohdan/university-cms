@@ -55,11 +55,7 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
     }
 
     /**
-     * Retrieves a list of marks for a student in a given course.
-     *
-     * @param studentId the ID of the student
-     * @param courseId  the ID of the course
-     * @return a list of {@link MarkDto} objects representing the student's marks in the course
+     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
@@ -68,12 +64,7 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
     }
 
     /**
-     * Retrieves a list of marks for a student in a given course and topic.
-     *
-     * @param studentId the ID of the student
-     * @param courseId  the ID of the course
-     * @param topicName the name of the topic
-     * @return a list of {@link MarkDto} objects representing the student's marks for the specified topic
+     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
@@ -84,10 +75,7 @@ public class MarkServiceImpl extends AbstractService<Mark, MarkDto> implements M
     }
 
     /**
-     * Retrieves the names of topics within a given course.
-     *
-     * @param courseId the ID of the course
-     * @return a list of topic names as strings
+     * {@inheritDoc}
      */
     @Override
     public List<String> getNamesOfTopicsInCourse(long courseId) {

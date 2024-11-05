@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
-import ua.foxminded.universitycms.TestConfiguration;
 import ua.foxminded.universitycms.dto.MarkDto;
 import ua.foxminded.universitycms.mapper.MarkMapper;
 import ua.foxminded.universitycms.model.Mark;
@@ -18,7 +16,6 @@ import ua.foxminded.universitycms.repository.MarkRepository;
 import ua.foxminded.universitycms.repository.TopicRepository;
 import ua.foxminded.universitycms.service.MarkService;
 
-@ContextConfiguration(classes = TestConfiguration.class)
 @SpringBootTest(classes = {MarkServiceImpl.class})
 class MarkServiceImplTest {
 

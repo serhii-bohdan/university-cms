@@ -32,8 +32,10 @@
     <input type="hidden" name="cid" th:value="${courseId}">
     <input type="hidden" name="sid" th:value="${studentId}">
     <input type="hidden" name="fullName" th:value="${studentFullName}">
-    <button sec:authorize="hasAuthority('MARKS_CREATE')" type="submit" id="rateButton" class="btn btn-success form-group-margin" th:text="Rate"></button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" th:href="@{../../../ui/v1/marks(sid=${studentId}, cid=${courseId}, fullName=${studentFullName})}" th:text="Cancle"></a>
+    <button sec:authorize="hasAuthority('MARKS_CREATE')" type="submit" id="rateButton"
+            class="btn btn-success form-group-margin">Rate
+    </button>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>
@@ -43,7 +45,7 @@
 <script th:inline="javascript">
   const unratedTopics = /*[[${unratedTopics}]]*/ {};
 
-  $(document).ready(function() {
+  $(document).ready(function () {
     const topicNames = Object.keys(unratedTopics);
     const selectElement = document.getElementById('topicSelect');
     const rateButton = document.getElementById('rateButton');
@@ -67,7 +69,7 @@
       }
     }
 
-    $('#topicSelect').on('change', function() {
+    $('#topicSelect').on('change', function () {
       const selectedTopic = $(this).val();
       const topicId = unratedTopics[selectedTopic];
 

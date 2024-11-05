@@ -32,10 +32,8 @@
     </div>
     <input type="hidden" class="form-control" th:field="*{id}">
     <input type="hidden" class="form-control" th:field="*{courseId}">
-    <button sec:authorize="hasAuthority('TOPICS_UPDATE')" type="submit" class="btn btn-success form-group-margin"
-            th:text="Update"></button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px"
-       th:href="@{../../../../../../../ui/v1/courses/my/{courseId}(courseId=${topic.courseId})}" th:text="Cancle"></a>
+    <button sec:authorize="hasAuthority('TOPICS_UPDATE')" type="submit" class="btn btn-success form-group-margin">Update</button>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
   </form>
 </div>
 <div th:insert="~{fragments/error-modal :: errorModal(${validationErrorMessage})}"></div>
