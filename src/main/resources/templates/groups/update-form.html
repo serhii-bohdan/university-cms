@@ -25,10 +25,10 @@
       <div th:if="${#fields.hasErrors('groupName')}" th:errors="*{groupName}" class="invalid-validation"></div>
     </div>
     <input type="hidden" class="form-control" th:field="*{id}">
-    <button sec:authorize="hasAuthority('GROUPS_UPDATE')" type="submit" class="btn btn-success form-group-margin"
-            th:text="Update"></button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" th:href="@{../../../../ui/v1/groups}"
-       th:text="Cancle"></a>
+    <button sec:authorize="hasAuthority('GROUPS_UPDATE')" type="submit" class="btn btn-success form-group-margin">
+      Update
+    </button>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>

@@ -32,17 +32,13 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByEmail(String email);
 
     /**
-     * Finds students with a matching first name and last name (case-insensitive).
-     * This method uses the Spring Data JPA convention for named queries based on
-     * method names.The results are returned as a {@link Page} of students, allowing
-     * for pagination and sorting.
+     * Finds a paginated list of students by their email address.
      *
-     * @param firstName the first name to search for, ignoring case
-     * @param lastName  the last name to search for, ignoring case
-     * @param pageable  the pagination information, such as page number and size
-     * @return a {@link Page} of matching students, or an empty {@link Page} if none found
+     * @param email    The email address of the students to search for.
+     * @param pageable The {@link Pageable} object for pagination information.
+     * @return A {@link Page} containing students with the specified email, or an empty page if none are found.
      */
-    Page<Student> findByName_FirstNameAndName_LastNameIgnoreCase(String firstName, String lastName, Pageable pageable);
+    Page<Student> findByEmail(String email, Pageable pageable);
 
     /**
      * Finds a list of students belonging to a specific group by its ID.
@@ -52,5 +48,14 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * or an empty list if no students are found in that group.
      */
     List<Student> findByGroupId(Long groupId);
+
+    /**
+     * Finds a student by their email address and active status.
+     *
+     * @param email    The email address of the student to search for.
+     * @param isActive The active status of the student.
+     * @return An {@link Optional} containing the student if found, or an empty Optional if not.
+     */
+    Optional<Student> findByEmailAndIsActive(String email, Boolean isActive);
 
 }

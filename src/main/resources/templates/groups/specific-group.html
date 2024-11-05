@@ -45,8 +45,9 @@
             <span th:unless="${student.isActive}" class="far fa-times-circle icon-dark" title="Not active"></span>
           </td>
           <td>
-            <a sec:authorize="hasAuthority('STUDENTS_READ')" href="#" class="fa fa-eye icon-dark no-decoration"
-               aria-hidden="true" title="View this student"></a>
+            <a sec:authorize="hasAuthority('STUDENTS_READ')" class="fa fa-eye icon-dark no-decoration"
+               th:href="@{/ui/v1/students/{studentId}(studentId=${student.id})}" title="View this student"
+               aria-hidden="true"></a>
           </td>
         </tr>
         </tbody>

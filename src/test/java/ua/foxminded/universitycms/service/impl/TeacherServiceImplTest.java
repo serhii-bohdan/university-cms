@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ContextConfiguration;
-import ua.foxminded.universitycms.TestConfiguration;
 import ua.foxminded.universitycms.dto.TeacherDto;
 import ua.foxminded.universitycms.mapper.TeacherMapper;
 import ua.foxminded.universitycms.model.Schedule;
@@ -17,7 +15,6 @@ import ua.foxminded.universitycms.repository.ScheduleRepository;
 import ua.foxminded.universitycms.repository.TeacherRepository;
 import ua.foxminded.universitycms.service.TeacherService;
 
-@ContextConfiguration(classes = {TestConfiguration.class})
 @SpringBootTest(classes = {TeacherServiceImpl.class})
 class TeacherServiceImplTest {
 

@@ -3,31 +3,32 @@ package ua.foxminded.universitycms.util.annotation;
 import java.lang.annotation.*;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import ua.foxminded.universitycms.util.validator.UniqueGroupValidator;
+import ua.foxminded.universitycms.dto.StudentDto;
+import ua.foxminded.universitycms.util.validator.StudentValidator;
 
 /**
- * Custom annotation to validate the uniqueness of a group entity.
+ * Annotation for validating the uniqueness of a student entity.
  * <p>
- * This annotation is used to ensure that no duplicate group entries exist
- * based on specific criteria. It is typically applied at the class level and
- * validated using the {@link UniqueGroupValidator}.
+ * This annotation can be applied to a {@link StudentDto} class to ensure that
+ * the rules of uniqueness are upheld during the validation process.
+ * It utilizes the {@link StudentValidator} class to implement the validation logic.
  *
  * @author Serhii Bohdan
  */
 @Documented
-@Constraint(validatedBy = {UniqueGroupValidator.class})
+@Constraint(validatedBy = {StudentValidator.class})
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface UniqueGroup {
+public @interface UniqueStudentEmail {
 
     /**
-     * Error message to be returned if the group is not unique.
+     * Custom error message that will be returned when validation fails.
      *
-     * @return the default error message
+     * @return the error message
      */
     String message() default """
-        Rules of uniqueness are violated.
-        A group with these parameters already exists.""";
+        Rules of uniqueness are violated. Make sure
+        you have entered the correct data.""";
 
     /**
      * Allows the specification of validation groups to which this constraint belongs.

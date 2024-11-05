@@ -45,6 +45,16 @@ public class ModelAttributeNames {
     public static final String KEYWORD_ATTRIBUTE = "keyword";
 
     /**
+     * The attribute name used to store the password in the Spring MVC Model.
+     */
+    public static final String PASSWORD_ATTRIBUTE = "password";
+
+    /**
+     * The attribute name used to store a password update request in the model.
+     */
+    public static final String PASSWORD_UPDATE_REQUEST_ATTRIBUTE = "passwordUpdateRequest";
+
+    /**
      * Used as a model attribute to store error messages related to validation.
      */
     public static final String ERROR_MESSAGE_ATTRIBUTE = "validationErrorMessage";
@@ -79,6 +89,12 @@ public class ModelAttributeNames {
      */
     public static final String GROUPS_ALL_NAMES_ATTRIBUTE = "allNamesOfGroups";
 
+
+    /**
+     * The attribute name used to store a list of all existing groups in the Spring MVC Model.
+     */
+    public static final String ALL_GROUPS_ATTRIBUTE = "allExistingGroups";
+
     /**
      * The attribute name used to store a list of managers in the Spring MVC Model.
      */
@@ -95,6 +111,11 @@ public class ModelAttributeNames {
     public static final String STUDENTS_ATTRIBUTE = "students";
 
     /**
+     * Used as a model attribute to store the student object.
+     */
+    public static final String STUDENT_ATTRIBUTE = "student";
+
+    /**
      * The attribute name used to store the student ID in the Spring MVC Model.
      */
     public static final String STUDENT_ID_ATTRIBUTE = "studentId";
@@ -105,9 +126,9 @@ public class ModelAttributeNames {
     public static final String STUDENT_FULL_NAME_ATTRIBUTE = "studentFullName";
 
     /**
-     * The attribute name used to store all names of students in the Spring MVC Model.
+     * The attribute name used to store all emails of students in the Spring MVC Model.
      */
-    public static final String STUDENTS_ALL_NAMES_ATTRIBUTE = "allNamesOfStudents";
+    public static final String STUDENTS_ALL_EMAILS_ATTRIBUTE = "allEmailsOfStudents";
 
     /**
      * The attribute name used to store students who are not enrolled in any course.

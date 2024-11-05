@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>Students</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" style="max-width: 600px; margin: 0 auto;">
+  <h2 class="title-center">Edit student information</h2>
+  <form th:method="put" th:action="@{/ui/v1/students/update}" th:object="${student}">
+    <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+      <ul style="margin-bottom: 0">
+        <li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li>
+      </ul>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="firstName">Student first name</label>
+      <input type="text" class="form-control" id="firstName" th:field="*{firstName}">
+      <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="lastName">Student last name</label>
+      <input type="text" class="form-control" id="lastName" th:field="*{lastName}">
+      <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="email">Student email</label>
+      <input type="email" class="form-control" id="email" th:field="*{email}">
+      <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="groupsSelect">The group to which the student belongs</label>
+      <select id="groupsSelect" class="form-control" th:field="*{groupId}">
+        <option th:each="group : ${allExistingGroups.entrySet()}"
+                th:value="${group.value}"
+                th:text="${group.key}"
+                th:selected="${group.key} == ${student.groupName}">
+        </option>
+      </select>
+      <div th:if="${#fields.hasErrors('groupId')}" th:errors="*{groupId}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <div class="form-check">
+        <label class="form-check-label" for="isActive">Student is active</label>
+        <input class="form-check-input" type="checkbox" value="" id="isActive" th:field="*{isActive}">
+        <div th:if="${#fields.hasErrors('isActive')}" th:errors="*{isActive}" class="invalid-validation"></div>
+      </div>
+    </div>
+    <input type="hidden" class="form-control" th:field="*{id}">
+    <input type="hidden" class="form-control" th:field="*{roleId}">
+    <input type="hidden" class="form-control" th:field="*{scheduleId}">
+    <button sec:authorize="hasAuthority('STUDENTS_UPDATE')" class="btn btn-success form-group-margin" type="submit"
+            id="addButton">Update
+    </button>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
+  </form>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+<script th:src="@{/webjars/jquery-ui/1.13.2/jquery-ui.min.js}"></script>
+</body>
+</html>

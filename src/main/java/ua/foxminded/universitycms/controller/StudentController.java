@@ -2,21 +2,24 @@ package ua.foxminded.universitycms.controller;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.dto.UserDto;
 import ua.foxminded.universitycms.exception.CustomHttpException;
-import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
+import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.service.StudentService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
@@ -31,6 +34,16 @@ import ua.foxminded.universitycms.util.ViewNames;
 @RequiredArgsConstructor
 @RequestMapping("/ui/v1/students")
 public class StudentController {
+
+    /**
+     * The URL for redirecting to the page displaying all students.
+     */
+    private static final String ALL_STUDENTS_REDIRECT_URL = "redirect:/ui/v1/students";
+
+    /**
+     * The URL template for redirecting to a specific student's page, with the student ID as a placeholder.
+     */
+    private static final String PARTICULAR_STUDENTS_REDIRECT_URL = "redirect:/ui/v1/students/%s";
 
     /**
      * The {@link StudentService} used to interact with student data.
@@ -53,17 +66,11 @@ public class StudentController {
     @PreAuthorize("hasAuthority('STUDENTS_READ')")
     public String getPageWithStudents(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                       @PageableDefault Pageable pageable) {
-        Page<StudentDto> studentsPage;
+        Page<StudentDto> studentsPage = StringUtils.isBlank(keyword)
+            ? studentService.getStudentsPage(pageable)
+            : studentService.getStudentInPageByEmail(keyword, pageable);
 
-        try {
-            studentsPage = StringUtils.isBlank(keyword)
-                ? studentService.getStudentsPage(pageable)
-                : studentService.getStudentInPageByName(keyword, pageable);
-        } catch (InvalidFullNameFormatException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
-        }
-
-        model.addAttribute(ModelAttributeNames.STUDENTS_ALL_NAMES_ATTRIBUTE, studentService.getAllNamesOfStudents())
+        model.addAttribute(ModelAttributeNames.STUDENTS_ALL_EMAILS_ATTRIBUTE, getStudentEmails(studentService.getAll()))
             .addAttribute(ModelAttributeNames.STUDENTS_ATTRIBUTE, studentsPage.getContent())
             .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
             .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, studentsPage.getTotalElements())
@@ -89,12 +96,12 @@ public class StudentController {
      * @throws CustomHttpException if an unexpected error occurs while retrieving student data
      */
     @GetMapping("/not-enrolled")
-    @PreAuthorize("hasAuthority('COURSES_READ')")
+    @PreAuthorize("hasAuthority('STUDENTS_READ')")
     public String getPageWithListOfStudentsNotEnrolledInCourse(Model model, @RequestParam("cid") long courseId,
                                                                @RequestParam(value = "keyword", required = false) String keyword) {
         List<StudentDto> notEnrolledStudents = StringUtils.isBlank(keyword)
             ? studentService.getListOfStudentsNotEnrolledInCourse(courseId)
-            : findStudentByEmail(studentService.getListOfStudentsNotEnrolledInCourse(courseId), keyword.strip());
+            : findStudentByEmail(studentService.getListOfStudentsNotEnrolledInCourse(courseId), keyword);
 
         model.addAttribute(ModelAttributeNames.NOT_ENROLLED_STUDENTS_ATTRIBUTE, notEnrolledStudents)
             .addAttribute(ModelAttributeNames.STUDENT_EMAILS_ATTRIBUTE, getStudentEmails(notEnrolledStudents))
@@ -102,6 +109,227 @@ public class StudentController {
             .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
         return ViewNames.STUDENTS_NOT_ENROLLED_IN_COURSE;
+    }
+
+    /**
+     * Retrieves the page displaying information about a specific student.
+     * <p>
+     * This method handles GET requests to the `/ui/v1/students/{studentId}` endpoint. It retrieves the student
+     * with the provided `studentId` using the `studentService`. If the student is found, the method adds the
+     * student data to the model for display in the particular student view. If the student is not found, a
+     * {@link CustomHttpException} with a not found status is thrown.
+     *
+     * @param model     the Spring MVC Model object used to store data for the view
+     * @param studentId the ID of the student to retrieve
+     * @return the logical view name {@code ViewNames.PARTICULAR_STUDENT} representing the student details template
+     * @throws CustomHttpException if the student with the provided ID is not found
+     */
+    @GetMapping("/{studentId}")
+    @PreAuthorize("hasAuthority('STUDENTS_READ')")
+    public String getPageWithParticularStudent(Model model, @PathVariable("studentId") long studentId) {
+        Optional<StudentDto> optional = studentService.getById(studentId);
+
+        if (optional.isPresent()) {
+            model.addAttribute(ModelAttributeNames.STUDENT_ATTRIBUTE, optional.get());
+            return ViewNames.PARTICULAR_STUDENT;
+        }
+
+        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Unable to view student information. Student not found.");
+    }
+
+    /**
+     * Controller method for displaying the form to add a new student.
+     * <p>
+     * This method handles GET requests to the `/ui/v1/students/new` endpoint. It initializes a new
+     * {@link StudentDto} object and adds it to the model, along with the existing groups that can
+     * be assigned to the student. The form view allows users with the `STUDENTS_CREATE` authority
+     * to input and submit details for creating a new student.
+     *
+     * @param model the Spring MVC Model object used to store data for the view
+     * @return the logical view name {@code ViewNames.STUDENT_CREATION_FORM} representing the
+     * student creation form template
+     */
+    @GetMapping("/new")
+    @PreAuthorize("hasAuthority('STUDENTS_CREATE')")
+    public String getCreationForm(Model model) {
+        StudentDto newStudent = StudentDto.builder().build();
+
+        model.addAttribute(ModelAttributeNames.STUDENT_ATTRIBUTE, newStudent)
+            .addAttribute(ModelAttributeNames.ALL_GROUPS_ATTRIBUTE, studentService.getAllExistingGroups());
+
+        return ViewNames.STUDENT_CREATION_FORM;
+    }
+
+    /**
+     * Handles the submission of the student creation form.
+     * <p>
+     * This method processes POST requests to the `/ui/v1/students/add` endpoint. It validates the submitted
+     * {@link StudentDto} form data and the provided password. If validation errors are present, the method
+     * redisplay the student creation form with the current input data and errors. If the data is valid,
+     * the student is saved, and the user is redirected to the list of all students.
+     * <p>
+     * Users must have the `STUDENTS_CREATE` authority to access this endpoint.
+     *
+     * @param model         the Spring MVC Model object used to store data for the view
+     * @param student       the {@link StudentDto} object representing the student to be created
+     * @param bindingResult the {@link BindingResult} object containing validation results for the student
+     * @param password      the plain-text password for the new student
+     * @return the view name to display the form again if there are errors, or a redirect URL to the list
+     * of all students upon successful student creation
+     */
+    @PostMapping("/add")
+    @PreAuthorize("hasAuthority('STUDENTS_CREATE')")
+    public String performStudentAdding(Model model, @ModelAttribute("student") @Valid StudentDto student,
+                                       BindingResult bindingResult, @RequestParam("password") String password) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute(ModelAttributeNames.ALL_GROUPS_ATTRIBUTE, studentService.getAllExistingGroups())
+                .addAttribute(ModelAttributeNames.PASSWORD_ATTRIBUTE, password);
+            return ViewNames.STUDENT_CREATION_FORM;
+        }
+
+        studentService.save(student, password);
+        return ALL_STUDENTS_REDIRECT_URL;
+    }
+
+    /**
+     * Retrieves the form for updating a specific student's information.
+     * <p>
+     * This method handles GET requests to the `/ui/v1/students/{studentId}/edit` endpoint. It fetches the
+     * student data for the given `studentId` using the {@link StudentService}. If the student is found,
+     * the method adds the student data and a list of all existing groups to the model, preparing it for
+     * display in the update form. If the student is not found, a {@link CustomHttpException} is thrown
+     * with a NOT_FOUND status.
+     * <p>
+     * Users must have the `STUDENTS_UPDATE` authority to access this endpoint.
+     *
+     * @param model     the Spring MVC Model object used to store data for the view
+     * @param studentId the ID of the student to retrieve for editing
+     * @return the logical view name {@link ViewNames#STUDENT_UPDATE_FORM} representing the student update form template
+     * @throws CustomHttpException if the student with the provided ID is not found
+     */
+    @GetMapping("/{studentId}/edit")
+    @PreAuthorize("hasAuthority('STUDENTS_UPDATE')")
+    public String getUpdateForm(Model model, @PathVariable("studentId") long studentId) {
+        Optional<StudentDto> optional = studentService.getById(studentId);
+
+        if (optional.isPresent()) {
+            model.addAttribute(ModelAttributeNames.STUDENT_ATTRIBUTE, optional.get())
+                .addAttribute(ModelAttributeNames.ALL_GROUPS_ATTRIBUTE, studentService.getAllExistingGroups());
+            return ViewNames.STUDENT_UPDATE_FORM;
+        }
+
+        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Editing failed. Student not found.");
+    }
+
+    /**
+     * Handles the update of a student's information.
+     * <p>
+     * This method processes PUT requests to the `/ui/v1/students/update` endpoint. It validates the
+     * provided {@link StudentDto} object and checks for any binding errors. If errors are present,
+     * the method adds a list of all existing groups to the model and returns the update form view.
+     * If no errors are found, it attempts to update the student using the {@link StudentService}.
+     * If the update is successful, it redirects to the page displaying the updated student's information.
+     * If the student to be updated is not found, a {@link CustomHttpException} is thrown with the
+     * appropriate HTTP status.
+     * <p>
+     * Users must have the `STUDENTS_UPDATE` authority to access this endpoint.
+     *
+     * @param model         the Spring MVC Model object used to store data for the view
+     * @param student       the {@link StudentDto} object containing the updated student data
+     * @param bindingResult the result of the binding operation, containing any validation errors
+     * @return the redirect URL for the updated student's page if the update is successful,
+     * or the logical view name {@link ViewNames#STUDENT_UPDATE_FORM} if there are binding errors
+     * @throws CustomHttpException if the student with the provided ID is not found during the update process
+     */
+    @PutMapping("/update")
+    @PreAuthorize("hasAuthority('STUDENTS_UPDATE')")
+    public String performStudentUpdate(Model model, @ModelAttribute("student") @Valid StudentDto student,
+                                       BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute(ModelAttributeNames.ALL_GROUPS_ATTRIBUTE, studentService.getAllExistingGroups());
+            return ViewNames.STUDENT_UPDATE_FORM;
+        }
+
+        try {
+            studentService.update(student);
+            return String.format(PARTICULAR_STUDENTS_REDIRECT_URL, student.getId());
+        } catch (EntityNotFoundException e) {
+            throw new CustomHttpException(e.getHttpStatus(), "Update failed. Student not found.");
+        }
+    }
+
+    /**
+     * Handles the deletion of a student from the system.
+     * <p>
+     * This method processes DELETE requests to the `/ui/v1/students/{studentId}/delete` endpoint.
+     * It attempts to delete the student with the specified ID using the {@link StudentService}.
+     * If the deletion is successful, it redirects to the URL displaying all students.
+     * If the student is not found, a {@link CustomHttpException} is thrown with the appropriate
+     * HTTP status indicating the failure of the deletion operation.
+     * <p>
+     * Users must have the `STUDENTS_DELETE` authority to access this endpoint.
+     *
+     * @param studentId the ID of the student to be deleted
+     * @return the redirect URL for displaying all students if the deletion is successful
+     * @throws CustomHttpException if the student with the provided ID is not found during the deletion process
+     */
+    @DeleteMapping("/{studentId}/delete")
+    @PreAuthorize("hasAuthority('STUDENTS_DELETE')")
+    public String performStudentDeletion(@PathVariable("studentId") long studentId) {
+        try {
+            studentService.deleteById(studentId);
+            return ALL_STUDENTS_REDIRECT_URL;
+        } catch (EntityNotFoundException e) {
+            throw new CustomHttpException(e.getHttpStatus(), "Deletion failed. Student not found.");
+        }
+    }
+
+    /**
+     * Handles the retrieval of the password change form for a specific student.
+     * <p>
+     * This method processes GET requests to the `/ui/v1/students/{studentId}/change-pass` endpoint.
+     * It initializes a {@link PasswordUpdateRequestDto} object with the specified student's ID and adds it
+     * to the model, which will be used in the password update form view.
+     * Users must have the `STUDENTS_UPDATE` authority to access this endpoint.
+     *
+     * @param model     the Spring MVC Model object used to store data for the view
+     * @param studentId the ID of the student whose password is to be changed
+     * @return the logical view name representing the password update form
+     */
+    @GetMapping("/{studentId}/change-pass")
+    @PreAuthorize("hasAuthority('STUDENTS_UPDATE')")
+    public String getChangePasswordForm(Model model, @PathVariable("studentId") long studentId) {
+        PasswordUpdateRequestDto passwordUpdateRequest = PasswordUpdateRequestDto.builder()
+            .userId(studentId)
+            .build();
+
+        model.addAttribute(ModelAttributeNames.PASSWORD_UPDATE_REQUEST_ATTRIBUTE, passwordUpdateRequest);
+        return ViewNames.PASSWORD_UPDATE_FORM;
+    }
+
+    /**
+     * Handles the updating of a student's password.
+     * <p>
+     * This method processes PATCH requests to the `/ui/v1/students/update-pass` endpoint.
+     * It validates the provided {@link PasswordUpdateRequestDto} object and, if valid,
+     * invokes the service to update the student's password.
+     * Users must have the `STUDENTS_UPDATE` authority to access this endpoint.
+     *
+     * @param passwordUpdateRequest the {@link PasswordUpdateRequestDto} containing the password update details
+     * @param bindingResult         the binding result that holds any validation errors
+     * @return the logical view name representing the password update form if there are validation errors,
+     * or a redirect URL to the specific student's page upon successful update
+     */
+    @PatchMapping("/update-pass")
+    @PreAuthorize("hasAuthority('STUDENTS_UPDATE')")
+    public String performPasswordUpdate(@ModelAttribute("passwordUpdateRequest") @Valid PasswordUpdateRequestDto passwordUpdateRequest,
+                                        BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ViewNames.PASSWORD_UPDATE_FORM;
+        }
+
+        studentService.updateStudentPassword(passwordUpdateRequest);
+        return String.format(PARTICULAR_STUDENTS_REDIRECT_URL, passwordUpdateRequest.getUserId());
     }
 
     private List<StudentDto> findStudentByEmail(Collection<StudentDto> students, String email) {

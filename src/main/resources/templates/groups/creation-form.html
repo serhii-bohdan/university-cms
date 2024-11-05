@@ -24,8 +24,10 @@
       <input type="text" class="form-control" id="groupName" placeholder="XX-00" th:field="*{groupName}">
       <div th:if="${#fields.hasErrors('groupName')}" th:errors="*{groupName}" class="invalid-validation"></div>
     </div>
-    <button sec:authorize="hasAuthority('GROUPS_CREATE')" type="submit" class="btn btn-success form-group-margin" th:text="Create"></button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" th:href="@{../../../ui/v1/groups}" th:text="Cancle"></a>
+    <button sec:authorize="hasAuthority('GROUPS_CREATE')" type="submit" class="btn btn-success form-group-margin">
+      Create
+    </button>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>

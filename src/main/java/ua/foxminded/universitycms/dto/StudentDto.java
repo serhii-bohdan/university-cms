@@ -1,9 +1,9 @@
 package ua.foxminded.universitycms.dto;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import ua.foxminded.universitycms.util.annotation.UniqueStudentEmail;
 
 /**
  * The {@code StudentDto} class is a concrete DTO (Data Transfer Object) that
@@ -18,18 +18,18 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @SuperBuilder
+@UniqueStudentEmail
 public class StudentDto extends UserDto {
 
     /**
      * The unique identifier of the group to which the student belongs.
      */
+    @NotNull(message = "Group is mandatory")
     private Long groupId;
 
     /**
      * The name of the group the student belongs to.
      */
-    @NotNull(message = "Group is mandatory")
-    @Pattern(regexp = "^[A-Z]{2}-[0-9]{2}$")
     private String groupName;
 
 }

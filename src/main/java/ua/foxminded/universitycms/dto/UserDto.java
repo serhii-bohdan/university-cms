@@ -30,20 +30,20 @@ public abstract class UserDto extends AbstractDto {
      * The user's first name.
      */
     @NotBlank(message = "First name is mandatory")
-    @Size(max = 255)
+    @Size(max = 255, message = "First name must be 255 characters or less")
     private String firstName;
 
     /**
      * The user's last name.
      */
     @NotBlank(message = "Last name is mandatory")
-    @Size(max = 255)
+    @Size(max = 255, message = "Last name must be 255 characters or less")
     private String lastName;
 
     /**
      * The user's email address.
      */
-    @NotNull(message = "Email is mandatory")
+    @NotBlank(message = "Email is mandatory")
     @Email(message = "Email address is not valid")
     private String email;
 
