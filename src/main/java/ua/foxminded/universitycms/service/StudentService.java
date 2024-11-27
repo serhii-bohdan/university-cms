@@ -1,12 +1,11 @@
 package ua.foxminded.universitycms.service;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
+import ua.foxminded.universitycms.dto.StudentCreationDto;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.model.Student;
 import java.util.List;
@@ -23,17 +22,15 @@ import java.util.Map;
 public interface StudentService extends Service<Student, StudentDto> {
 
     /**
-     * Creates and saves a new student along with their associated schedule.
-     * <p>
-     * This method takes a {@link StudentDto} object and a plain-text `password`, encodes the password using the
-     * {@link PasswordEncoder}. The provided `dto` must be valid according to its validation constraints, and the
-     * `password` must not be blank.
+     * Saves a new student entity based on the provided {@link StudentCreationDto}.
+     * This method validates the input DTO and creates a new {@link Student} entity in the database.
+     * The newly created student is returned as a {@link StudentDto} for further use.
      *
-     * @param dto      the {@link StudentDto} object representing the new student
-     * @param password the plain-text password for the new student
-     * @return the saved {@link StudentDto} object, with the password hashed
+     * @param dto the {@link StudentCreationDto} containing the data for creating a new student.
+     *            Must not be {@code null} and must be valid.
+     * @return a {@link StudentDto} representing the newly saved student.
      */
-    StudentDto save(@NotNull @Valid StudentDto dto, @NotBlank String password);
+    StudentDto save(@NotNull @Valid StudentCreationDto dto);
 
     /**
      * Retrieves a page of student data containing all students. This method retrieves

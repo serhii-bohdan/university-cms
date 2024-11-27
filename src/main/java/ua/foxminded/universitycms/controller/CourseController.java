@@ -44,6 +44,16 @@ public class CourseController {
     private static final String COURSE_STUDENTS_REDIRECT_URL = "redirect:/ui/v1/courses/my/{courseId}/students";
 
     /**
+     * Redirect URL to the user's courses page.
+     */
+    private static final String USER_COURSES_REDIRECT_URL = "redirect:/ui/v1/courses/my";
+
+    /**
+     * Redirect URL to a specific course page for the user.
+     */
+    private static final String USER_SPECIFIC_COURSE_REDIRECT_URL = "redirect:/ui/v1/courses/my/%s";
+
+    /**
      * The {@link CourseService} used to interact with course data.
      */
     private final CourseService courseService;
@@ -161,7 +171,7 @@ public class CourseController {
      * @return the logical view name "courses/creation-form" representing the course creation template
      * @throws CustomHttpException if the user does not have the "TEACHER" role
      */
-    @GetMapping("my/new")
+    @GetMapping("/my/new")
     @PreAuthorize("hasAuthority('COURSES_CREATE')")
     public String getCreationForm(Model model, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         if (RoleName.TEACHER.equals(customUserDetails.getRoleName())) {
@@ -177,36 +187,26 @@ public class CourseController {
     }
 
     /**
-     * Attempts to create a new course.
+     * Handles the creation of a new course.
      * <p>
-     * This method handles POST requests to the `/my/create` endpoint. It binds the request parameters to a {@link CourseDto} object
-     * and validates it. If there are validation errors, it returns the creation form view name. Otherwise, it attempts to save the
-     * course using the `courseService`. If successful, it redirects the user to the "my courses" page. If a validation exception
-     * occurs, it adds an error message to the model and returns the creation form view name.
+     * This method processes the course creation request by first validating the input using the {@link CourseDto}.
+     * If validation fails, it returns the course creation form with error messages. If the input is valid, it
+     * proceeds to save the new course using the {@link CourseService}. Upon successful creation, it redirects to
+     * the user's courses page.
      *
-     * @param model         the Spring MVC Model object used to store data for the view
-     * @param course        the course data to be created (received from the form)
-     * @param bindingResult the binding result containing any validation errors
-     * @return a redirect URL on success, the creation form view name on validation errors, or throws an exception
+     * @param course        the {@link CourseDto} containing the course details to be created
+     * @param bindingResult the result of validating the {@link CourseDto}
+     * @return a redirection URL to the user's courses page or the course creation form if validation fails
      */
-    @PostMapping("my/create")
+    @PostMapping("/my/create")
     @PreAuthorize("hasAuthority('COURSES_CREATE')")
-    public String performCourseCreation(Model model, @ModelAttribute("course") @Valid CourseDto course,
-                                        BindingResult bindingResult) {
+    public String performCourseCreation(@ModelAttribute("course") @Valid CourseDto course, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ViewNames.COURSE_CREATION_FORM;
         }
 
-        try {
-            courseService.save(course);
-            return "redirect:/ui/v1/courses/my";
-        } catch (ValidationException e) {
-            model.addAttribute(ModelAttributeNames.ERROR_MESSAGE_ATTRIBUTE, """
-                An error occurred while creating the new course. Rules of uniqueness are
-                violated. The name of the course and its description should be unique among
-                the courses of an individual teacher.""");
-            return ViewNames.COURSE_CREATION_FORM;
-        }
+        courseService.save(course);
+        return USER_COURSES_REDIRECT_URL;
     }
 
     /**
@@ -221,7 +221,7 @@ public class CourseController {
      * @return the logical view name "courses/update-form" representing the course update template
      * @throws CustomHttpException if the course with the provided ID is not found
      */
-    @GetMapping("my/{courseId}/edit")
+    @GetMapping("/my/{courseId}/edit")
     @PreAuthorize("hasAuthority('COURSES_UPDATE')")
     public String getUpdateForm(Model model, @PathVariable("courseId") long courseId) {
         Optional<CourseDto> optional = courseService.getById(courseId);
@@ -235,38 +235,28 @@ public class CourseController {
     }
 
     /**
-     * Attempts to update an existing course.
+     * Handles the update of an existing course.
      * <p>
-     * This method handles PUT requests to the `/my/update` endpoint. It binds the request parameters to a {@link CourseDto} object
-     * and validates it. If there are validation errors, it returns the update form view name. Otherwise, it attempts to update the
-     * course using the `courseService`. If successful, it redirects the user to the specific course details page. If a validation
-     * exception occurs, it adds an error message to the model and returns the update form view name. If the course is not found, it
-     * throws a `CustomHttpException` with a not found status.
+     * This method processes the course update request by first validating the input using the {@link CourseDto}.
+     * If validation fails, it returns the course update form with error messages. If the input is valid, it
+     * proceeds to update the existing course using the {@link CourseService}. Upon successful update, it
+     * redirects to the page of the updated course. If the course is not found, a {@link CustomHttpException}
+     * is thrown with a relevant error message.
      *
-     * @param model         the Spring MVC Model object used to store data for the view
-     * @param course        the course data to be updated (received from the form)
-     * @param bindingResult the binding result containing any validation errors
-     * @param courseId      the ID of the course to be updated (might be different from the one in the course object)
-     * @return a redirect URL on success, the update form view name on validation errors, or throws an exception
-     * @throws CustomHttpException if the course with the provided ID is not found or an unexpected error occurs
+     * @param course        the {@link CourseDto} containing the updated course details
+     * @param bindingResult the result of validating the {@link CourseDto}
+     * @return a redirection URL to the specific course page or the course update form if validation fails
      */
-    @PutMapping("my/update")
+    @PutMapping("/my/update")
     @PreAuthorize("hasAuthority('COURSES_UPDATE')")
-    public String performCourseUpdate(Model model, @ModelAttribute("course") @Valid CourseDto course,
-                                      BindingResult bindingResult, @RequestParam("cid") long courseId) {
+    public String performCourseUpdate(@ModelAttribute("course") @Valid CourseDto course, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ViewNames.COURSE_UPDATE_FORM;
         }
 
         try {
             courseService.update(course);
-            return String.format("redirect:/ui/v1/courses/my/%s", courseId);
-        } catch (ValidationException e) {
-            model.addAttribute(ModelAttributeNames.ERROR_MESSAGE_ATTRIBUTE, """
-                An error occurred while updating an existing course. Rules of uniqueness are violated.
-                The name of the course and its description should be unique among the courses of an
-                individual teacher.""");
-            return ViewNames.COURSE_UPDATE_FORM;
+            return String.format(USER_SPECIFIC_COURSE_REDIRECT_URL, course.getId());
         } catch (EntityNotFoundException e) {
             throw new CustomHttpException(e.getHttpStatus(), "Update failed. Course not found.");
         }
@@ -288,7 +278,7 @@ public class CourseController {
     public String performCourseDeletion(@PathVariable("courseId") long courseId) {
         try {
             courseService.deleteById(courseId);
-            return "redirect:/ui/v1/courses/my";
+            return USER_COURSES_REDIRECT_URL;
         } catch (EntityNotFoundException e) {
             throw new CustomHttpException(e.getHttpStatus(), "Deletion failed. Course not found.");
         }

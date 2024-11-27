@@ -37,14 +37,12 @@ public class MarkDto extends AbstractDto {
      * The ID of the student who received the mark.
      */
     @NotNull
-    @Min(1)
     private Long studentId;
 
     /**
      * The ID of the topic for which the mark was assigned.
      */
-    @NotNull
-    @Min(1)
+    @NotNull(message = "Topic is mandatory")
     private Long topicId;
 
     /**

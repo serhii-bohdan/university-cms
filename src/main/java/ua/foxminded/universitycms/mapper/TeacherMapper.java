@@ -2,11 +2,14 @@ package ua.foxminded.universitycms.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.Mapper;
+import ua.foxminded.universitycms.dto.TeacherCreationDto;
 import ua.foxminded.universitycms.dto.TeacherDto;
 import ua.foxminded.universitycms.model.Role;
 import ua.foxminded.universitycms.model.Teacher;
 import ua.foxminded.universitycms.model.Name;
 import ua.foxminded.universitycms.model.Schedule;
+import ua.foxminded.universitycms.security.PasswordEncoderMapper;
+import ua.foxminded.universitycms.util.annotation.PasswordEncoderMapping;
 
 /**
  * Interface defining mappings between {@link Teacher} entities and {@link TeacherDto} data transfer objects.
@@ -18,7 +21,7 @@ import ua.foxminded.universitycms.model.Schedule;
  *
  * @author Serhii Bohdan
  */
-@Mapper(componentModel = "spring", uses = CourseMapper.class)
+@Mapper(componentModel = "spring", uses = {CourseMapper.class, PasswordEncoderMapper.class})
 public interface TeacherMapper extends ua.foxminded.universitycms.mapper.Mapper<Teacher, TeacherDto> {
 
     /**
@@ -81,5 +84,25 @@ public interface TeacherMapper extends ua.foxminded.universitycms.mapper.Mapper<
     @Mapping(source = "scheduleId", target = "schedule.id")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Teacher partialUpdate(TeacherDto dto, @MappingTarget Teacher entity);
+
+    /**
+     * Converts a {@link TeacherCreationDto} to a {@link Teacher} entity.
+     * <p>
+     * This method maps fields from the {@link TeacherCreationDto} to the corresponding fields in the {@link Teacher} entity.
+     * It also encodes the password using the {@link PasswordEncoderMapper} to ensure the password is stored securely.
+     *
+     * <p> Key Mappings:
+     * <ul>
+     *   <li>Maps the `firstName` and `lastName` fields to the {@link Name} object in the entity.</li>
+     *   <li>Encodes the password from the DTO and sets it in the entity's `passwordHash` field.</li>
+     * </ul>
+     *
+     * @param dto the {@link TeacherCreationDto} containing data for creating a new teacher
+     * @return a {@link Teacher} entity populated with the mapped and encoded values
+     */
+    @Mapping(source = "firstName", target = "name.firstName")
+    @Mapping(source = "lastName", target = "name.lastName")
+    @Mapping(source = "password", target = "passwordHash", qualifiedBy = {PasswordEncoderMapping.class})
+    Teacher toEntity(TeacherCreationDto dto);
 
 }

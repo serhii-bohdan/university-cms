@@ -117,6 +117,21 @@ public class ViewNames {
     public static final String ALL_TEACHERS_PAGE = "teachers/all-teachers";
 
     /**
+     * The view name for the page that displays detailed information about a specific teacher.
+     */
+    public static final String PARTICULAR_TEACHER = "teachers/particular-teacher";
+
+    /**
+     * View name for the teacher creation form page.
+     */
+    public static final String TEACHER_CREATION_FORM = "teachers/creation-form";
+
+    /**
+     * View name for the teacher update form page.
+     */
+    public static final String TEACHER_UPDATE_FORM = "teachers/update-form";
+
+    /**
      * View name for the page that displays all courses.
      */
     public static final String ALL_COURSES_PAGE = "courses/all-courses";

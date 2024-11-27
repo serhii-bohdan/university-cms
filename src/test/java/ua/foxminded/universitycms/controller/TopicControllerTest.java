@@ -14,14 +14,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import ua.foxminded.universitycms.ControllerTestConfig;
 import ua.foxminded.universitycms.config.SecurityConfig;
 import ua.foxminded.universitycms.dto.TopicDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
-import ua.foxminded.universitycms.exception.ValidationException;
 import ua.foxminded.universitycms.service.TopicService;
 
 @WebMvcTest(controllers = TopicController.class)
+@ContextConfiguration(classes = ControllerTestConfig.class)
 @Import({SecurityConfig.class})
 class TopicControllerTest {
 
@@ -79,29 +81,6 @@ class TopicControllerTest {
                 .param("courseId", String.valueOf(courseId)))
             .andExpect(status().isOk())
             .andExpect(view().name("topics/creation-form"));
-    }
-
-    @Test
-    @WithMockUser(authorities = {"TOPICS_CREATE"})
-    void performTopicCreation_shouldPageWithCreationFormAndWithErrorMessage_whenTopicServiceThrowValidationException() throws Exception {
-        String topicName = "Name";
-        String topicDescription = "Description";
-        Integer topicOrder = 1;
-        long courseId = 1L;
-        when(topicServiceMock.save(any(TopicDto.class))).thenThrow(ValidationException.class);
-
-        mockMvc.perform(post("/ui/v1/topics/create")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .with(csrf())
-                .param("topicName", topicName)
-                .param("topicDescription", topicDescription)
-                .param("topicOrder", String.valueOf(topicOrder))
-                .param("courseId", String.valueOf(courseId)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("validationErrorMessage"))
-            .andExpect(view().name("topics/creation-form"));
-
-        verify(topicServiceMock, times(1)).save(any(TopicDto.class));
     }
 
     @Test
@@ -169,29 +148,6 @@ class TopicControllerTest {
                 .param("courseId", String.valueOf(courseId)))
             .andExpect(status().isOk())
             .andExpect(view().name("topics/update-form"));
-    }
-
-    @Test
-    @WithMockUser(authorities = {"TOPICS_UPDATE"})
-    void performTopicUpdate_shouldPageWithUpdateFormAndWithErrorMessage_whenTopicServiceThrowValidationException() throws Exception {
-        String topicName = "Name";
-        String topicDescription = "Description";
-        Integer topicOrder = 1;
-        long courseId = 1L;
-        when(topicServiceMock.update(any(TopicDto.class))).thenThrow(ValidationException.class);
-
-        mockMvc.perform(put("/ui/v1/topics/update")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .with(csrf())
-                .param("topicName", topicName)
-                .param("topicDescription", topicDescription)
-                .param("topicOrder", String.valueOf(topicOrder))
-                .param("courseId", String.valueOf(courseId)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("validationErrorMessage"))
-            .andExpect(view().name("topics/update-form"));
-
-        verify(topicServiceMock, times(1)).update(any(TopicDto.class));
     }
 
     @Test

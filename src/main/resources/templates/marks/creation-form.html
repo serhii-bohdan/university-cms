@@ -15,7 +15,14 @@
   <form th:method="post" th:action="@{/ui/v1/marks/create}" th:object="${mark}">
     <div class="form-group form-group-margin">
       <label class="form-control-label-margin" for="topicSelect">Select topic name</label>
-      <select id="topicSelect" class="form-control"></select>
+      <select id="topicSelect" class="form-control" th:field="*{topicId}">
+        <option th:each="topic : ${unratedTopics.entrySet()}"
+                th:value="${topic.value}"
+                th:text="${topic.key}"
+                th:selected="${topic.key} == ${mark.topicName}">
+        </option>
+      </select>
+      <div th:if="${#fields.hasErrors('topicId')}" th:errors="*{topicId}" class="invalid-validation"></div>
     </div>
     <div class="form-group form-group-margin">
       <label class="form-control-label-margin" for="markValue">Enter mark value</label>
@@ -28,14 +35,14 @@
       <div th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}" class="invalid-validation"></div>
     </div>
     <input type="hidden" class="form-control" th:field="*{studentId}">
-    <input type="hidden" class="form-control" th:field="*{topicId}">
     <input type="hidden" name="cid" th:value="${courseId}">
     <input type="hidden" name="sid" th:value="${studentId}">
     <input type="hidden" name="fullName" th:value="${studentFullName}">
     <button sec:authorize="hasAuthority('MARKS_CREATE')" type="submit" id="rateButton"
             class="btn btn-success form-group-margin">Rate
     </button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
+    <a th:href="@{../../../ui/v1/marks(sid=${studentId}, cid=${courseId}, fullName=${studentFullName})}"
+       class="btn btn-secondary form-group-margin" style="margin-left: 20px">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>
@@ -53,30 +60,7 @@
     if (topicNames.length === 0) {
       selectElement.disabled = true;
       rateButton.disabled = true;
-    } else {
-      topicNames.forEach(topicName => {
-        const option = document.createElement('option');
-        option.value = topicName;
-        option.text = topicName;
-        selectElement.appendChild(option);
-      });
-
-      const initialTopic = selectElement.options[0].value;
-      const initialTopicId = unratedTopics[initialTopic];
-
-      if (initialTopicId) {
-        $('#topicId').val(initialTopicId);
-      }
     }
-
-    $('#topicSelect').on('change', function () {
-      const selectedTopic = $(this).val();
-      const topicId = unratedTopics[selectedTopic];
-
-      if (topicId) {
-        $('#topicId').val(topicId);
-      }
-    });
   });
 </script>
 </body>

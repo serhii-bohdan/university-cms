@@ -45,7 +45,7 @@ class ComposedDetailsServiceTest {
         when(studentMock.getEmail()).thenReturn(TEST_EMAIL);
         when(adminRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
         when(managerRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
-        when(teacherRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(teacherRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.empty());
         when(studentRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.of(studentMock));
 
         CustomUserDetails customUserDetails = (CustomUserDetails) composedDetailsService.loadUserByUsername(TEST_EMAIL);
@@ -60,12 +60,12 @@ class ComposedDetailsServiceTest {
         when(teacherMock.getEmail()).thenReturn(TEST_EMAIL);
         when(adminRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
         when(managerRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
-        when(teacherRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(teacherMock));
-        when(studentRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(teacherRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.of(teacherMock));
+        when(studentRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.empty());
 
         CustomUserDetails customUserDetails = (CustomUserDetails) composedDetailsService.loadUserByUsername(TEST_EMAIL);
 
-        verify(teacherRepositoryMock, times(1)).findByEmail(TEST_EMAIL);
+        verify(teacherRepositoryMock, times(1)).findByEmailAndIsActive(TEST_EMAIL, true);
         assertEquals(TEST_EMAIL, customUserDetails.getUsername());
     }
 
@@ -75,8 +75,8 @@ class ComposedDetailsServiceTest {
         when(managerMock.getEmail()).thenReturn(TEST_EMAIL);
         when(adminRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
         when(managerRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(managerMock));
-        when(teacherRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
-        when(studentRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(teacherRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.empty());
+        when(studentRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.empty());
 
         CustomUserDetails customUserDetails = (CustomUserDetails) composedDetailsService.loadUserByUsername(TEST_EMAIL);
 
@@ -90,8 +90,8 @@ class ComposedDetailsServiceTest {
         when(adminMock.getEmail()).thenReturn(TEST_EMAIL);
         when(adminRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(adminMock));
         when(managerRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
-        when(teacherRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
-        when(studentRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(teacherRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.empty());
+        when(studentRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.empty());
 
         CustomUserDetails customUserDetails = (CustomUserDetails) composedDetailsService.loadUserByUsername(TEST_EMAIL);
 
@@ -103,8 +103,8 @@ class ComposedDetailsServiceTest {
     void loadUserByUsername_shouldUsernameNotFoundException_whenUserIsNotFoundByHisEmail() {
         when(adminRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
         when(managerRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
-        when(teacherRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
-        when(studentRepositoryMock.findByEmail(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(teacherRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.empty());
+        when(studentRepositoryMock.findByEmailAndIsActive(TEST_EMAIL, true)).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class, () -> composedDetailsService.loadUserByUsername(TEST_EMAIL));
     }

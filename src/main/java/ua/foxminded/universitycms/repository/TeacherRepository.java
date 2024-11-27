@@ -31,16 +31,21 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
     Optional<Teacher> findByEmail(String email);
 
     /**
-     * Finds teachers with a matching first name and last name (case-insensitive).
-     * This method leverages Spring Data JPA convention for creating named queries
-     * based on method names. The results are returned as a Page of teachers, allowing
-     * for pagination and sorting.
+     * Retrieves a page of teachers filtered by their email address.
      *
-     * @param firstName the first name to search for, ignoring case
-     * @param lastName  the last name to search for, ignoring case
-     * @param pageable  the pagination information, such as page number and size
-     * @return a {@link Page} of matching teachers, or an empty Page if none found
+     * @param email    the email address to filter teachers by.
+     * @param pageable the {@link Pageable} object specifying pagination and sorting information.
+     * @return a {@link Page} of teachers matching the email filter.
      */
-    Page<Teacher> findByName_FirstNameAndName_LastNameIgnoreCase(String firstName, String lastName, Pageable pageable);
+    Page<Teacher> findByEmail(String email, Pageable pageable);
+
+    /**
+     * Finds a teacher by their email address and active status.
+     *
+     * @param email    the email address of the teacher to search for.
+     * @param isActive the active status to filter the teacher by.
+     * @return an {@link Optional} containing the teacher if found, or an empty {@code Optional} if not.
+     */
+    Optional<Teacher> findByEmailAndIsActive(String email, Boolean isActive);
 
 }

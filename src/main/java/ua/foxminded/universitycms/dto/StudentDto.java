@@ -3,7 +3,6 @@ package ua.foxminded.universitycms.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import ua.foxminded.universitycms.util.annotation.UniqueStudentEmail;
 
 /**
  * The {@code StudentDto} class is a concrete DTO (Data Transfer Object) that
@@ -18,7 +17,6 @@ import ua.foxminded.universitycms.util.annotation.UniqueStudentEmail;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @SuperBuilder
-@UniqueStudentEmail
 public class StudentDto extends UserDto {
 
     /**

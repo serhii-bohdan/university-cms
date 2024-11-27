@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import ua.foxminded.universitycms.util.annotation.UniqueCourseTopic;
 
 /**
  * The {@code TopicDto} class is a concrete DTO (Data Transfer Object) that extends the {@link AbstractDto} class.
@@ -22,6 +23,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @SuperBuilder
+@UniqueCourseTopic
 public class TopicDto extends AbstractDto {
 
     /**
@@ -48,7 +50,6 @@ public class TopicDto extends AbstractDto {
      * The ID of the course that this topic belongs to.
      */
     @NotNull
-    @Min(1)
     private Long courseId;
 
     /**

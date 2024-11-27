@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import ua.foxminded.universitycms.dto.TopicDto;
 import ua.foxminded.universitycms.exception.CustomHttpException;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
-import ua.foxminded.universitycms.exception.ValidationException;
 import ua.foxminded.universitycms.service.TopicService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
@@ -69,38 +68,27 @@ public class TopicController {
     }
 
     /**
-     * Attempts to create a new topic within a course.
+     * Handles the creation of a new topic within a course.
      * <p>
-     * This method handles POST requests to the `/create` endpoint. It binds the request parameters to a {@link TopicDto} object
-     * and validates it. If there are validation errors, it returns the creation form view name. Otherwise, it attempts to
-     * save the topic using the `topicService`. If successful, it redirects the user to the specific course details page
-     * for the course the topic belongs to. If a validation exception occurs, it adds an error message to the model and
-     * returns the creation form view name.
+     * This method processes the topic creation request by first validating the input using the {@link TopicDto}.
+     * If validation fails, it returns the topic creation form with error messages. If the input is valid, it
+     * proceeds to save the new topic using the {@link TopicService}. Upon successful creation, it redirects
+     * to the specific course page associated with the newly created topic.
      *
-     * @param model         the Spring MVC Model object used to store data for the view
-     * @param topic         the topic data to be created (received from the form)
-     * @param bindingResult the binding result containing any validation errors
-     * @return a redirect URL on success, the creation form view name on validation errors, or throws an exception
-     * @throws CustomHttpException if an unexpected error occurs during topic creation
+     * @param topic         the {@link TopicDto} containing the details of the topic to be created
+     * @param bindingResult the result of validating the {@link TopicDto}
+     * @return a redirection URL to the course page that the new topic is associated with, or the topic creation form
+     * if validation fails
      */
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('TOPICS_CREATE')")
-    public String performTopicCreation(Model model, @ModelAttribute("topic") @Valid TopicDto topic,
-                                       BindingResult bindingResult) {
+    public String performTopicCreation(@ModelAttribute("topic") @Valid TopicDto topic, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ViewNames.TOPIC_CREATION_FORM;
         }
 
-        try {
-            topicService.save(topic);
-            return String.format(USER_SPECIFIC_COURSE_REDIRECT, topic.getCourseId());
-        } catch (ValidationException e) {
-            model.addAttribute(ModelAttributeNames.ERROR_MESSAGE_ATTRIBUTE, """
-                An error occurred while adding a new topic. The rules of uniqueness
-                are violated. The topic name and its order must be unique within a
-                particular course.""");
-            return ViewNames.TOPIC_CREATION_FORM;
-        }
+        topicService.save(topic);
+        return String.format(USER_SPECIFIC_COURSE_REDIRECT, topic.getCourseId());
     }
 
     /**
@@ -129,24 +117,23 @@ public class TopicController {
     }
 
     /**
-     * Attempts to update an existing topic.
+     * Handles the update of an existing topic.
      * <p>
-     * This method handles PUT requests to the `/update` endpoint. It binds the request parameters to a {@link TopicDto} object
-     * and validates it. If there are validation errors, it returns the update form view name. Otherwise, it attempts to
-     * update the topic using the `topicService`. If successful, it redirects the user to the specific course details page
-     * for the course the topic belongs to. If a validation exception occurs, it adds an error message to the model and
-     * returns the update form view name. If the topic is not found, it throws a `CustomHttpException` with a not found status.
+     * This method processes the topic update request by first validating the input using the {@link TopicDto}.
+     * If validation fails, it returns the topic update form with error messages. If the input is valid, it
+     * proceeds to update the existing topic using the {@link TopicService}. Upon successful update, it
+     * redirects to the specific course page that the updated topic belongs to.
+     * If the topic is not found during the update, an exception is thrown with a relevant error message.
      *
-     * @param model         the Spring MVC Model object used to store data for the view
-     * @param topic         the topic data to be updated (received from the form)
-     * @param bindingResult the binding result containing any validation errors
-     * @return a redirect URL on success, the update form view name on validation errors, or throws an exception
-     * @throws CustomHttpException if the topic with the provided ID is not found or an unexpected error occurs
+     * @param topic         the {@link TopicDto} containing the updated details of the topic
+     * @param bindingResult the result of validating the {@link TopicDto}
+     * @return a redirection URL to the course page that the updated topic is associated with, or the topic update form
+     * if validation fails or the topic cannot be found
+     * @throws CustomHttpException if the topic to be updated does not exist
      */
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('TOPICS_UPDATE')")
-    public String performTopicUpdate(Model model, @ModelAttribute("topic") @Valid TopicDto topic,
-                                     BindingResult bindingResult) {
+    public String performTopicUpdate(@ModelAttribute("topic") @Valid TopicDto topic, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ViewNames.TOPIC_UPDATE_FORM;
         }
@@ -154,12 +141,6 @@ public class TopicController {
         try {
             topicService.update(topic);
             return String.format(USER_SPECIFIC_COURSE_REDIRECT, topic.getCourseId());
-        } catch (ValidationException e) {
-            model.addAttribute(ModelAttributeNames.ERROR_MESSAGE_ATTRIBUTE, """
-                An error occurred while updating a topic. The rules of uniqueness are
-                violated. The topic name and its order must be unique within a particular
-                course.""");
-            return ViewNames.TOPIC_UPDATE_FORM;
         } catch (EntityNotFoundException e) {
             throw new CustomHttpException(e.getHttpStatus(), "Update failed. Topic not found.");
         }

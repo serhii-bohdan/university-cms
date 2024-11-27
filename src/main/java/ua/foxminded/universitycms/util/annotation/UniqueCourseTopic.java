@@ -3,26 +3,25 @@ package ua.foxminded.universitycms.util.annotation;
 import java.lang.annotation.*;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import ua.foxminded.universitycms.dto.StudentDto;
-import ua.foxminded.universitycms.util.validator.StudentValidator;
+import ua.foxminded.universitycms.util.validator.TopicValidator;
 
 /**
- * Annotation for validating the uniqueness of a student entity.
+ * Annotation to enforce the uniqueness of a course topic.
  * <p>
- * This annotation can be applied to a {@link StudentDto} class to ensure that
- * the rules of uniqueness are upheld during the validation process.
- * It utilizes the {@link StudentValidator} class to implement the validation logic.
+ * This annotation can be applied to classes to ensure that the course topic adheres
+ * to defined rules of uniqueness. It is validated by the {@link TopicValidator}, which
+ * contains the logic for checking the uniqueness.
  *
  * @author Serhii Bohdan
  */
 @Documented
-@Constraint(validatedBy = {StudentValidator.class})
+@Constraint(validatedBy = TopicValidator.class)
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface UniqueStudentEmail {
+public @interface UniqueCourseTopic {
 
     /**
-     * Custom error message that will be returned when validation fails.
+     * Specifies the default error message when the topic validation fails.
      *
      * @return the error message
      */

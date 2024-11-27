@@ -28,7 +28,8 @@
     <button sec:authorize="hasAuthority('GROUPS_UPDATE')" type="submit" class="btn btn-success form-group-margin">
       Update
     </button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
+    <a th:href="@{../../../../ui/v1/groups/{groupId}(groupId=${group.id})}" style="margin-left: 20px"
+       class="btn btn-secondary form-group-margin">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>

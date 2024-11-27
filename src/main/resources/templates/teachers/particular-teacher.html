@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>Teacher Details</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
+  <h2 class="title-center" th:text="${teacher.firstName + ' ' + teacher.lastName}"></h2>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">First name:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${teacher.firstName}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Last name:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${teacher.lastName}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Email:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${teacher.email}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Account status:</div>
+    <div class="col mt-3 pn-lf-unsent">
+      <span th:text="${teacher.isActive ? 'Active' : 'Inactive'}"></span>
+    </div>
+  </div>
+  <div sec:authorize="hasAuthority('TEACHERS_CREATE')" class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Created at:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${#temporals.format(teacher.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></div>
+  </div>
+  <div sec:authorize="hasAuthority('TEACHERS_UPDATE')" class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Last updated:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${#temporals.format(teacher.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></div>
+  </div>
+  <div class="my-2">
+    <hr class="my-1">
+  </div>
+  <div class="my-4">
+    <div class="row d-flex">
+      <a sec:authorize="hasAuthority('TEACHERS_UPDATE')" class="col-md-2 unsent-width btn btn-secondary"
+         th:href="@{/ui/v1/teachers/{teacherId}/change-pass(teacherId=${teacher.id})}"
+         style="margin-right: 15px; margin-left: 12px">Change password</a>
+      <a sec:authorize="hasAuthority('TEACHERS_UPDATE')" class="col-md-3 unsent-width btn btn-secondary"
+         th:href="@{/ui/v1/teachers/{teacherId}/edit(teacherId=${teacher.id})}"
+         style="margin-right: 15px">Edit teacher</a>
+      <span sec:authorize="hasAuthority('TEACHERS_DELETE')" class="col-md-3 unsent-width btn btn-danger"
+            data-bs-toggle="modal" data-bs-target="#teacherDeleteModal">Delete teacher</span>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="teacherDeleteModal" tabindex="-1" aria-labelledby="teacherDeleteModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel"
+            th:text="'Are you sure you want to delete a teacher with a ' + ${teacher.email} + ' email?'"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">By deleting this teacher, you will delete all his courses.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form sec:authorize="hasAuthority('STUDENTS_DELETE')" th:method="delete"
+              th:action="@{/ui/v1/teachers/{teacherId}/delete(teacherId=${teacher.id})}">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+</body>
+</html>
