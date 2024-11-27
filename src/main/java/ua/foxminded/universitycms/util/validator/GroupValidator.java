@@ -38,6 +38,16 @@ public class GroupValidator implements ConstraintValidator<UniqueGroupName, Grou
     private final GroupRepository groupRepository;
 
     /**
+     * The {@code GroupDto} object that is being validated.
+     */
+    private GroupDto value;
+
+    /**
+     * The context of the validation process.
+     */
+    private ConstraintValidatorContext context;
+
+    /**
      * Initializes the validator. This method is called before validation starts.
      *
      * @param constraintAnnotation the annotation instance for the validation
@@ -64,29 +74,32 @@ public class GroupValidator implements ConstraintValidator<UniqueGroupName, Grou
             return false;
         }
 
-        return value.getId() != null
-            ? isGroupNameUnique(value, context)
-            : isGroupNameUnique(value.getGroupName(), context);
+        this.value = value;
+        this.context = context;
+
+        return this.value.getId() == null
+            ? isGroupNameUnique(this.value.getGroupName())
+            : isGroupNameUnique();
     }
 
-    private boolean isGroupNameUnique(String groupName, ConstraintValidatorContext context) {
+    private boolean isGroupNameUnique(String groupName) {
         boolean isGroupNameUnique = groupRepository.findAll().stream()
             .noneMatch(g -> g.getGroupName().equals(groupName));
 
-        addViolationMessageIfInvalid(!isGroupNameUnique, context);
+        addViolationMessageIfInvalid(!isGroupNameUnique);
         return isGroupNameUnique;
     }
 
-    private boolean isGroupNameUnique(GroupDto group, ConstraintValidatorContext context) {
+    private boolean isGroupNameUnique() {
         boolean isGroupNameUnique = groupRepository.findAll().stream()
-            .filter(g -> !g.getId().equals(group.getId()))
-            .noneMatch(g -> g.getGroupName().equals(group.getGroupName()));
+            .filter(g -> !g.getId().equals(value.getId()))
+            .noneMatch(g -> g.getGroupName().equals(value.getGroupName()));
 
-        addViolationMessageIfInvalid(!isGroupNameUnique, context);
+        addViolationMessageIfInvalid(!isGroupNameUnique);
         return isGroupNameUnique;
     }
 
-    private void addViolationMessageIfInvalid(boolean isInvalid, ConstraintValidatorContext context) {
+    private void addViolationMessageIfInvalid(boolean isInvalid) {
         if (isInvalid) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(GROUP_NAME_NOT_UNIQUE_MESSAGE)

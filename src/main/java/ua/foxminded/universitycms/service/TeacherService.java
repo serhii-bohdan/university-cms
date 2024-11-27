@@ -1,14 +1,13 @@
 package ua.foxminded.universitycms.service;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
+import ua.foxminded.universitycms.dto.TeacherCreationDto;
 import ua.foxminded.universitycms.dto.TeacherDto;
 import ua.foxminded.universitycms.model.Teacher;
-import java.util.List;
 
 /**
  * The {@code TeacherService} interface defines a set of operations for managing {@link Teacher} entities and their
@@ -21,17 +20,15 @@ import java.util.List;
 public interface TeacherService extends Service<Teacher, TeacherDto> {
 
     /**
-     * Creates and saves a new teacher along with their associated schedule.
-     * <p>
-     * This method takes a {@link TeacherDto} object and a plain-text `password`, encodes the password using the
-     * {@link PasswordEncoder}. The provided `dto` must be valid according to its validation constraints, and the
-     * `password` must not be blank.
+     * Saves a new teacher entity based on the provided {@link TeacherCreationDto}.
+     * This method validates the input DTO and creates a new {@link Teacher} entity in the database.
+     * The newly created teacher is returned as a {@link TeacherDto} for further use.
      *
-     * @param dto      the {@link TeacherDto} object representing the new teacher
-     * @param password the plain-text password for the new teacher
-     * @return the saved {@link TeacherDto} object, with the password hashed
+     * @param dto the {@link TeacherCreationDto} containing the data for creating a new teacher.
+     *            Must not be {@code null} and must be valid.
+     * @return a {@link TeacherDto} representing the newly saved teacher.
      */
-    TeacherDto save(@NotNull @Valid TeacherDto dto, @NotBlank String password);
+    TeacherDto save(@NotNull @Valid TeacherCreationDto dto);
 
     /**
      * Retrieves a page of teacher data containing all teachers. This method retrieves a paginated list
@@ -44,21 +41,19 @@ public interface TeacherService extends Service<Teacher, TeacherDto> {
     Page<TeacherDto> getTeachersPage(@NotNull Pageable pageable);
 
     /**
-     * Retrieves a page of teacher data filtered by full name. This method retrieves a paginated list of teachers
-     * whose full names contain (case-insensitive) the provided keyword. It utilizes the `Pageable` object to specify
-     * the page number, size.
+     * Retrieves a paginated list of teachers filtered by email.
      *
-     * @param fullName the keyword to filter teachers by full name (can be blank)
-     * @param pageable the Pageable object containing pagination information (size, page number)
-     * @return a Page object containing a list of TeacherDto objects representing the requested page of filtered teachers
+     * @param email    the email address to filter teachers by.
+     * @param pageable the {@link Pageable} object specifying pagination and sorting information.
+     * @return a {@link Page} containing a list of {@link TeacherDto} objects matching the email filter.
      */
-    Page<TeacherDto> getTeacherInPageByName(@NotNull String fullName, @NotNull Pageable pageable);
+    Page<TeacherDto> getTeacherInPageByEmail(@NotNull String email, @NotNull Pageable pageable);
 
     /**
-     * Retrieves a list of all teacher names in the system.
+     * Updates the password of a teacher.
      *
-     * @return a list of teacher names
+     * @param passwordUpdateRequest the {@link PasswordUpdateRequestDto} containing the teacher's ID and the new password.
      */
-    List<String> getAllNamesOfTeachers();
+    void updateTeacherPassword(@NotNull PasswordUpdateRequestDto passwordUpdateRequest);
 
 }

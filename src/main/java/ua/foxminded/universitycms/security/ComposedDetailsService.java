@@ -41,6 +41,11 @@ public class ComposedDetailsService implements UserDetailsService {
     private static final Boolean USER_ACTIVATED = true;
 
     /**
+     * Message template used when a user with the specified email is not found.
+     */
+    private static final String USER_NOT_FOUND_MESSAGE = "User not found with email: %s";
+
+    /**
      * A map that associates each user class (Admin, Manager, Teacher, Student) with a function that
      * loads the corresponding user details based on the provided username (email).
      */
@@ -59,7 +64,7 @@ public class ComposedDetailsService implements UserDetailsService {
                                   TeacherRepository teacherRepository, StudentRepository studentRepository) {
         userLoaders = Map.of(
             Student.class, username -> studentRepository.findByEmailAndIsActive(username, USER_ACTIVATED).map(StudentDetails::new),
-            Teacher.class, username -> teacherRepository.findByEmail(username).map(TeacherDetails::new),
+            Teacher.class, username -> teacherRepository.findByEmailAndIsActive(username, USER_ACTIVATED).map(TeacherDetails::new),
             Manager.class, username -> managerRepository.findByEmail(username).map(ManagerDetails::new),
             Admin.class, username -> adminRepository.findByEmail(username).map(AdminDetails::new)
         );
@@ -82,7 +87,7 @@ public class ComposedDetailsService implements UserDetailsService {
             .map(loader -> loader.apply(username))
             .flatMap(Optional::stream)
             .findFirst()
-            .orElseThrow(() -> new UsernameNotFoundException(String.format("User with email %s is not found", username)));
+            .orElseThrow(() -> new UsernameNotFoundException(String.format(USER_NOT_FOUND_MESSAGE, username)));
     }
 
 }

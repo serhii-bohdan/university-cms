@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.util.annotation.ValidPasswordUpdateRequest;
 
 /**
@@ -32,6 +33,9 @@ public class PasswordUpdateRequestDto {
      */
     @NotNull
     private Long userId;
+
+    @NotNull
+    private RoleName roleName;
 
     /**
      * The user's current password.

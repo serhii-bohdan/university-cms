@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
+import ua.foxminded.universitycms.dto.StudentCreationDto;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
-import ua.foxminded.universitycms.exception.UserNotFoundException;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.mapper.StudentMapper;
 import ua.foxminded.universitycms.model.*;
@@ -111,29 +111,15 @@ public class StudentServiceImpl extends AbstractService<Student, StudentDto> imp
      */
     @Override
     @Transactional
-    public StudentDto save(StudentDto dto, String password) {
+    public StudentDto save(StudentCreationDto dto) {
         Schedule studentSchedule = new Schedule();
         scheduleRepository.save(studentSchedule);
 
         Student student = studentMapper.toEntity(dto);
         student.setRole(getStudentRole());
         student.setSchedule(studentSchedule);
-        student.setPasswordHash(passwordEncoder.encode(password));
 
         return studentMapper.toDto(studentRepository.save(student));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public StudentDto update(StudentDto dto) {
-        Student existingStudent = studentRepository.findById(dto.getId())
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
-                String.format(STUDENT_NOT_FOUND_MESSAGE, dto.getId())));
-
-        Student updatedStudent = studentMapper.partialUpdate(dto, existingStudent);
-        return studentMapper.toDto(studentRepository.save(updatedStudent));
     }
 
     /**
@@ -181,6 +167,7 @@ public class StudentServiceImpl extends AbstractService<Student, StudentDto> imp
      * {@inheritDoc}
      */
     @Override
+    @Transactional
     public void updateStudentPassword(PasswordUpdateRequestDto passwordUpdateRequest) {
         Student student = studentRepository.findById(passwordUpdateRequest.getUserId())
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import ua.foxminded.universitycms.util.annotation.UniqueUserEmail;
 import java.time.ZonedDateTime;
 
 /**
@@ -24,6 +25,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @SuperBuilder
+@UniqueUserEmail
 public abstract class UserDto extends AbstractDto {
 
     /**

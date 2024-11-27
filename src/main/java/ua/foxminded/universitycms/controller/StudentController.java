@@ -16,10 +16,12 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
+import ua.foxminded.universitycms.dto.StudentCreationDto;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.dto.UserDto;
 import ua.foxminded.universitycms.exception.CustomHttpException;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
+import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.service.StudentService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
@@ -138,56 +140,49 @@ public class StudentController {
     }
 
     /**
-     * Controller method for displaying the form to add a new student.
+     * Displays the form for creating a new student.
      * <p>
-     * This method handles GET requests to the `/ui/v1/students/new` endpoint. It initializes a new
-     * {@link StudentDto} object and adds it to the model, along with the existing groups that can
-     * be assigned to the student. The form view allows users with the `STUDENTS_CREATE` authority
-     * to input and submit details for creating a new student.
+     * This method is responsible for preparing the model with a new {@link StudentCreationDto} object and
+     * a list of all available groups to populate the student creation form. The user must have the
+     * {@code STUDENTS_CREATE} authority to access this form.
      *
-     * @param model the Spring MVC Model object used to store data for the view
-     * @return the logical view name {@code ViewNames.STUDENT_CREATION_FORM} representing the
-     * student creation form template
+     * @param model the {@link Model} object used to pass data to the view.
+     * @return the name of the view used for the student creation form.
      */
     @GetMapping("/new")
     @PreAuthorize("hasAuthority('STUDENTS_CREATE')")
     public String getCreationForm(Model model) {
-        StudentDto newStudent = StudentDto.builder().build();
+        StudentCreationDto student = StudentCreationDto.builder().build();
 
-        model.addAttribute(ModelAttributeNames.STUDENT_ATTRIBUTE, newStudent)
+        model.addAttribute(ModelAttributeNames.STUDENT_ATTRIBUTE, student)
             .addAttribute(ModelAttributeNames.ALL_GROUPS_ATTRIBUTE, studentService.getAllExistingGroups());
 
         return ViewNames.STUDENT_CREATION_FORM;
     }
 
     /**
-     * Handles the submission of the student creation form.
+     * Handles the submission of the student creation form and adds a new student to the system.
      * <p>
-     * This method processes POST requests to the `/ui/v1/students/add` endpoint. It validates the submitted
-     * {@link StudentDto} form data and the provided password. If validation errors are present, the method
-     * redisplay the student creation form with the current input data and errors. If the data is valid,
-     * the student is saved, and the user is redirected to the list of all students.
-     * <p>
-     * Users must have the `STUDENTS_CREATE` authority to access this endpoint.
+     * This method is responsible for processing the form submission, validating the input data,
+     * and saving a new student using the provided {@link StudentCreationDto}. If validation errors
+     * occur, the form is redisplayed with the error messages and available group information.
+     * The user must have the {@code STUDENTS_CREATE} authority to perform this operation.
      *
-     * @param model         the Spring MVC Model object used to store data for the view
-     * @param student       the {@link StudentDto} object representing the student to be created
-     * @param bindingResult the {@link BindingResult} object containing validation results for the student
-     * @param password      the plain-text password for the new student
-     * @return the view name to display the form again if there are errors, or a redirect URL to the list
-     * of all students upon successful student creation
+     * @param model         the {@link Model} object used to pass data to the view in case of validation errors.
+     * @param student       the {@link StudentCreationDto} containing the student's data submitted from the form.
+     * @param bindingResult the {@link BindingResult} containing the result of the validation process.
+     * @return the name of the view to navigate to after the student is successfully added, or the form view if there are validation errors.
      */
     @PostMapping("/add")
     @PreAuthorize("hasAuthority('STUDENTS_CREATE')")
-    public String performStudentAdding(Model model, @ModelAttribute("student") @Valid StudentDto student,
-                                       BindingResult bindingResult, @RequestParam("password") String password) {
+    public String performStudentAdding(Model model, @ModelAttribute("student") @Valid StudentCreationDto student,
+                                       BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute(ModelAttributeNames.ALL_GROUPS_ATTRIBUTE, studentService.getAllExistingGroups())
-                .addAttribute(ModelAttributeNames.PASSWORD_ATTRIBUTE, password);
+            model.addAttribute(ModelAttributeNames.ALL_GROUPS_ATTRIBUTE, studentService.getAllExistingGroups());
             return ViewNames.STUDENT_CREATION_FORM;
         }
 
-        studentService.save(student, password);
+        studentService.save(student);
         return ALL_STUDENTS_REDIRECT_URL;
     }
 
@@ -301,6 +296,7 @@ public class StudentController {
     public String getChangePasswordForm(Model model, @PathVariable("studentId") long studentId) {
         PasswordUpdateRequestDto passwordUpdateRequest = PasswordUpdateRequestDto.builder()
             .userId(studentId)
+            .roleName(RoleName.STUDENT)
             .build();
 
         model.addAttribute(ModelAttributeNames.PASSWORD_UPDATE_REQUEST_ATTRIBUTE, passwordUpdateRequest);
@@ -308,17 +304,17 @@ public class StudentController {
     }
 
     /**
-     * Handles the updating of a student's password.
+     * Handles the password update for a student.
      * <p>
-     * This method processes PATCH requests to the `/ui/v1/students/update-pass` endpoint.
-     * It validates the provided {@link PasswordUpdateRequestDto} object and, if valid,
-     * invokes the service to update the student's password.
-     * Users must have the `STUDENTS_UPDATE` authority to access this endpoint.
+     * This method processes the password update request for a specific student. It first validates the input
+     * using {@link PasswordUpdateRequestDto}. If validation fails, it returns the password update form.
+     * If the input is valid, it proceeds to update the student's password using the {@link StudentService}.
+     * If the student cannot be found, it throws a {@link CustomHttpException}.
      *
-     * @param passwordUpdateRequest the {@link PasswordUpdateRequestDto} containing the password update details
-     * @param bindingResult         the binding result that holds any validation errors
-     * @return the logical view name representing the password update form if there are validation errors,
-     * or a redirect URL to the specific student's page upon successful update
+     * @param passwordUpdateRequest the password update request containing the new password details
+     * @param bindingResult         the result of validating the {@link PasswordUpdateRequestDto}
+     * @return a redirection URL to the student's page after the update or the password update form if validation fails
+     * @throws CustomHttpException if the student cannot be found during the password update process
      */
     @PatchMapping("/update-pass")
     @PreAuthorize("hasAuthority('STUDENTS_UPDATE')")
@@ -328,8 +324,12 @@ public class StudentController {
             return ViewNames.PASSWORD_UPDATE_FORM;
         }
 
-        studentService.updateStudentPassword(passwordUpdateRequest);
-        return String.format(PARTICULAR_STUDENTS_REDIRECT_URL, passwordUpdateRequest.getUserId());
+        try {
+            studentService.updateStudentPassword(passwordUpdateRequest);
+            return String.format(PARTICULAR_STUDENTS_REDIRECT_URL, passwordUpdateRequest.getUserId());
+        } catch (EntityNotFoundException e) {
+            throw new CustomHttpException(e.getHttpStatus(), "Password update failed. No student found.");
+        }
     }
 
     private List<StudentDto> findStudentByEmail(Collection<StudentDto> students, String email) {

@@ -89,7 +89,6 @@ public class ModelAttributeNames {
      */
     public static final String GROUPS_ALL_NAMES_ATTRIBUTE = "allNamesOfGroups";
 
-
     /**
      * The attribute name used to store a list of all existing groups in the Spring MVC Model.
      */
@@ -141,14 +140,19 @@ public class ModelAttributeNames {
     public static final String STUDENT_EMAILS_ATTRIBUTE = "studentEmails";
 
     /**
+     * Model attribute name for a teacher object.
+     */
+    public static final String TEACHER_ATTRIBUTE = "teacher";
+
+    /**
      * The attribute name used to store a list of teachers in the Spring MVC Model.
      */
     public static final String TEACHERS_ATTRIBUTE = "teachers";
 
     /**
-     * The attribute name used to store all names of teachers in the Spring MVC Model.
+     * The attribute name used to store all emails of teachers in the Spring MVC Model.
      */
-    public static final String TEACHERS_ALL_NAMES_ATTRIBUTE = "allNamesOfTeachers";
+    public static final String TEACHERS_ALL_EMAILS_ATTRIBUTE = "allEmailsOfTeachers";
 
     /**
      * Used as a model attribute to store the course object.

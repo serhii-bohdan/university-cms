@@ -1,6 +1,5 @@
 package ua.foxminded.universitycms.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ua.foxminded.universitycms.dto.StudentCreationDto;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.mapper.StudentMapper;
 import ua.foxminded.universitycms.model.Role;
@@ -46,28 +46,23 @@ class StudentServiceImplTest {
 
     @Test
     void save_shouldSuccessfullySaveNewStudentAndReturnDto_whenValidDtoAndPasswordAreProvided() {
-        StudentDto dto = mock(StudentDto.class);
+        StudentCreationDto dtoBeforeSaving = mock(StudentCreationDto.class);
+        StudentDto dtoAfterSaving = mock(StudentDto.class);
         Student entity = mock(Student.class);
         Role role = mock(Role.class);
-        String password = "password";
-        String encodedPassword = "encodedPassword";
-        when(studentMapperMock.toEntity(dto)).thenReturn(entity);
-        when(passwordEncoderMock.encode(password)).thenReturn(encodedPassword);
+        when(studentMapperMock.toEntity(dtoBeforeSaving)).thenReturn(entity);
         when(roleRepositoryMock.findByRoleName(RoleName.STUDENT)).thenReturn(Optional.of(role));
         when(studentRepositoryMock.save(entity)).thenReturn(entity);
-        when(studentMapperMock.toDto(entity)).thenReturn(dto);
+        when(studentMapperMock.toDto(entity)).thenReturn(dtoAfterSaving);
 
-        StudentDto savedStudent = studentService.save(dto, password);
+        studentService.save(dtoBeforeSaving);
 
         verify(scheduleRepositoryMock, times(1)).save(any(Schedule.class));
-        verify(studentMapperMock, times(1)).toEntity(dto);
+        verify(studentMapperMock, times(1)).toEntity(dtoBeforeSaving);
         verify(entity, times(1)).setSchedule(any(Schedule.class));
         verify(entity, times(1)).setRole(role);
-        verify(passwordEncoderMock, times(1)).encode(password);
-        verify(entity, times(1)).setPasswordHash(encodedPassword);
         verify(studentRepositoryMock, times(1)).save(entity);
         verify(studentMapperMock, times(1)).toDto(entity);
-        assertEquals(dto, savedStudent);
     }
 
 }

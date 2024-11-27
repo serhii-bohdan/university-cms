@@ -20,7 +20,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import ua.foxminded.universitycms.ControllerTestConfig;
 import ua.foxminded.universitycms.config.SecurityConfig;
 import ua.foxminded.universitycms.dto.CourseDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
@@ -32,6 +34,7 @@ import ua.foxminded.universitycms.service.CourseService;
 import java.util.*;
 
 @WebMvcTest(controllers = CourseController.class)
+@ContextConfiguration(classes = ControllerTestConfig.class)
 @Import(SecurityConfig.class)
 class CourseControllerTest {
 
@@ -442,27 +445,6 @@ class CourseControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"COURSES_CREATE"})
-    void performCourseCreation_shouldPageWithCreationFormAndWithErrorMessage_whenCourseServiceThrowValidationException() throws Exception {
-        String courseNameThatAlreadyExists = "Name";
-        String courseDescription = "Description";
-        Long authorId = 1L;
-        when(courseServiceMock.save(any(CourseDto.class))).thenThrow(ValidationException.class);
-
-        mockMvc.perform(post("/ui/v1/courses/my/create")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .with(csrf())
-                .param("courseName", courseNameThatAlreadyExists)
-                .param("courseDescription", courseDescription)
-                .param("authorId", String.valueOf(authorId)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("validationErrorMessage"))
-            .andExpect(view().name("courses/creation-form"));
-
-        verify(courseServiceMock, times(1)).save(any(CourseDto.class));
-    }
-
-    @Test
     @WithMockUser(authorities = {"COURSES_UPDATE"})
     void getUpdateForm_shouldPageWithFormToUpdateExistentCourse_whenCourseWithGivenIdExists() throws Exception {
         long courseId = 1L;
@@ -502,10 +484,10 @@ class CourseControllerTest {
         mockMvc.perform(put("/ui/v1/courses/my/update")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .with(csrf())
+                .param("id", String.valueOf(courseId))
                 .param("courseName", courseName)
                 .param("courseDescription", courseDescription)
-                .param("authorId", String.valueOf(authorId))
-                .param("cid", String.valueOf(courseId)))
+                .param("authorId", String.valueOf(authorId)))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s", courseId)));
 
@@ -522,40 +504,16 @@ class CourseControllerTest {
         mockMvc.perform(put("/ui/v1/courses/my/update")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .with(csrf())
+                .param("id", String.valueOf(courseId))
                 .param("courseDescription", courseDescription)
-                .param("authorId", String.valueOf(authorId))
-                .param("cid", String.valueOf(courseId)))
+                .param("authorId", String.valueOf(authorId)))
             .andExpect(status().isOk())
             .andExpect(view().name("courses/update-form"));
-    }
-
-    @Test
-    @WithMockUser(authorities = {"COURSES_UPDATE"})
-    void performCourseUpdate_shouldPageWithUpdateFormAndWithErrorMessage_whenCourseServiceThrowValidationException() throws Exception {
-        Long courseId = 1L;
-        String courseName = "Name";
-        String courseDescription = "Description";
-        Long authorId = 1L;
-        when(courseServiceMock.update(any(CourseDto.class))).thenThrow(ValidationException.class);
-
-        mockMvc.perform(put("/ui/v1/courses/my/update")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .with(csrf())
-                .param("courseName", courseName)
-                .param("courseDescription", courseDescription)
-                .param("authorId", String.valueOf(authorId))
-                .param("cid", String.valueOf(courseId)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("validationErrorMessage"))
-            .andExpect(view().name("courses/update-form"));
-
-        verify(courseServiceMock, times(1)).update(any(CourseDto.class));
     }
 
     @Test
     @WithMockUser(authorities = {"COURSES_UPDATE"})
     void performCourseUpdate_shouldPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
-        Long courseId = 1L;
         String courseName = "Name";
         String courseDescription = "Description";
         Long authorId = 1L;
@@ -569,8 +527,7 @@ class CourseControllerTest {
                 .with(csrf())
                 .param("courseName", courseName)
                 .param("courseDescription", courseDescription)
-                .param("authorId", String.valueOf(authorId))
-                .param("cid", String.valueOf(courseId)))
+                .param("authorId", String.valueOf(authorId)))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
             .andExpect(view().name("error-page"));

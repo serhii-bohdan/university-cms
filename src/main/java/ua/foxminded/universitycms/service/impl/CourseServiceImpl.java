@@ -81,45 +81,6 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
 
     /**
      * {@inheritDoc}
-     *
-     * @throws ValidationException if the course name and description are not unique among the author's courses.
-     */
-    @Override
-    public CourseDto save(CourseDto courseDto) {
-        List<Course> teacherCourses = courseRepository.findByAuthorId(courseDto.getAuthorId());
-
-        if (isCourseNameUniqueAmongTeacherCoursesForSave(courseDto, teacherCourses) &&
-            isDescriptionUniqueAmongTeacherCoursesForSave(courseDto, teacherCourses)) {
-            return super.save(courseDto);
-        }
-
-        throw new ValidationException(HttpStatus.BAD_REQUEST, """
-            Error creating new course. The name of the course and its description
-            should be unique among the courses of an individual teacher.""");
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws ValidationException if the course name and description are not unique among the author's courses
-     *                             after update (excluding the updated course itself).
-     */
-    @Override
-    public CourseDto update(CourseDto courseDto) {
-        List<Course> teacherCourses = courseRepository.findByAuthorId(courseDto.getAuthorId());
-
-        if (isCourseNameUniqueAmongTeacherCoursesForUpdate(courseDto, teacherCourses) &&
-            isDescriptionUniqueAmongTeacherCoursesForUpdate(courseDto, teacherCourses)) {
-            return super.update(courseDto);
-        }
-
-        throw new ValidationException(HttpStatus.BAD_REQUEST, """
-            Error updating existing course. The name of the course and its description
-            should be unique among the courses of an individual teacher.""");
-    }
-
-    /**
-     * {@inheritDoc}
      */
     @Override
     @Transactional(readOnly = true)
@@ -257,26 +218,6 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
         return courses.stream()
             .map(mapper::toDto)
             .toList();
-    }
-
-    private boolean isCourseNameUniqueAmongTeacherCoursesForSave(CourseDto courseDto, List<Course> teacherCourses) {
-        return teacherCourses.stream().noneMatch(c -> c.getCourseName().equals(courseDto.getCourseName()));
-    }
-
-    private boolean isDescriptionUniqueAmongTeacherCoursesForSave(CourseDto courseDto, List<Course> teacherCourses) {
-        return teacherCourses.stream().noneMatch(c -> c.getCourseDescription().equals(courseDto.getCourseDescription()));
-    }
-
-    private boolean isCourseNameUniqueAmongTeacherCoursesForUpdate(CourseDto courseDto, List<Course> teacherCourses) {
-        return teacherCourses.stream()
-            .filter(c -> !c.getId().equals(courseDto.getId()))
-            .noneMatch(c -> c.getCourseName().equals(courseDto.getCourseName()));
-    }
-
-    private boolean isDescriptionUniqueAmongTeacherCoursesForUpdate(CourseDto courseDto, List<Course> teacherCourses) {
-        return teacherCourses.stream()
-            .filter(c -> !c.getId().equals(courseDto.getId()))
-            .noneMatch(c -> c.getCourseDescription().equals(courseDto.getCourseDescription()));
     }
 
 }

@@ -27,7 +27,7 @@
     <button sec:authorize="hasAuthority('GROUPS_CREATE')" type="submit" class="btn btn-success form-group-margin">
       Create
     </button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
+    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" th:href="@{../../../ui/v1/groups}">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>

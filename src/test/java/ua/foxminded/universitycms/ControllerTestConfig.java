@@ -3,8 +3,7 @@ package ua.foxminded.universitycms;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import ua.foxminded.universitycms.repository.GroupRepository;
-import ua.foxminded.universitycms.repository.StudentRepository;
+import ua.foxminded.universitycms.repository.*;
 
 @TestConfiguration
 public class ControllerTestConfig {
@@ -15,6 +14,21 @@ public class ControllerTestConfig {
     @MockBean
     private StudentRepository studentRepositoryMock;
 
+    @MockBean
+    private TeacherRepository teacherRepositoryMock;
+
+    @MockBean
+    private ManagerRepository managerRepositoryMock;
+
+    @MockBean
+    private AdminRepository adminRepositoryMock;
+
+    @MockBean
+    private CourseRepository courseRepositoryMock;
+
+    @MockBean
+    private TopicRepository topicRepositoryMock;
+
     @Bean
     GroupRepository groupRepositoryMock() {
         return groupRepositoryMock;
@@ -23,6 +37,31 @@ public class ControllerTestConfig {
     @Bean
     StudentRepository studentRepositoryMock() {
         return studentRepositoryMock;
+    }
+
+    @Bean
+    CourseRepository courseRepositoryMock() {
+        return courseRepositoryMock;
+    }
+
+    @Bean
+    TopicRepository topicRepositoryMock() {
+        return topicRepositoryMock;
+    }
+
+    @Bean
+    TeacherRepository teacherRepositoryMock() {
+        return teacherRepositoryMock;
+    }
+
+    @Bean
+    ManagerRepository managerRepositoryMock() {
+        return managerRepositoryMock;
+    }
+
+    @Bean
+    AdminRepository adminRepositoryMock() {
+        return adminRepositoryMock;
     }
 
 }

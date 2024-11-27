@@ -24,9 +24,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import ua.foxminded.universitycms.ControllerTestConfig;
 import ua.foxminded.universitycms.config.SecurityConfig;
 import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
+import ua.foxminded.universitycms.dto.StudentCreationDto;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.model.Student;
+import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.repository.StudentRepository;
 import ua.foxminded.universitycms.service.StudentService;
 import java.util.ArrayList;
@@ -264,7 +266,7 @@ class StudentControllerTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/ui/v1/students"));
 
-        verify(studentServiceMock, times(1)).save(any(StudentDto.class), eq(password));
+        verify(studentServiceMock, times(1)).save(any(StudentCreationDto.class));
     }
 
     @Test
@@ -285,10 +287,9 @@ class StudentControllerTest {
                 .param("groupId", String.valueOf(groupId)))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("allExistingGroups"))
-            .andExpect(model().attributeExists("password"))
             .andExpect(view().name("students/creation-form"));
 
-        verify(studentServiceMock, never()).save(any(StudentDto.class), eq(password));
+        verify(studentServiceMock, never()).save(any(StudentCreationDto.class));
         verify(studentServiceMock, times(1)).getAllExistingGroups();
     }
 
@@ -442,6 +443,7 @@ class StudentControllerTest {
     @WithMockUser(authorities = {"STUDENTS_UPDATE"})
     void performPasswordUpdate_shouldUpdateStudentPasswordAndRedirectToAnotherUrl_whenPasswordValidityRulesNotViolated() throws Exception {
         long studentId = 1L;
+        RoleName roleName = RoleName.STUDENT;
         String currentPassword = "currentPassword";
         String newPassword = "newPassword";
         String confirmNewPassword = "newPassword";
@@ -455,6 +457,7 @@ class StudentControllerTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .with(csrf())
                 .param("userId", String.valueOf(studentId))
+                .param("roleName", roleName.name())
                 .param("currentPassword", currentPassword)
                 .param("newPassword", newPassword)
                 .param("confirmNewPassword", confirmNewPassword))
@@ -481,6 +484,39 @@ class StudentControllerTest {
                 .param("confirmNewPassword", confirmNewPassword))
             .andExpect(status().isOk())
             .andExpect(view().name("security/password-update-form"));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"STUDENTS_UPDATE"})
+    void performPasswordUpdate_shouldPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
+        long studentId = 1L;
+        RoleName roleName = RoleName.STUDENT;
+        String currentPassword = "currentPassword";
+        String newPassword = "newPassword";
+        String confirmNewPassword = "newPassword";
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        Student studentMock = mock(Student.class);
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        StudentRepository studentRepositoryMock = context.getBean(StudentRepository.class);
+        PasswordEncoder passwordEncoder = context.getBean(PasswordEncoder.class);
+        when(studentRepositoryMock.findById(studentId)).thenReturn(Optional.of(studentMock));
+        when(studentMock.getPasswordHash()).thenReturn(passwordEncoder.encode(currentPassword));
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        doThrow(entityNotFoundExceptionMock).when(studentServiceMock).updateStudentPassword(any(PasswordUpdateRequestDto.class));
+
+        mockMvc.perform(patch("/ui/v1/students/update-pass")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .with(csrf())
+                .param("userId", String.valueOf(studentId))
+                .param("roleName", roleName.name())
+                .param("currentPassword", currentPassword)
+                .param("newPassword", newPassword)
+                .param("confirmNewPassword", confirmNewPassword))
+            .andExpect(status().isOk())
+            .andExpect(model().attributeExists("exception"))
+            .andExpect(view().name("error-page"));
+
+        verify(studentServiceMock, times(1)).updateStudentPassword(any(PasswordUpdateRequestDto.class));
     }
 
     private Map<String, Long> getAllGroupsForTest() {

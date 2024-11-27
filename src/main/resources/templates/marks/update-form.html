@@ -32,7 +32,8 @@
     <button sec:authorize="hasAuthority('MARKS_UPDATE')" type="submit" class="btn btn-success form-group-margin">
       Update
     </button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
+    <a th:href="@{../../../../ui/v1/marks(sid=${studentId}, cid=${courseId}, fullName=${studentFullName})}"
+       class="btn btn-secondary form-group-margin" style="margin-left: 20px">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>

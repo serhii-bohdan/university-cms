@@ -1,6 +1,5 @@
 package ua.foxminded.universitycms.dto;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,7 +40,6 @@ public class StudyDayDto extends AbstractDto {
      * The ID of the schedule that this study day belongs to.
      */
     @NotNull
-    @Min(1)
     private Long scheduleId;
 
     /**

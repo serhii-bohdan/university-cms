@@ -64,12 +64,11 @@
                th:href="@{/ui/v1/courses/my/{courseId}/edit(courseId=${course.id})}"
                class="fa-regular fa-pen-to-square icon-dark" title="Edit this course"
                style="text-decoration: none; margin-left: 10px;"></a>
-            <form sec:authorize="hasAuthority('COURSES_DELETE')" th:method="delete"
-                  th:action="@{/ui/v1/courses/my/{courseId}/delete(courseId=${course.id})}"
-                  onclick="event.preventDefault(); this.submit();" style="margin-left: 10px; cursor: pointer;"
-                  class="fa-regular fa-trash-can icon-dark btn-delete" title="Delete this course">
-              <input type="submit" style="display: none;">
-            </form>
+            <span sec:authorize="hasAuthority('COURSES_DELETE')" style="margin-left: 10px; cursor: pointer;"
+                  class="fa-regular fa-trash-can icon-dark btn-delete" title="Delete this course"
+                  data-bs-toggle="modal" data-bs-target="#courseDeleteModal" th:data-course-id="${course.id}"
+                  th:data-course-name="${course.courseName}">
+            </span>
           </td>
         </tr>
         </tbody>
@@ -78,6 +77,24 @@
   </div>
   <div class="message info-m" th:unless="${userCourses.size()} > 0">
     <span th:text="#{courses.no.found}"></span>
+  </div>
+</div>
+<div class="modal fade" id="courseDeleteModal" tabindex="-1" aria-labelledby="courseDeleteModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">Are you sure you want to delete this course?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">By deleting this course you will remove all topics it contains.</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form th:method="delete" th:action="@{/ui/v1/courses/my/courseId/delete}">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>
@@ -100,6 +117,14 @@
 
     $("#keyword").autocomplete({
       source: courseNames
+    });
+
+    $('.btn-delete').click(function () {
+      const courseId = $(this).data('course-id');
+      const courseName = $(this).data('course-name');
+
+      $('#courseDeleteModal .modal-title').text(`Are you sure you want to delete the ${courseName} course?`);
+      $('#courseDeleteModal form').attr('action', `/ui/v1/courses/my/${courseId}/delete`);
     });
   });
 </script>

@@ -2,8 +2,11 @@ package ua.foxminded.universitycms.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.Mapper;
+import ua.foxminded.universitycms.dto.StudentCreationDto;
 import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.model.*;
+import ua.foxminded.universitycms.security.PasswordEncoderMapper;
+import ua.foxminded.universitycms.util.annotation.PasswordEncoderMapping;
 
 /**
  * Interface defining mappings between {@link Student} entities and {@link StudentDto} data transfer objects.
@@ -14,7 +17,7 @@ import ua.foxminded.universitycms.model.*;
  *
  * @author Serhii Bohdan
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {PasswordEncoderMapper.class})
 public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<Student, StudentDto> {
 
     /**
@@ -86,5 +89,27 @@ public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<
     @Mapping(expression = "java(new Group(dto.getGroupId()))", target = "group")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Student partialUpdate(StudentDto dto, @MappingTarget Student entity);
+
+    /**
+     * Converts a {@link StudentCreationDto} to a {@link Student} entity.
+     * <p>
+     * This method maps fields from the {@link StudentCreationDto} to corresponding fields in the {@link Student} entity.
+     * It also encodes the password using the {@link PasswordEncoderMapper}.
+     *
+     * <p>Key Mappings:
+     * <ul>
+     *   <li>Maps first and last names to the {@link Name} object in the entity.</li>
+     *   <li>Encodes the password and sets it in the entity's password hash field.</li>
+     *   <li>Maps the group ID to the associated {@link Group} entity.</li>
+     * </ul>
+     *
+     * @param dto the {@link StudentCreationDto} containing the data for creating a new student
+     * @return a {@link Student} entity with the mapped and encoded values
+     */
+    @Mapping(source = "firstName", target = "name.firstName")
+    @Mapping(source = "lastName", target = "name.lastName")
+    @Mapping(source = "password", target = "passwordHash", qualifiedBy = {PasswordEncoderMapping.class})
+    @Mapping(source = "groupId", target = "group.id")
+    Student toEntity(StudentCreationDto dto);
 
 }

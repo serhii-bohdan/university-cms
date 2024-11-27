@@ -1,6 +1,5 @@
 package ua.foxminded.universitycms.dto;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -9,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import ua.foxminded.universitycms.util.annotation.UniqueTeacherCourse;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -23,6 +23,7 @@ import java.util.Set;
 @NoArgsConstructor
 @ToString(callSuper = true, exclude = "topics")
 @SuperBuilder
+@UniqueTeacherCourse
 public class CourseDto extends AbstractDto {
 
     /**
@@ -42,7 +43,6 @@ public class CourseDto extends AbstractDto {
      * The ID of the teacher who created.
      */
     @NotNull
-    @Min(1)
     private Long authorId;
 
     /**

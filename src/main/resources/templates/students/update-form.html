@@ -58,7 +58,8 @@
     <button sec:authorize="hasAuthority('STUDENTS_UPDATE')" class="btn btn-success form-group-margin" type="submit"
             id="addButton">Update
     </button>
-    <a class="btn btn-secondary form-group-margin" style="margin-left: 20px" onclick="history.back()">Cancel</a>
+    <a th:href="@{../../../../ui/v1/students/{studentId}(studentId=${student.id})}" style="margin-left: 20px"
+       class="btn btn-secondary form-group-margin">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>
