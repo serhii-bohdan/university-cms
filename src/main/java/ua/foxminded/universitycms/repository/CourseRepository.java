@@ -4,8 +4,10 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ua.foxminded.universitycms.model.Course;
+import ua.foxminded.universitycms.model.Student;
 
 /**
  * The {@code CourseRepository} interface is a Spring Data JPA repository for
@@ -40,5 +42,17 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * @return a list of courses authored by the specified teacher, or an empty list if none found
      */
     List<Course> findByAuthorId(long authorId);
+
+    /**
+     * Retrieves the list of courses associated with a specific student by their ID.
+     * <p>
+     * This method uses a custom JPQL query to join the {@link Student} entity with its associated
+     * {@link Course} entities and returns the courses for the given student ID.
+     *
+     * @param studentId the ID of the student whose courses are to be retrieved
+     * @return a list of courses associated with the specified student, or an empty list if no courses are found
+     */
+    @Query("SELECT c FROM Student s JOIN s.courses c WHERE s.id = :studentId")
+    List<Course> findStudentCoursesByStudentId(long studentId);
 
 }

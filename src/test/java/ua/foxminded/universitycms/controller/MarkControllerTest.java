@@ -22,6 +22,8 @@ import java.util.*;
 @Import(SecurityConfig.class)
 class MarkControllerTest {
 
+    private static final String ERROR_MESSAGE = "Error message.";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -204,7 +206,7 @@ class MarkControllerTest {
         long markId = 1;
         String studentFullName = "Full Name";
         MarkDto markMock = mock(MarkDto.class);
-        when(markServiceMock.getById(markId)).thenReturn(Optional.of(markMock));
+        when(markServiceMock.getById(markId)).thenReturn(markMock);
 
         mockMvc.perform(get("/ui/v1/marks/{markId}/edit", markId)
                 .param("cid", String.valueOf(courseId))
@@ -222,12 +224,16 @@ class MarkControllerTest {
 
     @Test
     @WithMockUser(authorities = {"MARKS_UPDATE"})
-    void getUpdateForm_shouldPageWithErrorMessage_whenMarkWithGivenIdDoesNotExist() throws Exception {
+    void getUpdateForm_shouldReturnPageWithErrorMessage_whenMarkServiceThrowEntityNotFoundException() throws Exception {
         long studentId = 1;
         long courseId = 1;
         long markId = 1;
         String studentFullName = "Full Name";
-        when(markServiceMock.getById(markId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(markServiceMock.getById(markId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/marks/{markId}/edit", markId)
                 .param("cid", String.valueOf(courseId))
@@ -304,13 +310,14 @@ class MarkControllerTest {
 
     @Test
     @WithMockUser(authorities = {"MARKS_DELETE"})
-    void performMarkDeletion_shouldPageWithErrorMessage_whenMarkServiceThrowEntityNotFoundException() throws Exception {
+    void performMarkDeletion_shouldReturnPageWithErrorMessage_whenMarkServiceThrowEntityNotFoundException() throws Exception {
         long studentId = 1;
         long courseId = 1;
         long markId = 1;
         String studentFullName = "Full Name";
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(markServiceMock).deleteById(markId);
 

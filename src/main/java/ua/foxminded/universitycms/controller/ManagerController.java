@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ua.foxminded.universitycms.dto.ManagerDto;
-import ua.foxminded.universitycms.exception.CustomHttpException;
-import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.ManagerService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
@@ -39,7 +37,7 @@ public class ManagerController {
     /**
      * Renders the "all-managers" view, displaying a paginated list of managers.
      * <p>
-     * This method supports optional filtering of managers by name using the `keyword` parameter. If no keyword
+     * This method supports optional filtering of managers by name using the {@code keyword} parameter. If no keyword
      * is provided, all managers are retrieved. The retrieved managers are then added to the model along with
      * pagination information for rendering in the view.
      * <p>
@@ -49,21 +47,15 @@ public class ManagerController {
      * @param model    the Spring MVC Model object for storing data to be passed to the view
      * @param keyword  an optional keyword for filtering managers by name (can be null or blank)
      * @param pageable the pagination information, including page number, page size, and sorting
-     * @return the logical name of the view template ("managers/all-managers")
+     * @return the logical name of the view template ({@code managers/all-managers})
      */
     @GetMapping
     @PreAuthorize("hasAuthority('MANAGERS_READ')")
     public String getPageWithManagers(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                       @PageableDefault Pageable pageable) {
-        Page<ManagerDto> managersPage;
-
-        try {
-            managersPage = StringUtils.isBlank(keyword)
-                ? managerService.getManagersPage(pageable)
-                : managerService.getManagerInPageByName(keyword, pageable);
-        } catch (InvalidFullNameFormatException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
-        }
+        Page<ManagerDto> managersPage = StringUtils.isBlank(keyword)
+            ? managerService.getManagersPage(pageable)
+            : managerService.getManagerInPageByName(keyword, pageable);
 
         model.addAttribute(ModelAttributeNames.MANAGERS_ALL_NAMES_ATTRIBUTE, managerService.getAllNamesOfManagers())
             .addAttribute(ModelAttributeNames.MANAGERS_ATTRIBUTE, managersPage.getContent())

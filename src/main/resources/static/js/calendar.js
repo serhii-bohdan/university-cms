@@ -91,7 +91,7 @@ const generateCalendar = (month, year) => {
                 let selectedDate = new Date(currentYear.value, currentMonth.value, event.target.textContent);
                 let formattedDate = selectedDate.toLocaleDateString('en-CA').split('T')[0];
 
-                window.location.href = `/ui/v1/schedule/${scheduleId}/studyDays/${formattedDate}`;
+                window.location.href = `/ui/v1/study-days/${formattedDate}?scheduleId=${scheduleId}`;
             }
         });
     }

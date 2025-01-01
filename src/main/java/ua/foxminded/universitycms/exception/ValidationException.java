@@ -1,33 +1,26 @@
 package ua.foxminded.universitycms.exception;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * A custom exception representing a validation error that occurred during the processing of a request.
+ * A custom exception class representing validation errors in the application.
  * <p>
- * This exception is a subclass of {@link RuntimeException} and provides the HTTP status code associated with the error.
- * It is typically used to indicate that a client-side error has occurred, such as invalid input data.
+ * This exception is typically thrown when input data fails to meet the required constraints
+ * or business rules during validation processes. It extends {@link CustomException}, allowing
+ * an HTTP status code and descriptive message to be included for better error handling.
  *
  * @author Serhii Bohdan
  */
-@Getter
-public class ValidationException extends RuntimeException {
+public class ValidationException extends CustomException {
 
     /**
-     * The HTTP status code associated with this exception, indicating the nature of the error to the client.
-     */
-    private final HttpStatus httpStatus;
-
-    /**
-     * Constructs a new {@code ValidationException} with the specified HTTP status code and message.
+     * Constructs a new {@code ValidationException} with the specified HTTP status and error message.
      *
-     * @param httpStatus The HTTP status code associated with the exception.
-     * @param message    The message describing the validation error.
+     * @param httpStatus the HTTP status code associated with this exception, typically {@link HttpStatus#BAD_REQUEST}
+     * @param message    a descriptive message providing details about the validation error
      */
     public ValidationException(HttpStatus httpStatus, String message) {
-        super(message);
-        this.httpStatus = httpStatus;
+        super(httpStatus, message);
     }
 
 }

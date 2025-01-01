@@ -30,6 +30,7 @@ class ManagerControllerTest {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
     private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final String ERROR_MESSAGE = "Error message.";
 
     @Autowired
     private MockMvc mockMvc;
@@ -129,11 +130,12 @@ class ManagerControllerTest {
 
     @Test
     @WithMockUser(authorities = {"MANAGERS_READ"})
-    void getPageWithManagers_shouldThrowCustomHttpException_whenInvalidFullNameFormatExceptionIsThrown() throws Exception {
+    void getPageWithManagers_shouldReturnPageWithErrorMessage_whenInvalidFullNameFormatExceptionIsThrown() throws Exception {
         String invalidKeyWord = "keywordWithInvalidFormat";
-        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         InvalidFullNameFormatException invalidFullNameFormatExceptionMock = mock(InvalidFullNameFormatException.class);
+        when(invalidFullNameFormatExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(invalidFullNameFormatExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         when(managerServiceMock.getManagerInPageByName(invalidKeyWord, pageable)).thenThrow(invalidFullNameFormatExceptionMock);
 
@@ -144,7 +146,6 @@ class ManagerControllerTest {
             .andExpect(view().name("error-page"));
 
         verify(managerServiceMock, times(1)).getManagerInPageByName(invalidKeyWord, pageable);
-        verify(invalidFullNameFormatExceptionMock, times(1)).getHttpStatus();
     }
 
     private List<String> getAllNamesOfManagersForTest() {

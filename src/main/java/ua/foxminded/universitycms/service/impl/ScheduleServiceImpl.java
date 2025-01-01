@@ -26,6 +26,9 @@ import ua.foxminded.universitycms.service.ScheduleService;
 @Validated
 public class ScheduleServiceImpl extends AbstractService<Schedule, ScheduleDto> implements ScheduleService {
 
+    /**
+     * Repository for accessing and managing {@link Schedule} entities.
+     */
     private final ScheduleRepository scheduleRepository;
 
     /**

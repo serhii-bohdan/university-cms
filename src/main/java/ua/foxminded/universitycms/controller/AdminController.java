@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ua.foxminded.universitycms.dto.AdminDto;
-import ua.foxminded.universitycms.exception.CustomHttpException;
-import ua.foxminded.universitycms.exception.InvalidFullNameFormatException;
 import ua.foxminded.universitycms.service.AdminService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
@@ -37,9 +35,9 @@ public class AdminController {
     private final AdminService adminService;
 
     /**
-     * Renders the "all-admins" view, displaying a paginated list of admin users.
+     * Renders the {@code all-admins} view, displaying a paginated list of admin users.
      * <p>
-     * This method supports optional filtering of admins by name using the `keyword` parameter. If no keyword
+     * This method supports optional filtering of admins by name using the {@code keyword} parameter. If no keyword
      * is provided, all admins are retrieved. The retrieved admins are then added to the model along with
      * pagination information for rendering in the view.
      * <p>
@@ -49,21 +47,15 @@ public class AdminController {
      * @param model    the Spring MVC Model object for storing data to be passed to the view
      * @param keyword  an optional keyword for filtering admins by name (can be null or blank)
      * @param pageable the pagination information, including page number, page size, and sorting
-     * @return the logical name of the view template ("admins/all-admins")
+     * @return the logical name of the view template ({@code admins/all-admins})
      */
     @GetMapping
     @PreAuthorize("hasAuthority('ADMINS_READ')")
     public String getPageWithAdmins(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                     @PageableDefault Pageable pageable) {
-        Page<AdminDto> adminsPage;
-
-        try {
-            adminsPage = StringUtils.isBlank(keyword)
-                ? adminService.getAdminsPage(pageable)
-                : adminService.getAdminInPageByName(keyword, pageable);
-        } catch (InvalidFullNameFormatException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Invalid full name format");
-        }
+        Page<AdminDto> adminsPage = StringUtils.isBlank(keyword)
+            ? adminService.getAdminsPage(pageable)
+            : adminService.getAdminInPageByName(keyword, pageable);
 
         model.addAttribute(ModelAttributeNames.ADMINS_ALL_NAMES_ATTRIBUTE, adminService.getAllNamesOfAdmins())
             .addAttribute(ModelAttributeNames.ADMINS_ATTRIBUTE, adminsPage.getContent())

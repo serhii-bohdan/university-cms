@@ -27,6 +27,8 @@ import ua.foxminded.universitycms.service.TopicService;
 @Import({SecurityConfig.class})
 class TopicControllerTest {
 
+    private static final String ERROR_MESSAGE = "Error message.";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -88,7 +90,7 @@ class TopicControllerTest {
     void getUpdateForm_shouldPageWithFormToUpdateExistentTopic_whenTopicWithGivenIdExists() throws Exception {
         long topicId = 1L;
         TopicDto topicMock = mock(TopicDto.class);
-        when(topicServiceMock.getById(topicId)).thenReturn(Optional.of(topicMock));
+        when(topicServiceMock.getById(topicId)).thenReturn(topicMock);
 
         mockMvc.perform(get("/ui/v1/topics/{topicId}/edit", topicId))
             .andExpect(status().isOk())
@@ -100,9 +102,13 @@ class TopicControllerTest {
 
     @Test
     @WithMockUser(authorities = {"TOPICS_UPDATE"})
-    void getUpdateForm_shouldPageWithErrorMessage_whenTopicWithGivenIdDoesNotExist() throws Exception {
+    void getUpdateForm_shouldReturnPageWithErrorMessage_whenTopicServiceThrowEntityNotFoundException() throws Exception {
         long topicId = 1L;
-        when(topicServiceMock.getById(topicId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(topicServiceMock.getById(topicId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/topics/{topicId}/edit", topicId))
             .andExpect(status().isOk())
@@ -152,13 +158,14 @@ class TopicControllerTest {
 
     @Test
     @WithMockUser(authorities = {"TOPICS_UPDATE"})
-    void performTopicUpdate_shouldPageWithErrorMessage_whenTopicServiceThrowEntityNotFoundException() throws Exception {
+    void performTopicUpdate_shouldReturnPageWithErrorMessage_whenTopicServiceThrowEntityNotFoundException() throws Exception {
         String topicName = "Name";
         String topicDescription = "Description";
         Integer topicOrder = 1;
         long courseId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         when(topicServiceMock.update(any(TopicDto.class))).thenThrow(entityNotFoundExceptionMock);
 
@@ -194,11 +201,12 @@ class TopicControllerTest {
 
     @Test
     @WithMockUser(authorities = {"TOPICS_DELETE"})
-    void performTopicDeletion_shouldPageWithErrorMessage_whenTopicServiceThrowEntityNotFoundException() throws Exception {
+    void performTopicDeletion_shouldReturnPageWithErrorMessage_whenTopicServiceThrowEntityNotFoundException() throws Exception {
         long topicId = 1L;
         long courseId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(topicServiceMock).deleteById(topicId);
 

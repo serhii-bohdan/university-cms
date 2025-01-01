@@ -34,6 +34,9 @@ public class PasswordUpdateRequestDto {
     @NotNull
     private Long userId;
 
+    /**
+     * The role name of the user whose password is being updated.
+     */
     @NotNull
     private RoleName roleName;
 

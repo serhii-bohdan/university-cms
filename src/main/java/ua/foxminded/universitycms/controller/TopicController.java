@@ -1,17 +1,13 @@
 package ua.foxminded.universitycms.controller;
 
-import java.util.Optional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ua.foxminded.universitycms.dto.TopicDto;
-import ua.foxminded.universitycms.exception.CustomHttpException;
-import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.service.TopicService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
@@ -47,14 +43,13 @@ public class TopicController {
     /**
      * Retrieves the topic creation form for a new topic within a specific course.
      * <p>
-     * This method handles GET requests to the `/new` endpoint. It retrieves the course ID from the request parameter and
-     * creates a new empty `TopicDto` object with that course ID set. The topic data is then added to the model for display
-     * in the creation form template.
+     * This method handles GET requests to the {@code /ui/v1/topics/new} endpoint. It retrieves the course ID from
+     * the request parameter and creates a new empty `{@link TopicDto}` object with that course ID set. The topic data
+     * is then added to the model for display in the creation form template.
      *
      * @param model    the Spring MVC Model object used to store data for the view
      * @param courseId the ID of the course the new topic belongs to (from request parameter)
      * @return the logical view name `CREATION_FORM` representing the topic creation template
-     * @throws CustomHttpException if an unexpected error occurs
      */
     @GetMapping("/new")
     @PreAuthorize("hasAuthority('TOPICS_CREATE')")
@@ -94,42 +89,33 @@ public class TopicController {
     /**
      * Retrieves the topic update form for an existing topic.
      * <p>
-     * This method handles GET requests to the `/{topicId}/edit` endpoint. It attempts to retrieve the topic with the
-     * provided `topicId` using the `topicService`. If the topic is found, it adds the topic data to the model for display
-     * in the update form template. Otherwise, it throws a `CustomHttpException` with a not found status.
+     * This method handles GET requests to the `{@code /ui/v1/topics/{topicId}/edit}` endpoint. It attempts to
+     * retrieve the topic with the provided {@code topicId} using the {@code topicService}. If the topic is found,
+     * it adds the topic data to the model for display in the update form template.
      *
      * @param model   the Spring MVC Model object used to store data for the view
      * @param topicId the ID of the topic to be updated
-     * @return the logical view name `UPDATE_FORM` representing the topic update template
-     * @throws CustomHttpException if the topic with the provided ID is not found
+     * @return the logical view name {@code UPDATE_FORM} representing the topic update template
      */
     @GetMapping("/{topicId}/edit")
     @PreAuthorize("hasAuthority('TOPICS_UPDATE')")
     public String getUpdateForm(Model model, @PathVariable("topicId") long topicId) {
-        Optional<TopicDto> optional = topicService.getById(topicId);
-
-        if (optional.isPresent()) {
-            model.addAttribute(ModelAttributeNames.TOPIC_ATTRIBUTE, optional.get());
-            return ViewNames.TOPIC_UPDATE_FORM;
-        }
-
-        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Editing failed. Topic not found.");
+        model.addAttribute(ModelAttributeNames.TOPIC_ATTRIBUTE, topicService.getById(topicId));
+        return ViewNames.TOPIC_UPDATE_FORM;
     }
 
     /**
      * Handles the update of an existing topic.
      * <p>
      * This method processes the topic update request by first validating the input using the {@link TopicDto}.
-     * If validation fails, it returns the topic update form with error messages. If the input is valid, it
-     * proceeds to update the existing topic using the {@link TopicService}. Upon successful update, it
-     * redirects to the specific course page that the updated topic belongs to.
-     * If the topic is not found during the update, an exception is thrown with a relevant error message.
+     * If validation fails, it returns the topic update form with error messages. If the input is valid, it proceeds
+     * to update the existing topic using the {@link TopicService}. Upon successful update, it redirects to the
+     * specific course page that the updated topic belongs to.
      *
      * @param topic         the {@link TopicDto} containing the updated details of the topic
      * @param bindingResult the result of validating the {@link TopicDto}
      * @return a redirection URL to the course page that the updated topic is associated with, or the topic update form
      * if validation fails or the topic cannot be found
-     * @throws CustomHttpException if the topic to be updated does not exist
      */
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('TOPICS_UPDATE')")
@@ -138,37 +124,28 @@ public class TopicController {
             return ViewNames.TOPIC_UPDATE_FORM;
         }
 
-        try {
-            topicService.update(topic);
-            return String.format(USER_SPECIFIC_COURSE_REDIRECT, topic.getCourseId());
-        } catch (EntityNotFoundException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Update failed. Topic not found.");
-        }
+        topicService.update(topic);
+        return String.format(USER_SPECIFIC_COURSE_REDIRECT, topic.getCourseId());
     }
 
     /**
      * Deletes a specified topic from a course.
      * <p>
-     * This method handles DELETE requests to the `/{topicId}/delete` endpoint. It attempts to delete the topic with the
-     * provided `topicId` using the `topicService`. If successful, it redirects the user to the specific course details page
-     * for the course the topic belonged to (using the provided `courseId`). If the topic is not found, it throws a
-     * `CustomHttpException` with a not found status.
+     * This method handles DELETE requests to the {@code /ui/v1/topics/{topicId}/delete} endpoint. It attempts to
+     * delete the topic with the provided {@code topicId} using the {@code topicService}. If successful, it redirects
+     * the user to the specific course details page for the course the topic belonged to (using the provided
+     * {@code courseId}).
      *
      * @param topicId  the ID of the topic to be deleted
      * @param courseId the ID of the course the topic belongs to (from request parameter)
      * @return a redirect URL to the course details page on success
-     * @throws CustomHttpException if the topic with the provided ID is not found
      */
     @DeleteMapping("/{topicId}/delete")
     @PreAuthorize("hasAuthority('TOPICS_DELETE')")
     public String performTopicDeletion(@PathVariable("topicId") long topicId,
                                        @RequestParam(COURSE_ID_PARAM_NAME) long courseId) {
-        try {
-            topicService.deleteById(topicId);
-            return String.format(USER_SPECIFIC_COURSE_REDIRECT, courseId);
-        } catch (EntityNotFoundException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Deletion failed. Topic not found.");
-        }
+        topicService.deleteById(topicId);
+        return String.format(USER_SPECIFIC_COURSE_REDIRECT, courseId);
     }
 
 }

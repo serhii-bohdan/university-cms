@@ -103,10 +103,9 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
     @Override
     @Transactional(readOnly = true)
     public List<CourseDto> getStudentCourses(long studentId) {
-        return studentRepository.findById(studentId)
-            .map(s -> getCourseDtoList(s.getCourses()))
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
-                String.format("Student with given ID does not exist: %d", studentId)));
+        return courseRepository.findStudentCoursesByStudentId(studentId).stream()
+            .map(mapper::toDto)
+            .toList();
     }
 
     /**

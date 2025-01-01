@@ -107,9 +107,24 @@ public class ViewNames {
     public static final String PARTICULAR_STUDENT = "students/particular-student";
 
     /**
-     * View name for the page that displays a study day.
+     * The view name for displaying the actual study day schedule.
      */
-    public static final String STUDY_DAY_PAGE = "schedule/study-day";
+    public static final String ACTUAL_STUDY_DAY_PAGE = "schedule/actual-study-day";
+
+    /**
+     * The view name for displaying the past study day schedule.
+     */
+    public static final String PAST_STUDY_DAY_PAGE = "schedule/past-study-day";
+
+    /**
+     * View name for the lesson creation form page.
+     */
+    public static final String LESSON_CREATION_FORM = "schedule/lesson-creation-form";
+
+    /**
+     * View name for the lesson update form page.
+     */
+    public static final String LESSON_UPDATE_FORM = "schedule/lesson-update-form";
 
     /**
      * View name for the page that displays all teachers.

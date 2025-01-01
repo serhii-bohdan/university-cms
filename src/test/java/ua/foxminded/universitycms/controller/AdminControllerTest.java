@@ -129,7 +129,7 @@ class AdminControllerTest {
 
     @Test
     @WithMockUser(authorities = {"ADMINS_READ"})
-    void getPageWithAdmins_shouldThrowCustomHttpException_whenInvalidFullNameFormatExceptionIsThrown() throws Exception {
+    void getPageWithAdmins_shouldPageWithErrorMessage_whenInvalidFullNameFormatExceptionIsThrown() throws Exception {
         String invalidKeyWord = "keywordWithInvalidFormat";
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
@@ -144,7 +144,6 @@ class AdminControllerTest {
             .andExpect(view().name("error-page"));
 
         verify(adminServiceMock, times(1)).getAdminInPageByName(invalidKeyWord, pageable);
-        verify(invalidFullNameFormatExceptionMock, times(1)).getHttpStatus();
     }
 
     private List<String> getAllNamesOfAdminsForTest() {

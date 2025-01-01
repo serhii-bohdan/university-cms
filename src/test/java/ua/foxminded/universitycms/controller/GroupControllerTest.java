@@ -25,7 +25,6 @@ import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.service.GroupService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @WebMvcTest(controllers = GroupController.class)
 @ContextConfiguration(classes = ControllerTestConfig.class)
@@ -34,6 +33,7 @@ class GroupControllerTest {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
     private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final String ERROR_MESSAGE = "Error message.";
 
     @Autowired
     private MockMvc mockMvc;
@@ -187,7 +187,7 @@ class GroupControllerTest {
     void getPageWithSpecificGroup_shouldReturnPageWithSpecificGroup_whenGroupWithGivenIdExists() throws Exception {
         long groupId = 1;
         GroupDto groupMock = mock(GroupDto.class);
-        when(groupServiceMock.getById(groupId)).thenReturn(Optional.of(groupMock));
+        when(groupServiceMock.getById(groupId)).thenReturn(groupMock);
 
         mockMvc.perform(get("/ui/v1/groups/{groupId}", groupId))
             .andExpect(status().isOk())
@@ -199,9 +199,13 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(authorities = "GROUPS_READ")
-    void getPageWithSpecificGroup_shouldPageWithErrorMessage_whenGroupWithGivenIdDoesNotExist() throws Exception {
+    void getPageWithSpecificGroup_shouldReturnPageWithErrorMessage_whenGroupServiceThrowEntityNotFoundException() throws Exception {
         long groupId = 1;
-        when(groupServiceMock.getById(groupId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(groupServiceMock.getById(groupId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/groups/{groupId}", groupId))
             .andExpect(status().isOk())
@@ -263,7 +267,7 @@ class GroupControllerTest {
     void getUpdateForm_shouldPageWithFormToUpdateExistentGroup_whenGroupWithGivenIdExists() throws Exception {
         long groupId = 1L;
         GroupDto group = mock(GroupDto.class);
-        when(groupServiceMock.getById(groupId)).thenReturn(Optional.of(group));
+        when(groupServiceMock.getById(groupId)).thenReturn(group);
 
         mockMvc.perform(get("/ui/v1/groups/{groupId}/edit", groupId))
             .andExpect(status().isOk())
@@ -275,9 +279,13 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(authorities = {"GROUPS_UPDATE"})
-    void getUpdateForm_shouldPageWithErrorMessage_whenGroupWithGivenIdDoesNotExist() throws Exception {
+    void getUpdateForm_shouldReturnPageWithErrorMessage_whenGroupServiceThrowEntityNotFoundException() throws Exception {
         long groupId = 1L;
-        when(groupServiceMock.getById(groupId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(groupServiceMock.getById(groupId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/groups/{groupId}/edit", groupId))
             .andExpect(status().isOk())
@@ -329,10 +337,11 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(authorities = {"GROUPS_UPDATE"})
-    void performGroupUpdate_shouldPageWithErrorMessage_whenGroupServiceThrowEntityNotFoundException() throws Exception {
+    void performGroupUpdate_shouldReturnPageWithErrorMessage_whenGroupServiceThrowEntityNotFoundException() throws Exception {
         String groupName = "RT-98";
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         when(groupServiceMock.update(any(GroupDto.class))).thenThrow(entityNotFoundExceptionMock);
 
@@ -363,10 +372,11 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(authorities = {"GROUPS_DELETE"})
-    void performGroupDeletion_shouldPageWithErrorMessage_whenGroupServiceThrowEntityNotFoundException() throws Exception {
+    void performGroupDeletion_shouldReturnPageWithErrorMessage_whenGroupServiceThrowEntityNotFoundException() throws Exception {
         long groupId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(groupServiceMock).deleteById(groupId);
 

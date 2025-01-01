@@ -33,11 +33,11 @@ public class ScheduleController {
 
     /**
      * Renders a page containing a calendar view of the student's schedule.
-     * This method handles GET requests to the root path of the controller mapping (`/ui/v1/schedule`).
+     * This method handles GET requests to the root path of the controller mapping ({@code /ui/v1/schedule}).
      *
      * @param model             the Spring MVC {@link Model} object used to pass data to the view
      * @param customUserDetails the authenticated user's details, containing their ID and role
-     * @return the logical name of the view template ("schedule/calendar")
+     * @return the logical name of the view template ({@code schedule/calendar})
      */
     @GetMapping
     @PreAuthorize("hasAuthority('SCHEDULE_READ')")
