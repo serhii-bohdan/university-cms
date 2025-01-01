@@ -1,33 +1,26 @@
 package ua.foxminded.universitycms.exception;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * Exception thrown when a provided full name does not adhere to the expected format.
+ * A custom exception class representing invalid formatting of a full name.
  * <p>
- * This exception is typically used in scenarios where user input or data validation
- * requires a specific structure for full names.
+ * This exception is typically thrown when a user's full name fails validation due to incorrect formatting,
+ * such as missing required components or containing invalid characters.
+ * It extends {@link CustomException}.
  *
  * @author Serhii Bohdan
  */
-@Getter
-public class InvalidFullNameFormatException extends RuntimeException {
+public class InvalidFullNameFormatException extends CustomException {
 
     /**
-     * The HTTP status code associated with this exception, indicating the nature of the error to the client.
-     */
-    private final HttpStatus httpStatus;
-
-    /**
-     * Constructs a new `InvalidFullNameFormatException` with the specified HTTP status code and error message.
+     * Constructs a new {@code InvalidFullNameFormatException} with the specified HTTP status and error message.
      *
-     * @param httpStatus the HTTP status code to associate with this exception
-     * @param message    a detailed message describing the specific format violation
+     * @param httpStatus the HTTP status code to be associated with this exception, typically {@link HttpStatus#BAD_REQUEST}
+     * @param message    a descriptive message explaining the formatting error
      */
     public InvalidFullNameFormatException(HttpStatus httpStatus, String message) {
-        super(message);
-        this.httpStatus = httpStatus;
+        super(httpStatus, message);
     }
 
 }

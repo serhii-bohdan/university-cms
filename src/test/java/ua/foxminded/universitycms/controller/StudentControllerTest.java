@@ -43,6 +43,7 @@ class StudentControllerTest {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
     private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final String ERROR_MESSAGE = "Error message.";
 
     @Autowired
     private MockMvc mockMvc;
@@ -206,7 +207,7 @@ class StudentControllerTest {
     void getPageWithParticularStudent_shouldPageWithParticularStudent_whenStudentWithGivenIdExists() throws Exception {
         long studentId = 1L;
         StudentDto studentMock = mock(StudentDto.class);
-        when(studentServiceMock.getById(studentId)).thenReturn(Optional.of(studentMock));
+        when(studentServiceMock.getById(studentId)).thenReturn(studentMock);
 
         mockMvc.perform(get("/ui/v1/students/{studentId}", studentId))
             .andExpect(status().isOk())
@@ -218,9 +219,13 @@ class StudentControllerTest {
 
     @Test
     @WithMockUser(authorities = {"STUDENTS_READ"})
-    void getPageWithParticularStudent_shouldPageWithErrorMessage_whenStudentWithGivenIdDoesNotExists() throws Exception {
+    void getPageWithParticularStudent_shouldReturnPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
         long studentId = 1L;
-        when(studentServiceMock.getById(studentId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(studentServiceMock.getById(studentId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/students/{studentId}", studentId))
             .andExpect(status().isOk())
@@ -298,7 +303,7 @@ class StudentControllerTest {
     void getUpdateForm_shouldPageWithFormToUpdateExistentStudent_whenStudentWithGivenIdExists() throws Exception {
         long studentId = 1L;
         StudentDto studentMock = mock(StudentDto.class);
-        when(studentServiceMock.getById(studentId)).thenReturn(Optional.of(studentMock));
+        when(studentServiceMock.getById(studentId)).thenReturn(studentMock);
 
         mockMvc.perform(get("/ui/v1/students/{studentId}/edit", studentId))
             .andExpect(status().isOk())
@@ -312,9 +317,13 @@ class StudentControllerTest {
 
     @Test
     @WithMockUser(authorities = {"STUDENTS_UPDATE"})
-    void getUpdateForm_shouldPageWithErrorMessage_whenStudentWithGivenIdDoesNotExists() throws Exception {
+    void getUpdateForm_shouldReturnPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
         long studentId = 1L;
-        when(studentServiceMock.getById(studentId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(studentServiceMock.getById(studentId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/students/{studentId}/edit", studentId))
             .andExpect(status().isOk())
@@ -371,7 +380,7 @@ class StudentControllerTest {
 
     @Test
     @WithMockUser(authorities = {"STUDENTS_UPDATE"})
-    void performStudentUpdate_shouldPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
+    void performStudentUpdate_shouldReturnPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
         String firstName = "FirstName";
         String lastName = "LastName";
         String email = "test@email.com";
@@ -379,6 +388,7 @@ class StudentControllerTest {
         long groupId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         when(studentServiceMock.update(any(StudentDto.class))).thenThrow(entityNotFoundExceptionMock);
 
@@ -412,10 +422,11 @@ class StudentControllerTest {
 
     @Test
     @WithMockUser(authorities = {"STUDENTS_DELETE"})
-    void performStudentDeletion_shouldPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
+    void performStudentDeletion_shouldReturnPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
         long studentId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(studentServiceMock).deleteById(studentId);
 
@@ -488,19 +499,20 @@ class StudentControllerTest {
 
     @Test
     @WithMockUser(authorities = {"STUDENTS_UPDATE"})
-    void performPasswordUpdate_shouldPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
+    void performPasswordUpdate_shouldReturnPageWithErrorMessage_whenStudentServiceThrowEntityNotFoundException() throws Exception {
         long studentId = 1L;
         RoleName roleName = RoleName.STUDENT;
         String currentPassword = "currentPassword";
         String newPassword = "newPassword";
         String confirmNewPassword = "newPassword";
-        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         Student studentMock = mock(Student.class);
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
         StudentRepository studentRepositoryMock = context.getBean(StudentRepository.class);
         PasswordEncoder passwordEncoder = context.getBean(PasswordEncoder.class);
         when(studentRepositoryMock.findById(studentId)).thenReturn(Optional.of(studentMock));
         when(studentMock.getPasswordHash()).thenReturn(passwordEncoder.encode(currentPassword));
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(studentServiceMock).updateStudentPassword(any(PasswordUpdateRequestDto.class));
 

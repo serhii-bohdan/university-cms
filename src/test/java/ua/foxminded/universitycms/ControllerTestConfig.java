@@ -29,6 +29,12 @@ public class ControllerTestConfig {
     @MockBean
     private TopicRepository topicRepositoryMock;
 
+    @MockBean
+    private StudyDayRepository studyDayRepositoryMock;
+
+    @MockBean
+    private LessonRepository lessonRepositoryMock;
+
     @Bean
     GroupRepository groupRepositoryMock() {
         return groupRepositoryMock;
@@ -62,6 +68,16 @@ public class ControllerTestConfig {
     @Bean
     AdminRepository adminRepositoryMock() {
         return adminRepositoryMock;
+    }
+
+    @Bean
+    StudyDayRepository studyDayRepositoryMock() {
+        return studyDayRepositoryMock;
+    }
+
+    @Bean
+    LessonRepository lessonRepositoryMock() {
+        return lessonRepositoryMock;
     }
 
 }

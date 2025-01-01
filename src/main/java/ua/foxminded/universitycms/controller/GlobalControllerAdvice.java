@@ -6,15 +6,15 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.servlet.ModelAndView;
-import ua.foxminded.universitycms.exception.CustomHttpException;
+import ua.foxminded.universitycms.exception.CustomException;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
 
 /**
  * Global controller advice class for handling exceptions and configuring data binding.
  * <p>
- * This class provides an {@link ExceptionHandler} for handling `CustomHttpException` and an {@link InitBinder} method
- * for automatically trimming strings in data binding.
+ * This class provides an {@link ExceptionHandler} for handling {@link CustomException}
+ * and an {@link InitBinder} method for automatically trimming strings in data binding.
  *
  * @author Serhii Bohdan
  */
@@ -22,17 +22,18 @@ import ua.foxminded.universitycms.util.ViewNames;
 public class GlobalControllerAdvice {
 
     /**
-     * Handles exceptions of type {@link CustomHttpException}.
+     * Handles exceptions of type {@link CustomException} and prepares an error view to be displayed to the user.
      * <p>
-     * This method is annotated with {@link ExceptionHandler}, indicating that it should be invoked when
-     * a `CustomHttpException` is thrown. It creates a {@link ModelAndView} object with the "error" view name,
-     * adds the exception's message and HTTP status code to the model, and returns the ModelAndView for rendering.
+     * This method is invoked when a {@code CustomException} is thrown within the application. It sets up a
+     * {@link ModelAndView} object pointing to the error page view and includes the exception details
+     * as a model attribute for rendering error-specific information on the page.
      *
-     * @param ex the {@link CustomHttpException} that was thrown
-     * @return a {@link ModelAndView} object representing the error view, populated with the exception details
+     * @param ex the {@link CustomException} that was thrown
+     * @return a {@link ModelAndView} object pointing to the error page, with the exception details included as a
+     * model attribute
      */
-    @ExceptionHandler(CustomHttpException.class)
-    public ModelAndView handleCustomHttpException(CustomHttpException ex) {
+    @ExceptionHandler(CustomException.class)
+    public ModelAndView handleCustomException(CustomException ex) {
         ModelAndView modelAndView = new ModelAndView(ViewNames.ERROR_PAGE);
         modelAndView.addObject(ModelAttributeNames.EXCEPTION_ATTRIBUTE, ex);
         return modelAndView;

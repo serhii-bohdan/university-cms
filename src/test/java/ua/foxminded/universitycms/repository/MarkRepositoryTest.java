@@ -25,28 +25,38 @@ class MarkRepositoryTest {
 
     @Test
     void findMarksByStudentIdAndCourseId_shouldEmptyMarksList_whenStudentIdIsNull() {
-        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(null, 1L);
+        Long courseId = 1L;
+
+        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(null, courseId);
 
         assertTrue(marks.isEmpty());
     }
 
     @Test
     void findMarksByStudentIdAndCourseId_shouldEmptyMarksList_whenCourseIdIsNull() {
-        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(1L, null);
+        Long studentId = 1L;
+
+        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(studentId, null);
 
         assertTrue(marks.isEmpty());
     }
 
     @Test
     void findMarksByStudentIdAndCourseId_shouldEmptyMarksList_whenNoStudentWithGivenId() {
-        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(3L, 1L);
+        Long courseId = 1L;
+        Long studentId = 3L;
+
+        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(studentId, courseId);
 
         assertTrue(marks.isEmpty());
     }
 
     @Test
     void findMarksByStudentIdAndCourseId_shouldEmptyMarksList_whenNoCourseWithGivenId() {
-        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(1L, 4L);
+        Long courseId = 4L;
+        Long studentId = 1L;
+
+        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(studentId, courseId);
 
         assertTrue(marks.isEmpty());
     }
@@ -54,14 +64,20 @@ class MarkRepositoryTest {
     @Test
     @Sql("/sql/clear_tables.sql")
     void findMarksByStudentIdAndCourseId_shouldEmptyMarksList_whenMarksTableIsEmpty() {
-        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(1L, 1L);
+        Long courseId = 1L;
+        Long studentId = 1L;
+
+        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(studentId, courseId);
 
         assertTrue(marks.isEmpty());
     }
 
     @Test
     void findMarksByStudentIdAndCourseId_shouldNotEmptyMarksList_whenMarksWithGivenStudentIdAndCourseIdArePresent() {
-        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(1L, 1L);
+        Long courseId = 1L;
+        Long studentId = 1L;
+
+        List<Mark> marks = markRepository.findMarksByStudentIdAndCourseId(courseId, studentId);
 
         assertFalse(marks.isEmpty());
         assertEquals(6, marks.size());

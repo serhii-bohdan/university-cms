@@ -2,14 +2,12 @@ package ua.foxminded.universitycms.controller;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,8 +17,6 @@ import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
 import ua.foxminded.universitycms.dto.TeacherCreationDto;
 import ua.foxminded.universitycms.dto.TeacherDto;
 import ua.foxminded.universitycms.dto.UserDto;
-import ua.foxminded.universitycms.exception.CustomHttpException;
-import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.service.TeacherService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
@@ -56,13 +52,13 @@ public class TeacherController {
      * Retrieves a page of teacher data for display and populates the model with necessary attributes.
      * <p>
      * This method handles GET requests to the endpoint responsible for displaying a paginated list of teachers.
-     * It utilizes the `teacherService` to retrieve teacher data based on a provided keyword (optional)
+     * It utilizes the {@code teacherService} to retrieve teacher data based on a provided keyword (optional)
      * and pagination information.
      *
      * @param model    the Spring MVC Model object used to store data for the view
      * @param keyword  an optional search keyword for filtering teachers by name (can be blank)
      * @param pageable the Pageable object containing pagination information (size, page number)
-     * @return the logical view name "teachers/all-teachers" representing the teacher list template
+     * @return the logical view name {@code teachers/all-teachers} representing the teacher list template
      */
     @GetMapping
     @PreAuthorize("hasAuthority('TEACHERS_READ')")
@@ -93,19 +89,12 @@ public class TeacherController {
      * @param model     the Spring MVC Model object used to store data for the view
      * @param teacherId the ID of the teacher whose details are being requested
      * @return the logical view name representing the particular teacher's details page
-     * @throws CustomHttpException if the teacher is not found, an exception is thrown with a 404 Not Found status
      */
     @GetMapping("/{teacherId}")
     @PreAuthorize("hasAuthority('TEACHERS_READ')")
     public String getPageWithParticularTeacher(Model model, @PathVariable("teacherId") long teacherId) {
-        Optional<TeacherDto> optional = teacherService.getById(teacherId);
-
-        if (optional.isPresent()) {
-            model.addAttribute(ModelAttributeNames.TEACHER_ATTRIBUTE, optional.get());
-            return ViewNames.PARTICULAR_TEACHER;
-        }
-
-        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Unable to view teacher information. Teacher not found.");
+        model.addAttribute(ModelAttributeNames.TEACHER_ATTRIBUTE, teacherService.getById(teacherId));
+        return ViewNames.PARTICULAR_TEACHER;
     }
 
     /**
@@ -137,7 +126,8 @@ public class TeacherController {
      *
      * @param teacher       the {@link TeacherCreationDto} containing the teacher's data submitted from the form.
      * @param bindingResult the {@link BindingResult} containing the result of the validation process.
-     * @return the name of the view to navigate to after the teacher is successfully added, or the form view if there are validation errors.
+     * @return the name of the view to navigate to after the teacher is successfully added, or the form view if there
+     * are validation errors.
      */
     @PostMapping("/add")
     @PreAuthorize("hasAuthority('TEACHERS_CREATE')")
@@ -156,25 +146,17 @@ public class TeacherController {
      * <p>
      * This method handles GET requests to the endpoint for displaying the form to update an existing teacher's
      * information. It retrieves the teacher data using the provided {@code teacherId} from the {@link TeacherService}.
-     * If the teacher is found, the teacher's data is added to the model for display in the update form. If the teacher
-     * is not found, a {@link CustomHttpException} is thrown with a {@code NOT_FOUND} status.
+     * If the teacher is found, the teacher's data is added to the model for display in the update form.
      *
      * @param model     the Spring MVC Model object used to store data for the view
      * @param teacherId the ID of the teacher whose information is to be updated
      * @return the logical view name for the teacher update form if the teacher is found
-     * @throws CustomHttpException if the teacher with the specified ID is not found
      */
     @GetMapping("/{teacherId}/edit")
     @PreAuthorize("hasAuthority('TEACHERS_UPDATE')")
     public String getUpdateForm(Model model, @PathVariable("teacherId") long teacherId) {
-        Optional<TeacherDto> optional = teacherService.getById(teacherId);
-
-        if (optional.isPresent()) {
-            model.addAttribute(ModelAttributeNames.TEACHER_ATTRIBUTE, optional.get());
-            return ViewNames.TEACHER_UPDATE_FORM;
-        }
-
-        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Editing failed. Teacher not found.");
+        model.addAttribute(ModelAttributeNames.TEACHER_ATTRIBUTE, teacherService.getById(teacherId));
+        return ViewNames.TEACHER_UPDATE_FORM;
     }
 
     /**
@@ -184,13 +166,11 @@ public class TeacherController {
      * {@link TeacherDto} object using the {@code BindingResult}. If validation errors occur, it returns the update
      * form for correction. If the validation is successful, the method attempts to update the teacher information
      * using the {@link TeacherService}. If the teacher is found and updated successfully, the user is redirected to
-     * the details page of the updated teacher. If the teacher is not found, a {@link CustomHttpException} with a
-     * {@code NOT_FOUND} status is thrown.
+     * the details page of the updated teacher.
      *
      * @param teacher       the {@link TeacherDto} object containing the updated teacher data
      * @param bindingResult the result of the validation for the teacher update
      * @return a redirect URL to the teacher's detail page if the update is successful
-     * @throws CustomHttpException if the teacher is not found or the update operation fails
      */
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('TEACHERS_UPDATE')")
@@ -199,12 +179,8 @@ public class TeacherController {
             return ViewNames.TEACHER_UPDATE_FORM;
         }
 
-        try {
-            teacherService.update(teacher);
-            return String.format(PARTICULAR_TEACHER_REDIRECT_URL, teacher.getId());
-        } catch (EntityNotFoundException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Update failed. Teacher not found.");
-        }
+        teacherService.update(teacher);
+        return String.format(PARTICULAR_TEACHER_REDIRECT_URL, teacher.getId());
     }
 
     /**
@@ -212,22 +188,16 @@ public class TeacherController {
      * <p>
      * This method handles DELETE requests to remove a teacher from the system. It attempts to delete the teacher
      * based on the provided {@code teacherId}. If the deletion is successful, the user is redirected to the list
-     * of all teachers. If the teacher is not found, a {@link CustomHttpException} with a {@code NOT_FOUND} status
-     * is thrown, indicating that the deletion failed.
+     * of all teachers.
      *
      * @param teacherId the ID of the teacher to be deleted
      * @return a redirect URL to the list of all teachers if the deletion is successful
-     * @throws CustomHttpException if the teacher is not found or the deletion operation fails
      */
     @DeleteMapping("/{teacherId}/delete")
     @PreAuthorize("hasAuthority('TEACHERS_DELETE')")
     public String performTeacherDeletion(@PathVariable("teacherId") long teacherId) {
-        try {
-            teacherService.deleteById(teacherId);
-            return ALL_TEACHERS_REDIRECT_URL;
-        } catch (EntityNotFoundException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Deletion failed. Teacher not found.");
-        }
+        teacherService.deleteById(teacherId);
+        return ALL_TEACHERS_REDIRECT_URL;
     }
 
     /**
@@ -259,12 +229,10 @@ public class TeacherController {
      * This method processes the password update request for a specific teacher. It first validates the input
      * using {@link PasswordUpdateRequestDto}. If validation fails, it returns the password update form.
      * If the input is valid, it proceeds to update the teacher's password using the {@link TeacherService}.
-     * If the teacher cannot be found, it throws a {@link CustomHttpException}.
      *
      * @param passwordUpdateRequest the password update request containing the new password details
      * @param bindingResult         the result of validating the {@link PasswordUpdateRequestDto}
      * @return a redirection URL to the teacher's page after the update or the password update form if validation fails
-     * @throws CustomHttpException if the teacher cannot be found during the password update process
      */
     @PatchMapping("/update-pass")
     @PreAuthorize("hasAuthority('TEACHERS_UPDATE')")
@@ -273,12 +241,9 @@ public class TeacherController {
         if (bindingResult.hasErrors()) {
             return ViewNames.PASSWORD_UPDATE_FORM;
         }
-        try {
-            teacherService.updateTeacherPassword(passwordUpdateRequest);
-            return String.format(PARTICULAR_TEACHER_REDIRECT_URL, passwordUpdateRequest.getUserId());
-        } catch (EntityNotFoundException e) {
-            throw new CustomHttpException(e.getHttpStatus(), "Password update failed. No teacher found.");
-        }
+
+        teacherService.updateTeacherPassword(passwordUpdateRequest);
+        return String.format(PARTICULAR_TEACHER_REDIRECT_URL, passwordUpdateRequest.getUserId());
     }
 
     private List<String> getTeacherEmails(Collection<TeacherDto> teachers) {

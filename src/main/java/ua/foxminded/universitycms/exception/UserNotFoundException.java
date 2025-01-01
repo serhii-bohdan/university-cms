@@ -1,30 +1,26 @@
 package ua.foxminded.universitycms.exception;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * Exception thrown when a requested user cannot be found within the system.
+ * A custom exception class representing the scenario where a user cannot be found.
+ * <p>
+ * This exception is thrown when an operation attempts to retrieve a user by a specific identifier but the user
+ * does not exist in the system. It extends {@link CustomException}, allowing the inclusion of an associated HTTP
+ * status code and descriptive error message.
  *
  * @author Serhii Bohdan
  */
-@Getter
-public class UserNotFoundException extends RuntimeException {
+public class UserNotFoundException extends CustomException {
 
     /**
-     * The HTTP status code associated with this exception.
-     */
-    private final HttpStatus httpStatus;
-
-    /**
-     * Constructs a new `UserNotFoundException` with the specified HTTP httpStatus and a detailed message.
+     * Constructs a new {@code UserNotFoundException} with the specified HTTP status and error message.
      *
-     * @param httpStatus the HTTP httpStatus code to be associated with this exception
-     * @param message    a descriptive message explaining the reason for the exception
+     * @param httpStatus the HTTP status code to be associated with this exception, typically {@link HttpStatus#NOT_FOUND}
+     * @param message    a descriptive message explaining the details of the missing user
      */
     public UserNotFoundException(HttpStatus httpStatus, String message) {
-        super(message);
-        this.httpStatus = httpStatus;
+        super(httpStatus, message);
     }
 
 }

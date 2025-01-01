@@ -1,33 +1,26 @@
 package ua.foxminded.universitycms.exception;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * Exception thrown when a requested entity cannot be found in the underlying data store.
+ * A custom exception class representing the scenario where an entity cannot be found.
  * <p>
- * This exception typically occurs when trying to retrieve or modify an entity using an ID or
- * other identifier, but the corresponding entity doesn't exist in the database or other persistent storage.
+ * This exception is typically thrown when an operation requires a specific entity by its identifier
+ * or attributes, but the entity does not exist in the system. It extends {@link CustomException}
+ * to include an HTTP status code.
  *
  * @author Serhii Bohdan
  */
-@Getter
-public class EntityNotFoundException extends RuntimeException {
-
-    /**
-     * The HTTP status code associated with this exception.
-     */
-    private final HttpStatus httpStatus;
+public class EntityNotFoundException extends CustomException {
 
     /**
      * Constructs a new {@code EntityNotFoundException} with the specified HTTP status and error message.
      *
-     * @param httpStatus the HTTP status code to be associated with this exception
+     * @param httpStatus the HTTP status code to be associated with this exception, typically {@link HttpStatus#NOT_FOUND}
      * @param message    a descriptive message about the entity that was not found
      */
     public EntityNotFoundException(HttpStatus httpStatus, String message) {
-        super(message);
-        this.httpStatus = httpStatus;
+        super(httpStatus, message);
     }
 
 }

@@ -6,7 +6,7 @@ DECLARE
   var_course_id BIGINT;
   var_schedule_id BIGINT := ((SELECT MAX(id) FROM schedules) + 1)::BIGINT;
   var_study_day_id BIGINT := ((SELECT MAX(id) FROM study_days) + 1)::BIGINT;
-  var_day_date DATE := '2023-10-01';
+  var_day_date DATE := CURRENT_DATE;
   var_week_day VARCHAR;
   var_lesson_start_time TIME;
   var_lesson_end_time TIME;
@@ -54,7 +54,7 @@ BEGIN
 
     UPDATE students SET schedule_id = var_schedule_id
     WHERE id = var_student_id;
-    var_day_date := '2023-10-01';
+    var_day_date := CURRENT_DATE;
     var_schedule_id = var_schedule_id + 1;
   END LOOP;
 

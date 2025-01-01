@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import ua.foxminded.universitycms.util.annotation.ValidLessonSchedule;
 import java.time.LocalTime;
 
 /**
@@ -22,6 +23,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @ToString(callSuper = true)
 @SuperBuilder
+@ValidLessonSchedule
 public class LessonDto extends AbstractDto {
 
     /**
@@ -46,7 +48,7 @@ public class LessonDto extends AbstractDto {
     /**
      * A {@link CourseDto} object representing the course that this lesson covers.
      */
-    @NotNull
+    @NotNull(message = "The course must be specified")
     private CourseDto course;
 
     /**

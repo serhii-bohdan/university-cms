@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import ua.foxminded.universitycms.util.annotation.UniqueStudyDayWithinSchedule;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Set;
@@ -22,6 +23,7 @@ import java.util.Set;
 @NoArgsConstructor
 @ToString(callSuper = true, exclude = "lessons")
 @SuperBuilder
+@UniqueStudyDayWithinSchedule
 public class StudyDayDto extends AbstractDto {
 
     /**
@@ -39,7 +41,7 @@ public class StudyDayDto extends AbstractDto {
     /**
      * The ID of the schedule that this study day belongs to.
      */
-    @NotNull
+    @NotNull(message = "The study day should belong to the schedule")
     private Long scheduleId;
 
     /**

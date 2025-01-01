@@ -40,6 +40,7 @@ class CourseControllerTest {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
     private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final String ERROR_MESSAGE = "Error message.";
 
     @Autowired
     private MockMvc mockMvc;
@@ -218,13 +219,14 @@ class CourseControllerTest {
     }
 
     @Test
-    void getPageWithCoursesForUser_shouldThrowCustomHttpException_whenLoggedInUserHasTeacherRoleAndUserNotFoundExceptionIsThrown() throws Exception {
+    void getPageWithCoursesForUser_shouldReturnPageWithErrorMessage_whenLoggedInUserHasTeacherRoleAndUserNotFoundExceptionIsThrown() throws Exception {
         long teacherId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         UserNotFoundException userNotFoundExceptionMock = mock(UserNotFoundException.class);
         when(customUserDetails.getId()).thenReturn(teacherId);
         when(customUserDetails.getRoleName()).thenReturn(RoleName.TEACHER);
         when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
+        when(userNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(userNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         when(courseServiceMock.getTeacherCourses(teacherId)).thenThrow(userNotFoundExceptionMock);
 
@@ -237,7 +239,6 @@ class CourseControllerTest {
         verify(customUserDetails, times(1)).getId();
         verify(customUserDetails, times(1)).getRoleName();
         verify(courseServiceMock, times(1)).getTeacherCourses(teacherId);
-        verify(userNotFoundExceptionMock, times(1)).getHttpStatus();
     }
 
     @Test
@@ -311,13 +312,14 @@ class CourseControllerTest {
     }
 
     @Test
-    void getPageWithCoursesForUser_shouldThrowCustomHttpException_whenLoggedInUserHasStudentRoleAndUserNotFoundExceptionIsThrown() throws Exception {
+    void getPageWithCoursesForUser_shouldReturnPageWithErrorMessage_whenLoggedInUserHasStudentRoleAndUserNotFoundExceptionIsThrown() throws Exception {
         long studentId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         UserNotFoundException userNotFoundExceptionMock = mock(UserNotFoundException.class);
         when(customUserDetails.getId()).thenReturn(studentId);
         when(customUserDetails.getRoleName()).thenReturn(RoleName.STUDENT);
         when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
+        when(userNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(userNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         when(courseServiceMock.getStudentCourses(studentId)).thenThrow(userNotFoundExceptionMock);
 
@@ -330,7 +332,6 @@ class CourseControllerTest {
         verify(customUserDetails, times(1)).getId();
         verify(customUserDetails, times(1)).getRoleName();
         verify(courseServiceMock, times(1)).getStudentCourses(studentId);
-        verify(userNotFoundExceptionMock, times(1)).getHttpStatus();
     }
 
     @Test
@@ -350,7 +351,7 @@ class CourseControllerTest {
     void getPageWithSpecificCourse_shouldReturnPageWithSpecificCourse_whenCourseWithProvidedIdExists() throws Exception {
         long courseId = 1L;
         CourseDto course = mock(CourseDto.class);
-        when(courseServiceMock.getById(courseId)).thenReturn(Optional.of(course));
+        when(courseServiceMock.getById(courseId)).thenReturn(course);
         when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
         when(customUserDetails.getRoleName()).thenReturn(RoleName.STUDENT);
         when(customUserDetails.getId()).thenReturn(1L);
@@ -367,9 +368,13 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_READ"})
-    void getPageWithSpecificCourse_shouldThrowCustomHttpException_whenCourseWithProvidedIdDoesNotExist() throws Exception {
+    void getPageWithSpecificCourse_shouldReturnPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
         long courseId = 1L;
-        when(courseServiceMock.getById(courseId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(courseServiceMock.getById(courseId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}", courseId))
             .andExpect(status().isOk())
@@ -380,10 +385,9 @@ class CourseControllerTest {
     }
 
     @Test
-    void getCreationForm_shouldPageWithFormToCreateNewCourse_whenUserAuthorizedAsTeacher() throws Exception {
+    void getCreationForm_shouldPageWithFormToCreateNewCourse_whenRequestIsValid() throws Exception {
         long teacherId = 1L;
         when(customUserDetails.getId()).thenReturn(teacherId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.TEACHER);
         when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_CREATE")));
 
         mockMvc.perform(get("/ui/v1/courses/my/new")
@@ -393,21 +397,6 @@ class CourseControllerTest {
             .andExpect(view().name("courses/creation-form"));
 
         verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-    }
-
-    @Test
-    void getCreationForm_shouldPageWithErrorMessage_whenUserNotAuthorizedAsTeacher() throws Exception {
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.STUDENT);
-        when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_CREATE")));
-
-        mockMvc.perform(get("/ui/v1/courses/my/new")
-                .with(user(customUserDetails)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
-
-        verify(customUserDetails, times(1)).getRoleName();
     }
 
     @Test
@@ -449,7 +438,7 @@ class CourseControllerTest {
     void getUpdateForm_shouldPageWithFormToUpdateExistentCourse_whenCourseWithGivenIdExists() throws Exception {
         long courseId = 1L;
         CourseDto course = mock(CourseDto.class);
-        when(courseServiceMock.getById(courseId)).thenReturn(Optional.of(course));
+        when(courseServiceMock.getById(courseId)).thenReturn(course);
 
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/edit", courseId))
             .andExpect(status().isOk())
@@ -461,9 +450,13 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_UPDATE"})
-    void getUpdateForm_shouldPageWithErrorMessage_whenCourseWithGivenIdDoesNotExist() throws Exception {
+    void getUpdateForm_shouldReturnPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
         long courseId = 1L;
-        when(courseServiceMock.getById(courseId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(courseServiceMock.getById(courseId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/edit", courseId))
             .andExpect(status().isOk())
@@ -513,12 +506,13 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_UPDATE"})
-    void performCourseUpdate_shouldPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
+    void performCourseUpdate_shouldReturnPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
         String courseName = "Name";
         String courseDescription = "Description";
         Long authorId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         when(courseServiceMock.update(any(CourseDto.class))).thenThrow(entityNotFoundExceptionMock);
 
@@ -551,10 +545,11 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_DELETE"})
-    void performCourseDeletion_shouldPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
+    void performCourseDeletion_shouldReturnPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
         long courseId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(courseServiceMock).deleteById(courseId);
 
@@ -573,7 +568,7 @@ class CourseControllerTest {
     void getCourseStudents_shouldPageWithCourseStudents_whenCourseWithGivenIdExistAndKeywordIsNull() throws Exception {
         long courseId = 1L;
         CourseDto courseMock = mock(CourseDto.class);
-        when(courseServiceMock.getById(courseId)).thenReturn(Optional.of(courseMock));
+        when(courseServiceMock.getById(courseId)).thenReturn(courseMock);
         when(courseMock.getStudents()).thenReturn(Set.of());
 
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/students", courseId))
@@ -594,7 +589,7 @@ class CourseControllerTest {
         long courseId = 1L;
         String keyword = "student.email@gmail.com";
         CourseDto courseMock = mock(CourseDto.class);
-        when(courseServiceMock.getById(courseId)).thenReturn(Optional.of(courseMock));
+        when(courseServiceMock.getById(courseId)).thenReturn(courseMock);
         when(courseMock.getStudents()).thenReturn(Set.of());
 
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/students", courseId)
@@ -612,9 +607,13 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"STUDENTS_READ"})
-    void getCourseStudents_shouldPageWithErrorMessage_whenCourseWithGivenIdDoesNotExist() throws Exception {
+    void getCourseStudents_shouldReturnPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
         long courseId = 1L;
-        when(courseServiceMock.getById(courseId)).thenReturn(Optional.empty());
+        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        when(courseServiceMock.getById(courseId)).thenThrow(entityNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/students", courseId))
             .andExpect(status().isOk())
@@ -640,16 +639,20 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_UPDATE"})
-    void performDeductionStudentFromCourse_shouldRedirectToPageWithErrorMessage_whenCourseServiceThrowValidationException() throws Exception {
+    void performDeductionStudentFromCourse_shouldReturnPageWithErrorMessage_whenCourseServiceThrowValidationException() throws Exception {
         long studentId = 1L;
         long courseId = 1L;
-        doThrow(ValidationException.class).when(courseServiceMock).deductStudentFromCourse(courseId, studentId);
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        ValidationException validationExceptionMock = mock(ValidationException.class);
+        when(validationExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(validationExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        doThrow(validationExceptionMock).when(courseServiceMock).deductStudentFromCourse(courseId, studentId);
 
         mockMvc.perform(delete("/ui/v1/courses/my/{courseId}/students/{studentId}/deduct", courseId, studentId)
                 .with(csrf()))
-            .andExpect(status().is3xxRedirection())
-            .andExpect(flash().attributeExists("validationErrorMessage"))
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s/students", courseId)));
+            .andExpect(status().isOk())
+            .andExpect(model().attributeExists("exception"))
+            .andExpect(view().name("error-page"));
 
         verify(courseServiceMock, times(1)).deductStudentFromCourse(courseId, studentId);
     }
@@ -661,6 +664,7 @@ class CourseControllerTest {
         long courseId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(courseServiceMock).deductStudentFromCourse(courseId, studentId);
 
@@ -689,16 +693,20 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_UPDATE"})
-    void performEnrollingStudentToCourse_shouldRedirectToPageWithErrorMessage_whenCourseServiceThrowValidationException() throws Exception {
+    void performEnrollingStudentToCourse_shouldReturnPageWithErrorMessage_whenCourseServiceThrowValidationException() throws Exception {
         long studentId = 1L;
         long courseId = 1L;
-        doThrow(ValidationException.class).when(courseServiceMock).enrollStudentInCourse(courseId, studentId);
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        ValidationException validationExceptionMock = mock(ValidationException.class);
+        when(validationExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(validationExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        doThrow(validationExceptionMock).when(courseServiceMock).enrollStudentInCourse(courseId, studentId);
 
         mockMvc.perform(post("/ui/v1/courses/my/{courseId}/students/{studentId}/enroll", courseId, studentId)
                 .with(csrf()))
-            .andExpect(status().is3xxRedirection())
-            .andExpect(flash().attributeExists("validationErrorMessage"))
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s/students", courseId)));
+            .andExpect(status().isOk())
+            .andExpect(model().attributeExists("exception"))
+            .andExpect(view().name("error-page"));
 
         verify(courseServiceMock, times(1)).enrollStudentInCourse(courseId, studentId);
     }
@@ -710,6 +718,7 @@ class CourseControllerTest {
         long courseId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(courseServiceMock).enrollStudentInCourse(courseId, studentId);
 
@@ -738,11 +747,12 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_UPDATE"})
-    void performEnrollingGroupInCourse_shouldPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
+    void performEnrollingGroupInCourse_shouldReturnPageWithErrorMessage_whenCourseServiceThrowEntityNotFoundException() throws Exception {
         long groupId = 1L;
         long courseId = 1L;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
         when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
         doThrow(entityNotFoundExceptionMock).when(courseServiceMock).enrollAllStudentsFromGroupInCourse(courseId, groupId);
 

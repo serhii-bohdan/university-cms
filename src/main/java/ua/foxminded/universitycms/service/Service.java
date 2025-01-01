@@ -27,12 +27,13 @@ public interface Service<E extends AbstractEntity, D extends AbstractDto> {
     D save(@Valid @NotNull D dto);
 
     /**
-     * Retrieves an entity by its ID and returns an {@link Optional} containing a DTO representation of the entity.
+     * Retrieves an entity by its ID and converts it to a {@link D} DTO representation.
      *
-     * @param id the ID of the entity to retrieve
-     * @return an Optional containing the entity's DTO if found, or empty Optional if not found
+     * @param id the unique identifier of the entity to retrieve
+     * @return an {@link Optional} containing the DTO representation of the entity if found,
+     * or an empty {@link Optional} if the entity does not exist
      */
-    Optional<D> getById(long id);
+    D getById(long id);
 
     /**
      * Retrieves a list of all entities and returns a list of their DTO representations.

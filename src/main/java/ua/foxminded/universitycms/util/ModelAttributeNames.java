@@ -45,11 +45,6 @@ public class ModelAttributeNames {
     public static final String KEYWORD_ATTRIBUTE = "keyword";
 
     /**
-     * The attribute name used to store the password in the Spring MVC Model.
-     */
-    public static final String PASSWORD_ATTRIBUTE = "password";
-
-    /**
      * The attribute name used to store a password update request in the model.
      */
     public static final String PASSWORD_UPDATE_REQUEST_ATTRIBUTE = "passwordUpdateRequest";
@@ -225,8 +220,28 @@ public class ModelAttributeNames {
     public static final String SCHEDULE_ATTRIBUTE = "schedule";
 
     /**
+     * Attribute name used to store the schedule ID in the model.
+     */
+    public static final String SCHEDULE_ID_ATTRIBUTE = "scheduleId";
+
+    /**
      * The attribute name used to store a study day object in the Spring MVC Model.
      */
     public static final String STUDY_DAY_ATTRIBUTE = "studyDay";
+
+    /**
+     * Attribute name used to store the date in the model.
+     */
+    public static final String DATE_ATTRIBUTE = "date";
+
+    /**
+     * The attribute name used to store a lesson object in the Spring MVC Model.
+     */
+    public static final String LESSON_ATTRIBUTE = "lesson";
+
+    /**
+     * Attribute name for the list of available time zone IDs.
+     */
+    public static final String AVAILABLE_ZONE_IDS_ATTRIBUTE = "availableZoneIds";
 
 }

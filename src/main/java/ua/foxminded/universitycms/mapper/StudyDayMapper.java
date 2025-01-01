@@ -1,7 +1,7 @@
 package ua.foxminded.universitycms.mapper;
 
+import org.mapstruct.*;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import ua.foxminded.universitycms.dto.StudyDayDto;
 import ua.foxminded.universitycms.model.StudyDay;
 import ua.foxminded.universitycms.model.Schedule;
@@ -45,5 +45,23 @@ public interface StudyDayMapper extends ua.foxminded.universitycms.mapper.Mapper
     @Override
     @Mapping(source = "scheduleId", target = "schedule.id")
     StudyDay toEntity(StudyDayDto dto);
+
+    /**
+     * Partially updates an existing {@link StudyDay} entity using the data from a {@link StudyDayDto} object.
+     * This method performs the following mapping:
+     * <ul>
+     *   <li>Maps the `scheduleId` field from the DTO to the ID of the associated {@link Schedule} in the entity.</li>
+     * </ul>
+     * Fields in the {@link StudyDayDto} object that are null will be ignored during the update,
+     * ensuring that only non-null values are applied to the target entity.
+     *
+     * @param dto    the {@link StudyDayDto} object containing the updated data
+     * @param entity the existing {@link StudyDay} entity to be updated
+     * @return the updated {@link StudyDay} entity
+     */
+    @Override
+    @Mapping(source = "scheduleId", target = "schedule.id")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    StudyDay partialUpdate(StudyDayDto dto, @MappingTarget StudyDay entity);
 
 }

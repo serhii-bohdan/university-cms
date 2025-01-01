@@ -15,5 +15,6 @@
     <span th:text="${exception.httpStatus.value() + ' ' + exception.httpStatus.getReasonPhrase() + '. ' + exception.message}"></span>
   </div>
 </div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

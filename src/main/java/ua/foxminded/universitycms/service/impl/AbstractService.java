@@ -47,17 +47,23 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves an entity by its ID and returns its DTO representation.
      * <p>
-     * Retrieves an entity by its ID and returns an Optional containing a DTO representation of the entity.
+     * This method attempts to find an entity in the repository by its unique identifier. If the entity is found,
+     * it is mapped to its DTO representation using the mapper and returned. If the entity is not found,
+     * an {@link EntityNotFoundException} is thrown with an appropriate HTTP status and error message.
      *
-     * @param id the ID of the entity to retrieve
-     * @return an Optional containing the entity's DTO if found, or empty Optional if not found
+     * @param id the unique identifier of the entity to retrieve
+     * @return the DTO representation of the entity if found
+     * @throws EntityNotFoundException if no entity with the given ID exists
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<D> getById(long id) {
-        return repository.findById(id).map(mapper::toDto);
+    public D getById(long id) {
+        return repository.findById(id)
+            .map(mapper::toDto)
+            .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
+                String.format("Error searching for entity. Entity with the passed ID does not exist: %s", id)));
     }
 
     /**
@@ -117,7 +123,7 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
         }
 
         throw new EntityNotFoundException(HttpStatus.NOT_FOUND,
-            String.format("Error deleting entity. Entity with the passed ID does not exist: %d", id));
+            String.format("Error deleting entity. Entity with the passed ID does not exist: %s", id));
     }
 
 }
