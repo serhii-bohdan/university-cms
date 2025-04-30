@@ -4,7 +4,7 @@
 <header th:fragment="header" class="p-3 text-bg-dark">
   <div class="container">
     <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-      <img th:src="@{/images/logo-header.svg}" width="45" height="45" alt="">
+      <img th:src="@{/images/header-logo.svg}" width="45" height="45" alt="">
       <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
         <li><a th:href="@{/ui/v1/home}" class="nav-link px-2 text-white">Home</a></li>
         <li><a sec:authorize="hasAuthority('ADMINS_READ')" th:href="@{/ui/v1/admins}" class="nav-link px-2 text-white">Admins</a>
@@ -19,20 +19,20 @@
                class="nav-link px-2 text-white">Groups</a></li>
         <li><a sec:authorize="hasAuthority('COURSES_READ')" th:href="@{/ui/v1/courses/my}"
                class="nav-link px-2 text-white">Courses</a></li>
-        <li><a sec:authorize="hasAuthority('SCHEDULE_READ')" th:href="@{/ui/v1/schedule}"
+        <li><a sec:authorize="hasAuthority('SCHEDULE_CREATE')" th:href="@{/ui/v1/schedule}"
                class="nav-link px-2 text-white">Schedule</a></li>
       </ul>
       <div class="text-end">
         <a sec:authorize="isAnonymous()" type="button" class="btn btn-outline-light me-2"
-           th:href="@{/form-login}">Login
+           th:href="@{/form-login}">Log in
         </a>
         <div sec:authorize="isAuthenticated()" style="display: flex; align-items: center;">
           <a
             th:if="${#authentication.principal != null && T(ua.foxminded.universitycms.security.userdetails.CustomUserDetails).isInstance(#authentication.principal)}"
-            href="#" th:text="${#authentication.principal.firstName + ' ' + #authentication.principal.lastName}"
-            style="margin-right: 15px; color: #ffdd00; text-decoration: none;"></a>
+            th:text="${#authentication.principal.firstName + ' ' + #authentication.principal.lastName}"
+            th:href="@{/ui/v1/iam}" style="margin-right: 15px; color: #ffdd00; text-decoration: none;"></a>
           <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
-                  data-bs-target="#confirmModal">Logout
+                  data-bs-target="#confirmModal">Log out
           </button>
         </div>
       </div>
@@ -49,7 +49,7 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
           <form th:action="@{/logout}" method="post">
-            <button class="btn btn-danger" type="submit">Logout</button>
+            <button class="btn btn-danger" type="submit">Log out</button>
           </form>
         </div>
       </div>

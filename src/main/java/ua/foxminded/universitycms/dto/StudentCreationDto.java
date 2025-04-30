@@ -8,32 +8,39 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Represents the Data Transfer Object (DTO) for creating a student.
+ * Data Transfer Object (DTO) for creating a student user in the university management system.
  * <p>
- * This class extends {@link UserCreationDto} to inherit common user creation
- * fields and validation rules, while adding student-specific fields such as
- * group information.
- * <p>
- * This class is designed to represent the creation of student accounts
- * in a structured and validated manner, including their association with a group.
+ * This class extends {@link EducatorCreationDto} to inherit common educator creation attributes, such as
+ * personal details, email, password, and active status, and adds properties specific to a student, including
+ * their group affiliation. It facilitates secure and efficient data transfer between application layers
+ * during the creation of a student user, with the {@link NotNull} constraint ensuring the group ID is always
+ * provided.
  *
  * @author Serhii Bohdan
+ * @see EducatorCreationDto
+ * @see jakarta.validation.constraints.NotNull
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @ToString(callSuper = true)
 @SuperBuilder
-public class StudentCreationDto extends UserCreationDto {
+public class StudentCreationDto extends EducatorCreationDto {
 
     /**
      * The unique identifier of the group to which the student belongs.
+     * <p>
+     * This field is mandatory, as enforced by the {@link NotNull} constraint, and represents the ID of the
+     * student's academic group within the system.
      */
     @NotNull(message = "Group is mandatory")
     private Long groupId;
 
     /**
-     * The name of the group the student belongs to.
+     * The name of the group to which the student belongs.
+     * <p>
+     * This field provides a human-readable name for the student's academic group, complementing the
+     * {@code groupId}.
      */
     private String groupName;
 

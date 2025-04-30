@@ -7,21 +7,33 @@ import ua.foxminded.universitycms.model.Role;
 import ua.foxminded.universitycms.model.enumeration.RoleName;
 
 /**
- * Repository interface for managing {@link Role} entities.
+ * Spring Data JPA repository for managing {@link Role} entities in the university management system.
  * <p>
- * Provides standard CRUD (Create, Read, Update, Delete) operations for roles through the
- * inherited {@link JpaRepository} interface.
+ * This interface extends {@link JpaRepository}, inheriting standard CRUD operations (create, read,
+ * update, delete) for the {@link Role} entity, identified by a {@code Long} primary key. It also
+ * provides a custom query method to retrieve a role by its name. The {@code @Repository} annotation
+ * marks this interface as a Spring Data repository, enabling automatic implementation by Spring to
+ * encapsulate storage, retrieval, and search behavior for role entities.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Role
+ * @see RoleName
+ * @see org.springframework.stereotype.Repository
  */
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
 
     /**
-     * Finds a {@link Role} entity by its role name.
+     * Retrieves a role by its name.
+     * <p>
+     * This method queries the database for a {@link Role} entity matching the specified
+     * {@link RoleName} value, returning an {@link Optional} to handle cases where no matching role
+     * is found.
      *
-     * @param roleName the name of the role to search for
-     * @return an {@link Optional} containing the {@link Role} if found, or empty if not found
+     * @param roleName the name of the role to search for, as defined in the {@link RoleName} enumeration
+     * @return an {@link Optional} containing the {@link Role} if found, or an empty {@link Optional}
+     * if no role matches the provided name
      */
     Optional<Role> findByRoleName(RoleName roleName);
 

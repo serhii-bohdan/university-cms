@@ -1,7 +1,6 @@
 package ua.foxminded.universitycms.service.impl;
 
-import java.util.Collection;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,66 +9,118 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import ua.foxminded.universitycms.dto.CourseDto;
+import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
+import ua.foxminded.universitycms.exception.InvalidUserRoleException;
 import ua.foxminded.universitycms.exception.UserNotFoundException;
 import ua.foxminded.universitycms.exception.ValidationException;
 import ua.foxminded.universitycms.mapper.Mapper;
 import ua.foxminded.universitycms.model.Course;
 import ua.foxminded.universitycms.model.Student;
 import ua.foxminded.universitycms.model.Teacher;
+import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.repository.CourseRepository;
 import ua.foxminded.universitycms.repository.StudentRepository;
 import ua.foxminded.universitycms.repository.TeacherRepository;
+import ua.foxminded.universitycms.security.userdetails.CustomUserDetails;
 import ua.foxminded.universitycms.service.CourseService;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * The {@code CourseServiceImpl} class implements the {@link CourseService} interface, providing concrete
- * implementations for managing course entities. It extends the {@link AbstractService} class to inherit common
- * service functionalities and adds course-specific operations.
+ * Implementation of the {@link CourseService} interface for managing {@link Course} entities in the university
+ * management system.
+ * <p>
+ * This service class extends {@link AbstractService} to leverage common CRUD operations and provides concrete
+ * implementations for course-specific operations such as paginated retrieval, student enrollment/deduction, group
+ * enrollment, and user course retrieval. It uses {@link CourseRepository}, {@link TeacherRepository}, and
+ * {@link StudentRepository} for data access, and a {@link Mapper} for entity-DTO conversions. The {@code @Service}
+ * annotation marks it as a Spring-managed bean, and {@code @Validated} enables validation.
  *
  * @author Serhii Bohdan
- * @see JpaRepository
- * @see Mapper
+ * @see CourseService
+ * @see AbstractService
  * @see CourseRepository
  * @see TeacherRepository
  * @see StudentRepository
+ * @see Mapper
+ * @see EntityNotFoundException
+ * @see ValidationException
+ * @see InvalidUserRoleException
+ * @see UserNotFoundException
  */
 @Service
 @Validated
 public class CourseServiceImpl extends AbstractService<Course, CourseDto> implements CourseService {
 
     /**
-     * The error message used when a course with a specified ID is not found.
+     * Error message template used when a course with the specified ID cannot be found.
      */
-    private static final String COURSE_NOT_FOUND_MESSAGE = "Course with ID %d not found";
+    private static final String COURSE_NOT_FOUND_MESSAGE = "Course not found with ID: %s.";
 
     /**
-     * The error message used when a student with a specified ID is not found.
+     * Error message template used when a student with the specified ID cannot be found.
      */
-    private static final String STUDENT_NOT_FOUND_MESSAGE = "Student with ID %d not found";
+    private static final String STUDENT_NOT_FOUND_MESSAGE = "Student not found with ID: %s.";
 
     /**
-     * Repository for interacting with {@link Course} entities.
+     * Error message used when a student is not enrolled in a course during a deduction attempt.
+     */
+    private static final String STUDENT_NOT_ENROLLED_IN_COURSE_MESSAGE = "Student is not enrolled in this course.";
+
+    /**
+     * Error message used when a student is already enrolled in a course during an enrollment attempt.
+     */
+    private static final String STUDENT_ALREADY_ENROLLED_IN_COURSE_MESSAGE = "Student already enrolled in this course.";
+
+    /**
+     * Error message template used when a teacher with the specified ID cannot be found.
+     */
+    private static final String TEACHER_NOT_FOUND_MESSAGE = "Teacher with given ID does not exist: %s.";
+
+    /**
+     * Error message used when a user lacks permission to access course data.
+     * <p>
+     * This message is included in an {@link InvalidUserRoleException} when an unauthorized role attempts to retrieve courses.
+     */
+    private static final String COURSE_ACCESS_DENIED_MESSAGE = """
+        An error occurred while trying to get a list of courses. You do not have permission to read courses.
+        """;
+
+    /**
+     * Repository for performing CRUD operations on {@link Course} entities.
+     * <p>
+     * This {@link CourseRepository} instance provides data access methods specific to courses, extending {@link JpaRepository}.
      */
     private final CourseRepository courseRepository;
 
     /**
-     * Repository for interacting with {@link Teacher} entities.
+     * Repository for accessing {@link Teacher} entities.
+     * <p>
+     * Used to retrieve teacher-specific course data, such as courses taught by a teacher.
      */
     private final TeacherRepository teacherRepository;
 
     /**
-     * Repository for interacting with {@link Student} entities.
+     * Repository for accessing {@link Student} entities.
+     * <p>
+     * Used for operations involving student enrollment and deduction in courses.
      */
     private final StudentRepository studentRepository;
 
     /**
-     * Constructs a new {@code CourseServiceImpl} with the provided repositories and mapper.
+     * Constructs a new {@code CourseServiceImpl} with the required dependencies.
+     * <p>
+     * Initializes the parent {@link AbstractService} with the provided repository and mapper, and sets up specific
+     * repositories for course, teacher, and student management.
      *
-     * @param repository        the repository to manage {@link Course} entities
-     * @param mapper            the mapper to map between {@link Course} and {@link CourseDto} objects
-     * @param teacherRepository the repository to manage {@link Teacher} entities
-     * @param studentRepository the repository to manage {@link Student} entities
+     * @param repository        the {@link JpaRepository} for {@link Course} entities, providing basic CRUD operations
+     * @param mapper            the {@link Mapper} instance for converting between {@link Course} and {@link CourseDto}
+     *                          objects
+     * @param teacherRepository the {@link TeacherRepository} for managing teacher entities
+     * @param studentRepository the {@link StudentRepository} for managing student entities
      */
     public CourseServiceImpl(JpaRepository<Course, Long> repository, Mapper<Course, CourseDto> mapper,
                              TeacherRepository teacherRepository, StudentRepository studentRepository) {
@@ -84,85 +135,31 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<CourseDto> getAllCoursesInPage(Pageable pageable) {
-        return courseRepository.findAll(pageable).map(mapper::toDto);
+    public Page<CourseDto> findCourses(Pageable pageable, String name) {
+        return StringUtils.isBlank(name)
+            ? courseRepository.findAll(pageable).map(mapper::toDto)
+            : courseRepository.findCourseByCourseNameIgnoreCase(name, pageable).map(mapper::toDto);
     }
 
     /**
      * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Page<CourseDto> getCourseByNameInPage(String name, Pageable pageable) {
-        return courseRepository.findCourseByCourseNameIgnoreCase(name.strip(), pageable).map(mapper::toDto);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<CourseDto> getStudentCourses(long studentId) {
-        return courseRepository.findStudentCoursesByStudentId(studentId).stream()
-            .map(mapper::toDto)
-            .toList();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<CourseDto> getStudentCourseByCourseName(long studentId, String courseName) {
-        return getStudentCourses(studentId).stream()
-            .filter(c -> c.getCourseName().equals(courseName.strip()))
-            .toList();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<CourseDto> getTeacherCourses(long teacherId) {
-        return getCourseDtoList(teacherRepository.findById(teacherId).map(Teacher::getCourses)
-            .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
-                String.format("Teacher with given ID does not exist: %d", teacherId))));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<CourseDto> getTeacherCourseByCourseName(long teacherId, String courseName) {
-        return getTeacherCourses(teacherId).stream()
-            .filter(c -> c.getCourseName().equals(courseName.strip()))
-            .toList();
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws EntityNotFoundException if the course or student is not found
-     * @throws ValidationException     if the student is not enrolled in the course
      */
     @Override
     @Transactional
     public void deductStudentFromCourse(long courseId, long studentId) {
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format(COURSE_NOT_FOUND_MESSAGE, courseId)
+                COURSE_NOT_FOUND_MESSAGE.formatted(courseId)
             ));
 
         Student student = studentRepository.findById(studentId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format(STUDENT_NOT_FOUND_MESSAGE, studentId)
+                STUDENT_NOT_FOUND_MESSAGE.formatted(studentId)
             ));
 
         if (!course.getStudents().contains(student)) {
             throw new ValidationException(HttpStatus.BAD_REQUEST,
-                "Student is not enrolled in this course");
+                STUDENT_NOT_ENROLLED_IN_COURSE_MESSAGE);
         }
 
         course.removeStudent(student);
@@ -170,26 +167,23 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
 
     /**
      * {@inheritDoc}
-     *
-     * @throws EntityNotFoundException if the course or student is not found
-     * @throws ValidationException     if the student is not enrolled in the course
      */
     @Override
     @Transactional
     public void enrollStudentInCourse(long courseId, long studentId) {
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format(COURSE_NOT_FOUND_MESSAGE, courseId)
+                COURSE_NOT_FOUND_MESSAGE.formatted(courseId)
             ));
 
         Student student = studentRepository.findById(studentId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format(STUDENT_NOT_FOUND_MESSAGE, studentId)
+                STUDENT_NOT_FOUND_MESSAGE.formatted(studentId)
             ));
 
         if (course.getStudents().contains(student)) {
             throw new ValidationException(HttpStatus.BAD_REQUEST,
-                "Student already enrolled in this course");
+                STUDENT_ALREADY_ENROLLED_IN_COURSE_MESSAGE);
         }
 
         course.addStudent(student);
@@ -203,7 +197,7 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
     public void enrollAllStudentsFromGroupInCourse(long courseId, long groupId) {
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format(COURSE_NOT_FOUND_MESSAGE, courseId)
+                COURSE_NOT_FOUND_MESSAGE.formatted(courseId)
             ));
 
         List<Student> groupStudents = studentRepository.findByGroupId(groupId);
@@ -213,10 +207,58 @@ public class CourseServiceImpl extends AbstractService<Course, CourseDto> implem
         }
     }
 
-    private List<CourseDto> getCourseDtoList(Collection<Course> courses) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> extractCourseNames(Collection<CourseDto> courses) {
         return courses.stream()
-            .map(mapper::toDto)
+            .map(CourseDto::getCourseName)
             .toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<CourseDto> getUserCourses(CustomUserDetails customUserDetails) {
+        Long userId = customUserDetails.getId();
+        RoleName userRole = customUserDetails.getRoleName();
+
+        Collection<Course> userCourses = switch (userRole) {
+            case TEACHER -> teacherRepository.findById(userId).map(Teacher::getCourses)
+                .orElseThrow(() -> new UserNotFoundException(HttpStatus.NOT_FOUND,
+                    TEACHER_NOT_FOUND_MESSAGE.formatted(userId)));
+            case STUDENT -> courseRepository.findStudentCoursesByStudentId(userId);
+            default -> throw new InvalidUserRoleException(HttpStatus.FORBIDDEN, COURSE_ACCESS_DENIED_MESSAGE);
+        };
+
+        return mapper.toDtoList(userCourses);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CourseDto> filterCoursesByName(List<CourseDto> courses, String courseName) {
+        return StringUtils.isBlank(courseName)
+            ? courses
+            : courses.stream()
+            .filter(course -> course.getCourseName().equals(courseName))
+            .toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Set<StudentDto> filterCourseStudentsByEmail(Set<StudentDto> courseStudents, String email) {
+        return StringUtils.isBlank(email)
+            ? courseStudents
+            : courseStudents.stream()
+            .filter(s -> s.getEmail().equals(email))
+            .collect(Collectors.toSet());
     }
 
 }

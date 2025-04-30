@@ -9,61 +9,69 @@ import ua.foxminded.universitycms.security.PasswordEncoderMapper;
 import ua.foxminded.universitycms.util.annotation.PasswordEncoderMapping;
 
 /**
- * Interface defining mappings between {@link Student} entities and {@link StudentDto} data transfer objects.
- * This mapper utilizes the MapStruct library for efficient and type-safe conversion.
+ * Mapper interface for converting between {@link Student} entities and {@link StudentDto} or {@link StudentCreationDto}
+ * objects in the university management system.
  * <p>
- * It performs comprehensive mappings between student entities and their corresponding DTOs,
- * including nested objects like {@link Name} and references to associated {@link Schedule} and {@link Group}.
+ * This interface extends the generic {@link Mapper} contract to provide type-safe mappings specific to student users.
+ * It leverages the MapStruct library for efficient conversions between persistence-layer entities and application-layer
+ * DTOs, supporting bidirectional mapping, partial updates, bulk transformations, and student creation. The {@code @Mapper}
+ * annotation integrates this interface with Spring and utilizes {@link PasswordEncoderMapper} for secure password
+ * encoding during creation.
  *
  * @author Serhii Bohdan
+ * @see Mapper
+ * @see Student
+ * @see StudentDto
+ * @see StudentCreationDto
+ * @see PasswordEncoderMapper
  */
 @Mapper(componentModel = "spring", uses = {PasswordEncoderMapper.class})
 public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<Student, StudentDto> {
 
     /**
-     * Converts a {@link Student} entity to a corresponding {@link StudentDto} object.
-     * This method performs the following mappings:
+     * Converts a {@link Student} entity to a {@link StudentDto} object.
+     * Maps the entity's fields to the DTO, including:
      * <ul>
-     *   <li>Maps the first name from the entity's {@link Name} object to the `firstName` field in the DTO.</li>
-     *   <li>Maps the last name from the entity's {@link Name} object to the `lastName` field in the DTO.</li>
-     *   <li>Maps the ID of the associated {@link Schedule} to the `scheduleId` field in the DTO.</li>
-     *   <li>Maps the ID of the associated {@link Group} to the `groupId` field in the DTO.</li>
-     *   <li>Maps the group name from the associated {@link Group} to the `groupName` field in the DTO.</li>
-     *   <li>Maps the `id` field from the entity's {@link Role} to the `roleId` field in the DTO.</li>
+     *   <li>{@code fullName.firstName} to {@code firstName}</li>
+     *   <li>{@code fullName.lastName} to {@code lastName}</li>
+     *   <li>{@code role.id} to {@code roleId}</li>
+     *   <li>{@code role.roleName} to {@code roleName}</li>
+     *   <li>{@code schedule.id} to {@code scheduleId}</li>
+     *   <li>{@code group.id} to {@code groupId}</li>
+     *   <li>{@code group.groupName} to {@code groupName}</li>
      * </ul>
-     * </p>
      *
-     * @param entity the {@link Student} entity to be converted
-     * @return a new {@link StudentDto} object representing the converted data
+     * @param entity the {@link Student} entity to convert
+     * @return the resulting {@link StudentDto} object
      */
     @Override
-    @Mapping(source = "name.firstName", target = "firstName")
-    @Mapping(source = "name.lastName", target = "lastName")
+    @Mapping(source = "fullName.firstName", target = "firstName")
+    @Mapping(source = "fullName.lastName", target = "lastName")
     @Mapping(source = "role.id", target = "roleId")
     @Mapping(source = "schedule.id", target = "scheduleId")
     @Mapping(source = "group.id", target = "groupId")
     @Mapping(source = "group.groupName", target = "groupName")
+    @Mapping(source = "role.roleName", target = "roleName")
     StudentDto toDto(Student entity);
 
     /**
-     * Converts a {@link StudentDto} object to a corresponding {@link Student} entity.
-     * This method performs the following mappings (inverse of `toDto`):
+     * Converts a {@link StudentDto} object to a {@link Student} entity.
+     * Maps the DTO's fields to the entity, including:
      * <ul>
-     *   <li>Maps the `firstName` field from the DTO to the first name within the entity's {@link Name} object.</li>
-     *   <li>Maps the `lastName` field from the DTO to the last name within the entity's {@link Name} object.</li>
-     *   <li>Maps the `scheduleId` field from the DTO to the ID of the associated {@link Schedule} in the entity.</li>
-     *   <li>Maps the `groupId` field from the DTO to the ID of the associated {@link Group} in the entity.</li>
-     *   <li>Maps the `groupName` field from the DTO to the group name within the associated {@link Group} in the entity.</li>
-     *   <li>Maps the `roleId` field from the DTO to the ID of the associated {@link Role} in the entity.
+     *   <li>{@code firstName} to {@code fullName.firstName}</li>
+     *   <li>{@code lastName} to {@code fullName.lastName}</li>
+     *   <li>{@code roleId} to {@code role.id}</li>
+     *   <li>{@code scheduleId} to {@code schedule.id}</li>
+     *   <li>{@code groupId} to {@code group.id}</li>
+     *   <li>{@code groupName} to {@code group.groupName}</li>
      * </ul>
-     * </p>
      *
-     * @param dto the {@link StudentDto} object to be converted
-     * @return a new {@link Student} entity representing the converted data
+     * @param dto the {@link StudentDto} object to convert
+     * @return the resulting {@link Student} entity
      */
     @Override
-    @Mapping(source = "firstName", target = "name.firstName")
-    @Mapping(source = "lastName", target = "name.lastName")
+    @Mapping(source = "firstName", target = "fullName.firstName")
+    @Mapping(source = "lastName", target = "fullName.lastName")
     @Mapping(source = "roleId", target = "role.id")
     @Mapping(source = "scheduleId", target = "schedule.id")
     @Mapping(source = "groupId", target = "group.id")
@@ -71,43 +79,64 @@ public interface StudentMapper extends ua.foxminded.universitycms.mapper.Mapper<
     Student toEntity(StudentDto dto);
 
     /**
-     * Performs a partial update of an existing {@link Student} entity using data from a {@link StudentDto}.
+     * Partially updates an existing {@link Student} entity with data from a {@link StudentDto} object.
      * <p>
-     * This method selectively updates the `Student` entity with non-null values from the provided DTO.
-     * It utilizes MapStruct's `NullValuePropertyMappingStrategy.IGNORE` to prevent null values in the DTO from
-     * overwriting existing values in the entity.
+     * Updates only the non-null fields from the DTO into the target entity, preserving existing entity data for null
+     * DTO fields. The {@link BeanMapping} annotation with {@code NullValuePropertyMappingStrategy.IGNORE} ensures this
+     * selective update behavior. Mappings include:
+     * <ul>
+     *   <li>{@code firstName} to {@code fullName.firstName}</li>
+     *   <li>{@code lastName} to {@code fullName.lastName}</li>
+     *   <li>{@code roleId} to {@code role.id}</li>
+     *   <li>{@code scheduleId} to {@code schedule.id}</li>
+     *   <li>{@code groupId} to {@code group}, using the {@code buildGroupEntityWithId} method</li>
+     * </ul>
      *
-     * @param dto    The {@link StudentDto} containing the data to update (null values are ignored).
-     * @param entity The existing {@link Student} entity to be updated.
-     * @return The updated `Student` entity.
+     * @param dto    the {@link StudentDto} object containing updated data
+     * @param entity the existing {@link Student} entity to update
+     * @return the updated {@link Student} entity
      */
     @Override
-    @Mapping(source = "firstName", target = "name.firstName")
-    @Mapping(source = "lastName", target = "name.lastName")
+    @Mapping(source = "firstName", target = "fullName.firstName")
+    @Mapping(source = "lastName", target = "fullName.lastName")
     @Mapping(source = "roleId", target = "role.id")
     @Mapping(source = "scheduleId", target = "schedule.id")
-    @Mapping(expression = "java(new Group(dto.getGroupId()))", target = "group")
+    @Mapping(source = "groupId", target = "group", qualifiedByName = "buildGroupEntityWithId")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Student partialUpdate(StudentDto dto, @MappingTarget Student entity);
 
     /**
-     * Converts a {@link StudentCreationDto} to a {@link Student} entity.
+     * Helper method to create a minimal {@link Group} entity with the specified ID for partial updates.
      * <p>
-     * This method maps fields from the {@link StudentCreationDto} to corresponding fields in the {@link Student} entity.
-     * It also encodes the password using the {@link PasswordEncoderMapper}.
+     * This method, marked with {@code @Named("buildGroupEntityWithId")}, constructs a {@link Group} entity containing
+     * only the {@code id} field, used during partial updates to reference the group without fully reconstructing it.
      *
-     * <p>Key Mappings:
-     * <ul>
-     *   <li>Maps first and last names to the {@link Name} object in the entity.</li>
-     *   <li>Encodes the password and sets it in the entity's password hash field.</li>
-     *   <li>Maps the group ID to the associated {@link Group} entity.</li>
-     * </ul>
-     *
-     * @param dto the {@link StudentCreationDto} containing the data for creating a new student
-     * @return a {@link Student} entity with the mapped and encoded values
+     * @param groupId the ID of the group to set in the entity
+     * @return a {@link Group} entity with only the {@code id} field set
      */
-    @Mapping(source = "firstName", target = "name.firstName")
-    @Mapping(source = "lastName", target = "name.lastName")
+    @Named("buildGroupEntityWithId")
+    static Group buildGroupEntityWithId(Long groupId) {
+        return Group.builder()
+            .id(groupId)
+            .build();
+    }
+
+    /**
+     * Converts a {@link StudentCreationDto} object to a {@link Student} entity for user creation.
+     * Maps the DTO's fields to the entity, including:
+     * <ul>
+     *   <li>{@code firstName} to {@code fullName.firstName}</li>
+     *   <li>{@code lastName} to {@code fullName.lastName}</li>
+     *   <li>{@code password} to {@code passwordHash}, encoded via {@link PasswordEncoderMapper}</li>
+     *   <li>{@code groupId} to {@code group.id}</li>
+     * </ul>
+     * The {@link PasswordEncoderMapping} annotation qualifies the password encoding process.
+     *
+     * @param dto the {@link StudentCreationDto} object to convert
+     * @return the resulting {@link Student} entity
+     */
+    @Mapping(source = "firstName", target = "fullName.firstName")
+    @Mapping(source = "lastName", target = "fullName.lastName")
     @Mapping(source = "password", target = "passwordHash", qualifiedBy = {PasswordEncoderMapping.class})
     @Mapping(source = "groupId", target = "group.id")
     Student toEntity(StudentCreationDto dto);

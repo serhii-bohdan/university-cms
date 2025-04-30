@@ -1,13 +1,17 @@
+INSERT INTO roles (role_name)
+VALUES ('TEACHER'),
+       ('STUDENT');
+
 INSERT INTO groups (group_name, created_at, updated_at)
 VALUES ('MJ-90', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO schedules VALUES (DEFAULT);
 
-INSERT INTO students (first_name, last_name, email, password_hash, is_active, group_id, schedule_id, created_at, updated_at)
-VALUES ('Russell', 'Carter', 'russell.carter@email.com', 'hashed_password', TRUE, (SELECT MAX(id) FROM groups), 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO students (first_name, last_name, email, password_hash, location_zone_offset, role_id, is_active, group_id, schedule_id, created_at, updated_at)
+VALUES ('Russell', 'Carter', 'russell.carter@email.com', 'hashed_password', '+00:00', 2, TRUE, (SELECT MAX(id) FROM groups), 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
-INSERT INTO teachers (first_name, last_name, email, password_hash, is_active, schedule_id, created_at, updated_at)
-VALUES ('Eugene', 'Rivera', 'eugene.rivera@email.com', 'hashed_password', TRUE, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO teachers (first_name, last_name, email, password_hash, location_zone_offset, role_id, is_active, schedule_id, created_at, updated_at)
+VALUES ('Eugene', 'Rivera', 'eugene.rivera@email.com', 'hashed_password', '+00:00', 1, TRUE, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO courses (course_name, course_description, teacher_id, created_at, updated_at)
 VALUES ('Course1', 'This is a course description.', (SELECT MAX(id) FROM teachers), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

@@ -18,19 +18,24 @@ import ua.foxminded.universitycms.repository.TeacherRepository;
 import ua.foxminded.universitycms.util.annotation.UniqueUserEmail;
 
 /**
- * Validator for ensuring the uniqueness of a user's email across different user roles.
+ * Validator for ensuring the uniqueness of a user's email across all user roles in the university management system.
  * <p>
- * This class implements the {@link ConstraintValidator} interface for the {@link UniqueUserEmail} annotation.
- * It validates whether a user's email is unique across the system, considering multiple user roles such as
- * Admin, Manager, Teacher, and Student.
- * <p>
- * The validation logic checks whether a user with the provided email already exists in any of the repositories.
- * If the user exists, it compares the user ID and role ID to ensure that the current user's email is not duplicated
- * for the same user ID and role.
- * <p>
- * If the email is not unique, a validation error is triggered, and the provided error message is returned.
+ * This class implements the {@link ConstraintValidator} interface to enforce the {@link UniqueUserEmail} annotation.
+ * It checks whether an email provided in a {@link UserDto} or {@link UserCreationDto} object is unique across all user
+ * roles (Admin, Manager, Teacher, Student) by querying the respective repositories. For updates, it allows the email to
+ * remain the same for the existing user while ensuring no other user has it. The {@code @Component} annotation registers
+ * this class as a Spring-managed bean, and {@code @RequiredArgsConstructor} ensures dependency injection of the
+ * repositories.
  *
  * @author Serhii Bohdan
+ * @see ConstraintValidator
+ * @see UniqueUserEmail
+ * @see UserDto
+ * @see UserCreationDto
+ * @see AdminRepository
+ * @see ManagerRepository
+ * @see TeacherRepository
+ * @see StudentRepository
  */
 @Component
 @RequiredArgsConstructor
@@ -57,9 +62,12 @@ public class UniqueUserEmailValidator implements ConstraintValidator<UniqueUserE
     private final StudentRepository studentRepository;
 
     /**
-     * Initializes the validator. This method is used to initialize any necessary resources or configurations.
+     * Initializes the validator with the {@link UniqueUserEmail} annotation.
+     * <p>
+     * This method is invoked once during validator instantiation to perform any necessary setup based on the
+     * annotation's configuration. Currently, it delegates to the default implementation without additional logic.
      *
-     * @param constraintAnnotation the {@link UniqueUserEmail} annotation that is being validated
+     * @param constraintAnnotation the {@link UniqueUserEmail} annotation instance being validated
      */
     @Override
     public void initialize(UniqueUserEmail constraintAnnotation) {
@@ -67,19 +75,16 @@ public class UniqueUserEmailValidator implements ConstraintValidator<UniqueUserE
     }
 
     /**
-     * Validates the email address for uniqueness across multiple user roles.
+     * Validates the uniqueness of a user's email across all user roles.
      * <p>
-     * This method checks if the provided email already exists in the system for any user role. If the email
-     * is found, it ensures that the existing user's ID and role ID match the current user's ID and role ID,
-     * allowing updates without triggering the uniqueness constraint. If any conflict is found, the validation
-     * fails and returns false.
-     * <p>
-     * If the value is an instance of {@link UserDto}, it performs a validation for an existing user update.
-     * If the value is an instance of {@link UserCreationDto}, it checks if the email is unique for a new user.
+     * For a {@link UserCreationDto}, it checks that the email does not exist in any user repository. For a
+     * {@link UserDto}, it ensures the email is unique except for the current user (matching ID and role). Returns
+     * {@code true} if the email is unique or validly retained, and {@code false} otherwise, updating the validation
+     * context with an error message if necessary.
      *
-     * @param value   the {@link Object} that contains the email to validate, either a {@link UserDto} or {@link UserCreationDto}
-     * @param context the {@link ConstraintValidatorContext} used to build the constraint violation message
-     * @return {@code true} if the email is unique for the given user, {@code false} otherwise
+     * @param value   the object to validate, either a {@link UserDto} or {@link UserCreationDto}
+     * @param context the {@link ConstraintValidatorContext} for reporting validation errors
+     * @return {@code true} if the email is unique or valid for the user; {@code false} if it conflicts with another user
      */
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {

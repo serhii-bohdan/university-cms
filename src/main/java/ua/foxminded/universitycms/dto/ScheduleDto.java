@@ -8,22 +8,26 @@ import lombok.experimental.SuperBuilder;
 import java.util.Set;
 
 /**
- * The {@code ScheduleDto} class is a concrete DTO (Data Transfer Object) that extends the {@link AbstractDto} class.
- * It represents a schedule entity in the system, containing a collection of study days with their lessons.
+ * Data Transfer Object (DTO) representing a schedule in the university management system.
+ * Extends {@link AbstractDto} to inherit an ID and holds a collection of {@link LessonDto} objects
+ * defining the schedule's structure. Used for secure and efficient data transfer between layers.
  *
  * @author Serhii Bohdan
+ * @see AbstractDto
+ * @see LessonDto
  */
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(callSuper = true, exclude = "studyDays")
+@ToString(callSuper = true, exclude = {"lessons"})
 @SuperBuilder
 public class ScheduleDto extends AbstractDto {
 
     /**
-     * A collection of {@link StudyDayDto} objects representing individual days within the schedule,
-     * each with their associated lessons.
+     * The set of lessons that constitute this schedule.
+     * Contains a collection of {@link LessonDto} objects representing individual academic events
+     * within the schedule.
      */
-    private Set<StudyDayDto> studyDays;
+    private Set<LessonDto> lessons;
 
 }

@@ -8,36 +8,45 @@ import ua.foxminded.universitycms.model.Admin;
 import java.util.Optional;
 
 /**
- * The {@code AdminRepository} interface is a Spring Data JPA repository for managing
- * {@link Admin} entities.
- *
- * <p>This interface extends {@link JpaRepository}, providing standard CRUD operations
- * (create, read, update, delete) and additional query methods specific to the Admin entity.
+ * Spring Data JPA repository for managing {@link Admin} entities in the university management system.
+ * <p>
+ * This interface extends {@link JpaRepository}, inheriting standard CRUD operations (create, read,
+ * update, delete) and pagination support for the {@link Admin} entity, identified by a {@code Long}
+ * primary key. It also defines custom query methods to retrieve admins based on specific criteria,
+ * such as their email address. The {@code @Repository} annotation marks this interface as a Spring
+ * Data repository, enabling automatic implementation by Spring.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Admin
+ * @see org.springframework.stereotype.Repository
  */
 @Repository
 public interface AdminRepository extends JpaRepository<Admin, Long> {
 
     /**
-     * Finds an admin by their email address.
+     * Retrieves an admin by their email address.
+     * <p>
+     * This method queries the database for an {@link Admin} entity with the specified email address,
+     * returning an {@link Optional} to handle cases where no matching admin is found.
      *
-     * @param email The email address of the admin to search for.
-     * @return An {@link Optional} containing the admin if found, or an empty Optional if not found.
+     * @param email the email address of the admin to search for
+     * @return an {@link Optional} containing the admin if found, or an empty {@link Optional} if no
+     * admin matches the provided email
      */
     Optional<Admin> findByEmail(String email);
 
     /**
-     * Finds admins with a matching first name and last name, ignoring case sensitivity.
+     * Retrieves a paginated list of admins by their email address.
+     * <p>
+     * This method queries the database for {@link Admin} entities matching the specified email address,
+     * returning results as a {@link Page} object to support pagination. The {@link Pageable} parameter
+     * defines the page size, page number, and sorting options.
      *
-     * <p>This method uses the Spring Data JPA naming convention to automatically generate a query
-     * that searches for admins by their first and last name in the "admins" table.
-     *
-     * @param firstName The first name to search for (case-insensitive).
-     * @param lastName  The last name to search for (case-insensitive).
-     * @param pageable  The pagination information for controlling the returned results.
-     * @return A {@link Page} containing matching admins, possibly empty if none are found.
+     * @param email    the email address of the admins to search for
+     * @param pageable the pagination and sorting configuration
+     * @return a {@link Page} containing the matching admins, or an empty page if no matches are found
      */
-    Page<Admin> findByName_FirstNameAndName_LastNameIgnoreCase(String firstName, String lastName, Pageable pageable);
+    Page<Admin> findByEmail(String email, Pageable pageable);
 
 }

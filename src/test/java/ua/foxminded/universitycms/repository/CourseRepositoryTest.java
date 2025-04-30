@@ -14,7 +14,7 @@ import ua.foxminded.universitycms.model.Course;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {
     CourseRepository.class}))
-@ActiveProfiles("test")
+@ActiveProfiles({"test"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Sql(scripts = {"/sql/clear_tables.sql",
     "/sql/students_courses_test_init.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)

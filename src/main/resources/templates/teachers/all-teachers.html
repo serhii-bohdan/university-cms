@@ -4,7 +4,8 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
-  <title>Teachers</title>
+  <title>All Teachers - University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -45,8 +46,8 @@
       <thead class="table-light">
       <tr>
         <th scope="col">№</th>
-        <th scope="col">Teacher name</th>
-        <th scope="col">Email</th>
+        <th scope="col" style="text-align: left">Teacher name</th>
+        <th scope="col" style="text-align: left">Email</th>
         <th scope="col">Status</th>
         <th scope="col">Actions</th>
       </tr>
@@ -54,8 +55,8 @@
       <tbody>
       <tr th:each="teacher, interStat : ${teachers}">
         <th scope="row" th:text="${size * page + interStat.count}"></th>
-        <td th:text="${teacher.firstName} + ' ' + ${teacher.lastName}"></td>
-        <td th:text="${teacher.email}"></td>
+        <td th:text="${teacher.firstName} + ' ' + ${teacher.lastName}" style="text-align: left"></td>
+        <td th:text="${teacher.email}" style="text-align: left"></td>
         <td>
           <span th:if="${teacher.isActive}" class="fa-regular fa-square-check icon-dark" title="Active"></span>
           <span th:unless="${teacher.isActive}" class="far fa-times-circle icon-dark" title="Not active"></span>
@@ -63,11 +64,16 @@
         <td>
           <a sec:authorize="hasAuthority('TEACHERS_READ')" aria-hidden="true" class="fa fa-eye icon-dark no-decoration"
              title="View this teacher" th:href="@{/ui/v1/teachers/{teacherId}(teacherId=${teacher.id})}"></a>
+          <a sec:authorize="hasAuthority('SCHEDULE_READ')" class="fas fa-calendar-alt icon-dark" aria-hidden="true"
+             th:href="@{/ui/v1/schedule/{scheduleId}(scheduleId=${teacher.scheduleId}, userId=${teacher.id},
+             userFullName=${teacher.firstName + ' ' + teacher.lastName}, userRole=${teacher.roleName},
+             userLocationZoneOffset=${teacher.locationZoneOffset})}"
+             title="View the teacher's schedule" style="text-decoration: none; margin-left: 5px;"></a>
           <a sec:authorize="hasAuthority('TEACHERS_UPDATE')"
              th:href="@{/ui/v1/teachers/{teacherId}/edit(teacherId=${teacher.id})}" title="Update teacher info"
-             class="fa-regular fa-pen-to-square icon-dark" style="text-decoration: none; margin-left: 10px;"></a>
+             class="fa-regular fa-pen-to-square icon-dark" style="text-decoration: none; margin-left: 5px;"></a>
           <span sec:authorize="hasAuthority('TEACHERS_DELETE')" class="fa-regular fa-trash-can icon-dark btn-delete"
-                title="Delete this teacher" style="margin-left: 10px; cursor: pointer;" data-bs-toggle="modal"
+                title="Delete this teacher" style="margin-left: 5px; cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#teacherDeleteModal" th:data-teacher-id="${teacher.id}"
                 th:data-teacher-email="${teacher.email}"></span>
         </td>

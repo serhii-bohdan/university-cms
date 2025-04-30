@@ -26,9 +26,9 @@ import ua.foxminded.universitycms.service.GroupService;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebMvcTest(controllers = GroupController.class)
-@ContextConfiguration(classes = ControllerTestConfig.class)
-@Import(SecurityConfig.class)
+@WebMvcTest(controllers = {GroupController.class})
+@ContextConfiguration(classes = {ControllerTestConfig.class})
+@Import({SecurityConfig.class})
 class GroupControllerTest {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
@@ -43,11 +43,11 @@ class GroupControllerTest {
 
     @Test
     @WithMockUser(authorities = {"GROUPS_READ"})
-    void getPageWithGroups_shouldReturnPageWithGroupsThatFoundByKeyword_whenKeywordNotNullAndNotBlank() throws Exception {
+    void getPageWithGroups_shouldReturnPageWithGroupsThatFoundByKeyword_whenKeywordNotNull() throws Exception {
         String keyword = "GroupName";
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(groupServiceMock.getAll()).thenReturn(getAllGroupsForTest());
-        when(groupServiceMock.getGroupInPageByName(keyword, pageable)).thenReturn(getEmptyPageForTest());
+        when(groupServiceMock.getAll()).thenReturn(getEmptyGroupsListForTest());
+        when(groupServiceMock.findGroups(pageable, keyword)).thenReturn(getEmptyGroupsPageForTest());
 
         mockMvc.perform(get("/ui/v1/groups")
                 .param("keyword", keyword))
@@ -60,15 +60,17 @@ class GroupControllerTest {
             .andExpect(model().attribute("keyword", keyword))
             .andExpect(view().name("groups/all-groups"));
 
-        verify(groupServiceMock, times(1)).getGroupInPageByName(keyword, pageable);
+        verify(groupServiceMock, times(1)).findGroups(pageable, keyword);
+        verify(groupServiceMock, times(1)).getAll();
+        verify(groupServiceMock, times(1)).extractGroupNames(any());
     }
 
     @Test
     @WithMockUser(authorities = {"GROUPS_READ"})
     void getPageWithGroups_shouldReturnPageWitAllGroups_whenKeywordIsNull() throws Exception {
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(groupServiceMock.getAll()).thenReturn(getAllGroupsForTest());
-        when(groupServiceMock.getGroupsPage(pageable)).thenReturn(getEmptyPageForTest());
+        when(groupServiceMock.getAll()).thenReturn(getEmptyGroupsListForTest());
+        when(groupServiceMock.findGroups(pageable, null)).thenReturn(getEmptyGroupsPageForTest());
 
         mockMvc.perform(get("/ui/v1/groups"))
             .andExpect(status().isOk())
@@ -77,31 +79,12 @@ class GroupControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
+            .andExpect(model().attributeDoesNotExist("keyword"))
             .andExpect(view().name("groups/all-groups"));
 
-        verify(groupServiceMock, times(1)).getGroupsPage(pageable);
-    }
-
-    @Test
-    @WithMockUser(authorities = {"GROUPS_READ"})
-    void getPageWithGroups_shouldReturnPageWitAllGroups_whenKeywordIsBlank() throws Exception {
-        String keyword = "       ";
-        Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(groupServiceMock.getAll()).thenReturn(getAllGroupsForTest());
-        when(groupServiceMock.getGroupsPage(pageable)).thenReturn(getEmptyPageForTest());
-
-        mockMvc.perform(get("/ui/v1/groups")
-                .param("keyword", keyword))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("groups"))
-            .andExpect(model().attributeExists("page"))
-            .andExpect(model().attributeExists("totalItems"))
-            .andExpect(model().attributeExists("totalPages"))
-            .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("keyword", ""))
-            .andExpect(view().name("groups/all-groups"));
-
-        verify(groupServiceMock, times(1)).getGroupsPage(pageable);
+        verify(groupServiceMock, times(1)).findGroups(pageable, null);
+        verify(groupServiceMock, times(1)).getAll();
+        verify(groupServiceMock, times(1)).extractGroupNames(any());
     }
 
     @Test
@@ -110,8 +93,8 @@ class GroupControllerTest {
         String invalidPageNumber = "-1";
         String invalidPageSize = "0";
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(groupServiceMock.getAll()).thenReturn(getAllGroupsForTest());
-        when(groupServiceMock.getGroupsPage(pageable)).thenReturn(getEmptyPageForTest());
+        when(groupServiceMock.getAll()).thenReturn(getEmptyGroupsListForTest());
+        when(groupServiceMock.findGroups(pageable, null)).thenReturn(getEmptyGroupsPageForTest());
 
         mockMvc.perform(get("/ui/v1/groups")
                 .param("page", invalidPageNumber)
@@ -124,15 +107,19 @@ class GroupControllerTest {
             .andExpect(model().attribute("size", DEFAULT_PAGE_SIZE))
             .andExpect(view().name("groups/all-groups"));
 
-        verify(groupServiceMock, times(1)).getGroupsPage(pageable);
+        verify(groupServiceMock, times(1)).findGroups(pageable, null);
+        verify(groupServiceMock, times(1)).getAll();
+        verify(groupServiceMock, times(1)).extractGroupNames(any());
     }
 
     @Test
     @WithMockUser(authorities = {"GROUPS_READ"})
-    void getPageWithGroupsForEnrollInCourse_shouldPageWithGroupThatFoundByKeyword_whenKeywordNotNullAndNotBlank() throws Exception {
+    void getPageWithGroupsForEnrollInCourse_shouldPageWithGroupThatFoundByKeyword_whenKeywordNotNull() throws Exception {
         String keyword = "HT-09";
         long courseId = 1L;
-        when(groupServiceMock.getListOfGroupsWhoseStudentsNotEnrolledInCourse(courseId)).thenReturn(getAllGroupsForTest());
+        List<GroupDto> groupsForTest = getEmptyGroupsListForTest();
+        when(groupServiceMock.getGroupsWithUnEnrolledStudents(courseId)).thenReturn(groupsForTest);
+        when(groupServiceMock.filterGroupsByName(groupsForTest, keyword)).thenReturn(groupsForTest);
 
         mockMvc.perform(get("/ui/v1/groups/for-enroll")
                 .param("keyword", keyword)
@@ -143,33 +130,18 @@ class GroupControllerTest {
             .andExpect(model().attribute("keyword", keyword))
             .andExpect(model().attributeExists("courseId"));
 
-        verify(groupServiceMock, times(1)).getListOfGroupsWhoseStudentsNotEnrolledInCourse(courseId);
-    }
-
-    @Test
-    @WithMockUser(authorities = {"GROUPS_READ"})
-    void getPageWithGroupsForEnrollInCourse_shouldPageWithGroupsForEnroll_whenKeywordIsBlank() throws Exception {
-        String keyword = "    ";
-        long courseId = 1L;
-        when(groupServiceMock.getListOfGroupsWhoseStudentsNotEnrolledInCourse(courseId)).thenReturn(getAllGroupsForTest());
-
-        mockMvc.perform(get("/ui/v1/groups/for-enroll")
-                .param("keyword", keyword)
-                .param("cid", String.valueOf(courseId)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("groups"))
-            .andExpect(model().attributeExists("allNamesOfGroups"))
-            .andExpect(model().attribute("keyword", ""))
-            .andExpect(model().attributeExists("courseId"));
-
-        verify(groupServiceMock, times(1)).getListOfGroupsWhoseStudentsNotEnrolledInCourse(courseId);
+        verify(groupServiceMock, times(1)).getGroupsWithUnEnrolledStudents(courseId);
+        verify(groupServiceMock, times(1)).filterGroupsByName(groupsForTest, keyword);
+        verify(groupServiceMock, times(1)).extractGroupNames(any());
     }
 
     @Test
     @WithMockUser(authorities = {"GROUPS_READ"})
     void getPageWithGroupsForEnrollInCourse_shouldPageWithGroupsForEnroll_whenKeywordIsNull() throws Exception {
         long courseId = 1L;
-        when(groupServiceMock.getListOfGroupsWhoseStudentsNotEnrolledInCourse(courseId)).thenReturn(getAllGroupsForTest());
+        List<GroupDto> groupsForTest = getEmptyGroupsListForTest();
+        when(groupServiceMock.getGroupsWithUnEnrolledStudents(courseId)).thenReturn(groupsForTest);
+        when(groupServiceMock.filterGroupsByName(groupsForTest, null)).thenReturn(groupsForTest);
 
         mockMvc.perform(get("/ui/v1/groups/for-enroll")
                 .param("cid", String.valueOf(courseId)))
@@ -179,7 +151,9 @@ class GroupControllerTest {
             .andExpect(model().attributeDoesNotExist("keyword"))
             .andExpect(model().attributeExists("courseId"));
 
-        verify(groupServiceMock, times(1)).getListOfGroupsWhoseStudentsNotEnrolledInCourse(courseId);
+        verify(groupServiceMock, times(1)).getGroupsWithUnEnrolledStudents(courseId);
+        verify(groupServiceMock, times(1)).filterGroupsByName(groupsForTest, null);
+        verify(groupServiceMock, times(1)).extractGroupNames(any());
     }
 
     @Test
@@ -210,7 +184,7 @@ class GroupControllerTest {
         mockMvc.perform(get("/ui/v1/groups/{groupId}", groupId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(groupServiceMock, times(1)).getById(groupId);
     }
@@ -290,7 +264,7 @@ class GroupControllerTest {
         mockMvc.perform(get("/ui/v1/groups/{groupId}/edit", groupId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(groupServiceMock, times(1)).getById(groupId);
     }
@@ -307,7 +281,7 @@ class GroupControllerTest {
                 .param("id", String.valueOf(groupId))
                 .param("groupName", groupName))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/groups/%s", groupId)));
+            .andExpect(redirectedUrl("/ui/v1/groups/%s".formatted(groupId)));
 
         verify(groupServiceMock, times(1)).update(any(GroupDto.class));
     }
@@ -351,7 +325,7 @@ class GroupControllerTest {
                 .param("groupName", groupName))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(groupServiceMock, times(1)).update(any(GroupDto.class));
     }
@@ -385,16 +359,16 @@ class GroupControllerTest {
                 .with(csrf()))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(groupServiceMock, times(1)).deleteById(groupId);
     }
 
-    private List<GroupDto> getAllGroupsForTest() {
+    private List<GroupDto> getEmptyGroupsListForTest() {
         return new ArrayList<>();
     }
 
-    private Page<GroupDto> getEmptyPageForTest() {
+    private Page<GroupDto> getEmptyGroupsPageForTest() {
         return new PageImpl<>(new ArrayList<>());
     }
 

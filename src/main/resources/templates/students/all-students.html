@@ -4,7 +4,8 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
-  <title>Students</title>
+  <title>All Students - University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -45,8 +46,8 @@
       <thead class="table-light">
       <tr>
         <th scope="col">№</th>
-        <th scope="col">Student name</th>
-        <th scope="col">Email</th>
+        <th scope="col" style="text-align: left">Student name</th>
+        <th scope="col" style="text-align: left">Email</th>
         <th scope="col">Group</th>
         <th scope="col">Status</th>
         <th scope="col">Actions</th>
@@ -55,8 +56,8 @@
       <tbody>
       <tr th:each="student, interStat : ${students}">
         <th scope="row" th:text="${size * page + interStat.count}"></th>
-        <td th:text="${student.firstName} + ' ' + ${student.lastName}"></td>
-        <td th:text="${student.email}"></td>
+        <td th:text="${student.firstName} + ' ' + ${student.lastName}" style="text-align: left"></td>
+        <td th:text="${student.email}" style="text-align: left"></td>
         <td th:text="${student.groupName}"></td>
         <td>
           <span th:if="${student.isActive}" class="fa-regular fa-square-check icon-dark" title="Active"></span>
@@ -66,11 +67,16 @@
           <a sec:authorize="hasAuthority('STUDENTS_READ')"
              th:href="@{/ui/v1/students/{studentId}(studentId=${student.id})}" class="fa fa-eye icon-dark no-decoration"
              aria-hidden="true" title="View this student"></a>
+          <a sec:authorize="hasAuthority('SCHEDULE_READ')" class="fas fa-calendar-alt icon-dark" aria-hidden="true"
+             th:href="@{/ui/v1/schedule/{scheduleId}(scheduleId=${student.scheduleId}, userId=${student.id},
+             userFullName=${student.firstName + ' ' + student.lastName}, userRole=${student.roleName},
+             userLocationZoneOffset=${student.locationZoneOffset})}"
+             title="View the student's schedule" style="text-decoration: none; margin-left: 5px;"></a>
           <a sec:authorize="hasAuthority('STUDENTS_UPDATE')" class="fa-regular fa-pen-to-square icon-dark"
              th:href="@{/ui/v1/students/{studentId}/edit(studentId=${student.id})}" title="Update student info"
-             style="text-decoration: none; margin-left: 10px;"></a>
+             style="text-decoration: none; margin-left: 5px;"></a>
           <span sec:authorize="hasAuthority('STUDENTS_DELETE')" class="fa-regular fa-trash-can icon-dark btn-delete"
-                title="Delete this student" style="margin-left: 10px; cursor: pointer;" data-bs-toggle="modal"
+                title="Delete this student" style="margin-left: 5px; cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#studentDeleteModal" th:data-student-id="${student.id}"
                 th:data-student-email="${student.email}"></span>
         </td>

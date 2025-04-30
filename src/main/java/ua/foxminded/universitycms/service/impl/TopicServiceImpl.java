@@ -9,11 +9,15 @@ import ua.foxminded.universitycms.model.Topic;
 import ua.foxminded.universitycms.service.TopicService;
 
 /**
- * The {@code TopicServiceImpl} class implements the {@link TopicService} interface, providing concrete
- * implementations for managing topic entities. It extends the {@link AbstractService} class, inheriting common
- * service functionalities for basic CRUD operations and validation, and adds functionality specific to topics.
+ * Implementation of {@link TopicService} for managing {@link Topic} entities in the university system.
+ * <p>
+ * Extends {@link AbstractService} to leverage common CRUD operations for {@link Topic} entities mapped to
+ * {@link TopicDto} DTOs. Uses {@link JpaRepository} for data access and {@link Mapper} for conversions.
+ * Marked with {@code @Service} as a Spring bean and {@code @Validated} for validation support.
  *
  * @author Serhii Bohdan
+ * @see TopicService
+ * @see AbstractService
  * @see JpaRepository
  * @see Mapper
  */
@@ -22,10 +26,11 @@ import ua.foxminded.universitycms.service.TopicService;
 public class TopicServiceImpl extends AbstractService<Topic, TopicDto> implements TopicService {
 
     /**
-     * Constructs a new {@code TopicServiceImpl} instance with the given dependencies.
+     * Constructs a new {@code TopicServiceImpl} with the required dependencies.
+     * Initializes {@link AbstractService} with the provided repository and mapper for managing topics.
      *
-     * @param repository the repository for managing topic entities
-     * @param mapper     the mapper for converting between topic entities and DTOs
+     * @param repository the {@link JpaRepository} for {@link Topic} entities, providing CRUD operations
+     * @param mapper     the {@link Mapper} for converting between {@link Topic} and {@link TopicDto}
      */
     public TopicServiceImpl(JpaRepository<Topic, Long> repository, Mapper<Topic, TopicDto> mapper) {
         super(repository, mapper);

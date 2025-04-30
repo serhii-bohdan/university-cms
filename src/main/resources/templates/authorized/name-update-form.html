@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>Update Full Name - University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" style="max-width: 600px; margin: 0 auto;">
+  <div class="row d-flex">
+    <a class="fa fa-arrow-left col mt-3" th:href="@{/ui/v1/iam}" aria-hidden="true" title="Back to my profile"
+       style="width: 100%; max-width: max-content; padding-left: 0; padding-right: 0; padding-top: 0.8rem; cursor: pointer; text-decoration: none; color: #0A0921"></a>
+    <h2 class="title-center col mt-3">Change your full name</h2>
+  </div>
+  <form th:method="patch" th:action="@{/ui/v1/iam/name-update}" th:object="${userFullName}">
+    <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+      <ul style="margin-bottom: 0">
+        <li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li>
+      </ul>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="firstName" style="font-weight: bold">First name</label>
+      <input type="text" class="form-control" id="firstName" th:field="*{firstName}">
+      <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="lastName" style="font-weight: bold">Last name</label>
+      <input type="text" class="form-control" id="lastName" th:field="*{lastName}">
+      <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="invalid-validation"></div>
+    </div>
+    <button class="btn btn-success form-group-margin" type="submit" id="addButton">Update</button>
+    <a th:href="@{/ui/v1/iam}" style="margin-left: 20px" class="btn btn-secondary form-group-margin">Cancel</a>
+  </form>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+<script th:src="@{/webjars/jquery-ui/1.13.2/jquery-ui.min.js}"></script>
+</body>
+</html>

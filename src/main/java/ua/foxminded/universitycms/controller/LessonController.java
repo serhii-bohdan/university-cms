@@ -1,195 +1,307 @@
 package ua.foxminded.universitycms.controller;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ua.foxminded.universitycms.dto.CourseDto;
 import ua.foxminded.universitycms.dto.LessonDto;
+import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.security.userdetails.CustomUserDetails;
 import ua.foxminded.universitycms.service.LessonService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
 
 /**
- * Handles operations related to lessons, including creating, updating, and deleting lesson records.
- * Supports rendering forms for lesson creation and updates, as well as processing user input.
- * Ensures proper authorization for each operation based on user permissions.
- * <p>
- * This controller interacts with the LessonService to manage lesson data and prepare the necessary
- * information for the user interface.
+ * Spring MVC Controller handling lesson-related requests under {@code /ui/v1/lessons}.
+ * Manages lesson operations like listing, creating, updating, and deleting within schedules. Uses
+ * {@link LessonService} for business logic and enforces authorization via user permissions.
+ * Annotated with {@code @Controller} and {@code @RequiredArgsConstructor} for dependency injection.
  *
  * @author Serhii Bohdan
+ * @see LessonService
+ * @see ModelAttributeNames
+ * @see ViewNames
  */
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/ui/v1/lessons")
+@RequestMapping({"/ui/v1/lessons"})
 public class LessonController {
 
     /**
-     * The URL template used to redirect to a specific study day page. It includes placeholders for
-     * the date and schedule ID.
+     * URL template for redirecting to the lessons list with schedule and date parameters.
      */
-    private static final String SPECIFIC_STUDY_DAY_REDIRECT_URL = "redirect:/ui/v1/study-days/%s?scheduleId=%s";
+    private static final String LESSONS_LIST_REDIRECT_URL = "redirect:/ui/v1/lessons?scheduleId=%s&userCurrentLocalDate=%s&startDate=%s&endDate=%s";
 
     /**
-     * The service responsible for handling lesson-related operations,
-     * such as retrieving, creating, updating, and deleting lesson records.
+     * URL template for redirecting to the lessons list with schedule, date, and additional user parameters.
+     */
+    private static final String LESSONS_LIST_WITH_USER_REDIRECT_URL = "redirect:/ui/v1/lessons?scheduleId=%s&userCurrentLocalDate=%s&startDate=%s&endDate=%s&userId=%s&userFullName=%s&userRole=%s";
+
+    /**
+     * Service for interacting with lesson data and performing business logic operations.
      */
     private final LessonService lessonService;
 
     /**
-     * Displays the lesson creation form.
+     * Displays a paginated list of lessons for a specified schedule and date range.
      * <p>
-     * This method initializes a new {@link LessonDto} with the given study day ID, course, and other details.
-     * It populates the model with the necessary attributes such as available time zones, user-specific courses,
-     * and the date and schedule ID. The user must have the {@code LESSONS_CREATE} authority to access this method.
+     * Handles GET requests to {@code /ui/v1/lessons}. Retrieves lessons using
+     * {@link LessonService#findLessonsByScheduleIdAndDateRange} and populates the model with lesson data,
+     * pagination details, and optional user parameters (ID, full name, and role). Requires
+     * {@code LESSONS_READ} authority.
      *
-     * @param model             the model to which attributes are added for the view
-     * @param customUserDetails the currently authenticated user's details
-     * @param studyDayId        the ID of the study day to which the lesson will be added
-     * @param date              the date of the lesson
-     * @param scheduleId        the schedule ID associated with the lesson
-     * @return the name of the view for the lesson creation form
+     * @param model                the {@link Model} to hold lesson, pagination, and user attributes
+     * @param pageable             the {@link Pageable} for pagination and sorting, defaults to ascending by date
+     * @param scheduleId           the ID of the schedule to filter lessons by
+     * @param userCurrentLocalDate the user's current local date
+     * @param startDate            the start date of the range to filter lessons
+     * @param endDate              the end date of the range to filter lessons
+     * @param userId               the optional ID of the user associated with the schedule
+     * @param userFullName         the optional full name of the user
+     * @param userRole             the optional role of the user, as a {@link RoleName}
+     * @return the {@link ViewNames#EDUCATOR_LESSONS} view name
+     */
+    @GetMapping
+    @PreAuthorize("hasAuthority('LESSONS_READ')")
+    public String getFilteredScheduleLessons(Model model, @PageableDefault(sort = {"date"}, direction = Sort.Direction.ASC) Pageable pageable,
+                                             @RequestParam("scheduleId") long scheduleId, @RequestParam("userCurrentLocalDate") LocalDate userCurrentLocalDate,
+                                             @RequestParam("startDate") LocalDate startDate, @RequestParam("endDate") LocalDate endDate,
+                                             @RequestParam(value = "userId", required = false) Long userId,
+                                             @RequestParam(value = "userFullName", required = false) String userFullName,
+                                             @RequestParam(value = "userRole", required = false) RoleName userRole) {
+        Page<LessonDto> lessonsPage = lessonService.findLessonsByScheduleIdAndDateRange(scheduleId, startDate, endDate, pageable);
+
+        model.addAttribute(ModelAttributeNames.LESSONS_ATTRIBUTE, lessonsPage.getContent())
+            .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
+            .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, lessonsPage.getTotalElements())
+            .addAttribute(ModelAttributeNames.TOTAL_PAGES_ATTRIBUTE, lessonsPage.getTotalPages())
+            .addAttribute(ModelAttributeNames.SIZE_ATTRIBUTE, pageable.getPageSize())
+            .addAttribute(ModelAttributeNames.SCHEDULE_ID_ATTRIBUTE, scheduleId)
+            .addAttribute(ModelAttributeNames.USER_CURRENT_DATE_ATTRIBUTE, userCurrentLocalDate)
+            .addAttribute(ModelAttributeNames.START_DATE_ATTRIBUTE, startDate)
+            .addAttribute(ModelAttributeNames.END_DATE_ATTRIBUTE, endDate)
+            .addAttribute(ModelAttributeNames.USER_ID_ATTRIBUTE, userId)
+            .addAttribute(ModelAttributeNames.USER_FULL_NAME_ATTRIBUTE, userFullName)
+            .addAttribute(ModelAttributeNames.USER_ROLE_ATTRIBUTE, userRole);
+
+        return ViewNames.EDUCATOR_LESSONS;
+    }
+
+    /**
+     * Displays the form for creating a new lesson within a specified schedule.
+     * <p>
+     * Handles GET requests to {@code /ui/v1/lessons/new}. Initializes a {@link LessonDto} with the given
+     * schedule ID and populates the model with user courses, time zones, and user parameters (ID, role,
+     * and optional full name). Requires {@code LESSONS_CREATE} authority.
+     *
+     * @param model                the {@link Model} to hold form attributes
+     * @param userId               the ID of the user creating the lesson
+     * @param userRole             the role of the user, as a {@link RoleName}
+     * @param scheduleId           the ID of the schedule for the new lesson
+     * @param userCurrentLocalDate the user's current local date
+     * @param startDate            the start date of the current lesson list view
+     * @param endDate              the end date of the current lesson list view
+     * @param userFullName         the optional full name of the user
+     * @return the {@link ViewNames#LESSON_CREATION_FORM} view name
      */
     @GetMapping("/new")
     @PreAuthorize("hasAuthority('LESSONS_CREATE')")
-    public String getCreationForm(Model model, @AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                  @RequestParam("studyDayId") long studyDayId, @RequestParam("date") LocalDate date,
-                                  @RequestParam("scheduleId") long scheduleId) {
+    public String getCreationForm(Model model, @RequestParam("userId") Long userId, @RequestParam("userRole") RoleName userRole,
+                                  @RequestParam("scheduleId") long scheduleId, @RequestParam("userCurrentLocalDate") LocalDate userCurrentLocalDate,
+                                  @RequestParam("startDate") LocalDate startDate, @RequestParam("endDate") LocalDate endDate,
+                                  @RequestParam(value = "userFullName", required = false) String userFullName) {
         LessonDto lesson = LessonDto.builder()
-            .studyDayId(studyDayId)
-            .course(CourseDto.builder().build())
+            .scheduleId(scheduleId)
             .build();
 
         model.addAttribute(ModelAttributeNames.LESSON_ATTRIBUTE, lesson)
-            .addAttribute(ModelAttributeNames.AVAILABLE_ZONE_IDS_ATTRIBUTE, ZoneId.getAvailableZoneIds())
-            .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, lessonService.getUserCourses(customUserDetails))
-            .addAttribute(ModelAttributeNames.DATE_ATTRIBUTE, date)
-            .addAttribute(ModelAttributeNames.SCHEDULE_ID_ATTRIBUTE, scheduleId);
+            .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, lessonService.getUserCourses(userId, userRole))
+            .addAttribute(ModelAttributeNames.TIME_ZONES_ATTRIBUTE, ModelAttributeNames.TIME_ZONES_LIST)
+            .addAttribute(ModelAttributeNames.USER_CURRENT_DATE_ATTRIBUTE, userCurrentLocalDate)
+            .addAttribute(ModelAttributeNames.START_DATE_ATTRIBUTE, startDate)
+            .addAttribute(ModelAttributeNames.END_DATE_ATTRIBUTE, endDate)
+            .addAttribute(ModelAttributeNames.USER_ID_ATTRIBUTE, userId)
+            .addAttribute(ModelAttributeNames.USER_ROLE_ATTRIBUTE, userRole)
+            .addAttribute(ModelAttributeNames.USER_FULL_NAME_ATTRIBUTE, userFullName);
 
         return ViewNames.LESSON_CREATION_FORM;
     }
 
     /**
-     * Handles the creation of a new lesson.
+     * Handles the creation of a new lesson via a POST request.
      * <p>
-     * This method processes the lesson creation form submission by validating the provided {@link LessonDto}.
-     * If there are validation errors, it redisplays the lesson creation form with error messages.
-     * If the form is valid, the lesson is saved, and the user is redirected to the corresponding study day page.
-     * The user must have the {@code LESSONS_CREATE} authority to access this method.
+     * Validates the submitted {@link LessonDto} and saves it using {@link LessonService#save}. If validation fails,
+     * returns the creation form with user courses, time zones, and user parameters; otherwise, redirects to the
+     * lessons list. For users with {@link RoleName#MANAGER} role, redirects include additional user parameters
+     * (ID, full name, role). Requires {@code LESSONS_CREATE} authority.
      *
-     * @param model             the model to which attributes are added for the view
-     * @param customUserDetails the currently authenticated user's details
-     * @param lesson            the {@link LessonDto} object containing the lesson data
-     * @param bindingResult     the result of binding the submitted form data to the {@link LessonDto}
-     * @param date              the date of the lesson
-     * @param scheduleId        the schedule ID associated with the lesson
-     * @return the view name for either the lesson creation form (if validation fails) or a redirect to the study day page
+     * @param model                the {@link Model} to hold attributes if validation fails
+     * @param lesson               the {@link LessonDto} containing form data, must be valid
+     * @param bindingResult        the {@link BindingResult} containing validation results
+     * @param customUserDetails    the authenticated user's details from Spring Security
+     * @param userId               the ID of the user creating the lesson
+     * @param userRole             the role of the user, as a {@link RoleName}
+     * @param userCurrentLocalDate the user's current local date
+     * @param startDate            the start date of the current lesson list view
+     * @param endDate              the end date of the current lesson list view
+     * @param userFullName         the optional full name of the user
+     * @return redirect to {@link #LESSONS_LIST_REDIRECT_URL} or
+     * {@link #LESSONS_LIST_WITH_USER_REDIRECT_URL} on success, or
+     * {@link ViewNames#LESSON_CREATION_FORM} on validation errors
      */
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('LESSONS_CREATE')")
-    public String performLessonCreation(Model model, @AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                        @ModelAttribute("lesson") @Valid LessonDto lesson, BindingResult bindingResult,
-                                        @RequestParam("date") LocalDate date, @RequestParam("scheduleId") long scheduleId) {
+    public String performLessonCreation(Model model, @ModelAttribute("lesson") @Valid LessonDto lesson, BindingResult bindingResult,
+                                        @AuthenticationPrincipal CustomUserDetails customUserDetails,
+                                        @RequestParam("userId") Long userId, @RequestParam("userRole") RoleName userRole,
+                                        @RequestParam("userCurrentLocalDate") LocalDate userCurrentLocalDate,
+                                        @RequestParam("startDate") LocalDate startDate, @RequestParam("endDate") LocalDate endDate,
+                                        @RequestParam(value = "userFullName", required = false) String userFullName) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute(ModelAttributeNames.AVAILABLE_ZONE_IDS_ATTRIBUTE, ZoneId.getAvailableZoneIds())
-                .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, lessonService.getUserCourses(customUserDetails))
-                .addAttribute(ModelAttributeNames.DATE_ATTRIBUTE, date)
-                .addAttribute(ModelAttributeNames.SCHEDULE_ID_ATTRIBUTE, scheduleId);
+            model.addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, lessonService.getUserCourses(userId, userRole))
+                .addAttribute(ModelAttributeNames.TIME_ZONES_ATTRIBUTE, ModelAttributeNames.TIME_ZONES_LIST)
+                .addAttribute(ModelAttributeNames.USER_CURRENT_DATE_ATTRIBUTE, userCurrentLocalDate)
+                .addAttribute(ModelAttributeNames.START_DATE_ATTRIBUTE, startDate)
+                .addAttribute(ModelAttributeNames.END_DATE_ATTRIBUTE, endDate)
+                .addAttribute(ModelAttributeNames.USER_ID_ATTRIBUTE, userId)
+                .addAttribute(ModelAttributeNames.USER_ROLE_ATTRIBUTE, userRole)
+                .addAttribute(ModelAttributeNames.USER_FULL_NAME_ATTRIBUTE, userFullName);
             return ViewNames.LESSON_CREATION_FORM;
         }
 
         lessonService.save(lesson);
-        return String.format(SPECIFIC_STUDY_DAY_REDIRECT_URL, date, scheduleId);
+        return customUserDetails.getRoleName().equals(RoleName.MANAGER)
+            ? LESSONS_LIST_WITH_USER_REDIRECT_URL.formatted(lesson.getScheduleId(), userCurrentLocalDate, startDate, endDate, userId, userFullName, userRole)
+            : LESSONS_LIST_REDIRECT_URL.formatted(lesson.getScheduleId(), userCurrentLocalDate, startDate, endDate);
     }
 
     /**
-     * Displays the form to update an existing lesson.
+     * Displays the form for updating an existing lesson.
      * <p>
-     * This method retrieves the {@link LessonDto} for the given lesson ID, and if the lesson exists,
-     * it populates the model with necessary attributes for the update form. The user must have the
-     * {@code LESSONS_UPDATE} authority to access this method.
-     * with a {@code NOT_FOUND} status is thrown.
+     * Handles GET requests to {@code /ui/v1/lessons/{lessonId}/edit}. Retrieves the {@link LessonDto} by ID
+     * using {@link LessonService#getById} and populates the model with lesson data, user courses, time zones,
+     * and user parameters (ID, role, and optional full name). Requires {@code LESSONS_UPDATE} authority.
      *
-     * @param model             the model to which attributes are added for the view
-     * @param customUserDetails the currently authenticated user's details
-     * @param lessonId          the ID of the lesson to update
-     * @param date              the date of the lesson
-     * @param scheduleId        the schedule ID associated with the lesson
-     * @return the view name for the lesson update form if the lesson exists
+     * @param model                the {@link Model} to hold form attributes
+     * @param userId               the ID of the user updating the lesson
+     * @param userRole             the role of the user, as a {@link RoleName}
+     * @param lessonId             the ID of the lesson to update
+     * @param userCurrentLocalDate the user's current local date
+     * @param startDate            the start date of the current lesson list view
+     * @param endDate              the end date of the current lesson list view
+     * @param userFullName         the optional full name of the user
+     * @return the {@link ViewNames#LESSON_UPDATE_FORM} view name
      */
     @GetMapping("/{lessonId}/edit")
     @PreAuthorize("hasAuthority('LESSONS_UPDATE')")
-    public String getUpdateForm(Model model, @AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                @PathVariable long lessonId, @RequestParam("date") LocalDate date,
-                                @RequestParam("scheduleId") long scheduleId) {
+    public String getUpdateForm(Model model, @RequestParam("userId") Long userId, @RequestParam("userRole") RoleName userRole,
+                                @PathVariable long lessonId, @RequestParam("userCurrentLocalDate") LocalDate userCurrentLocalDate,
+                                @RequestParam("startDate") LocalDate startDate, @RequestParam("endDate") LocalDate endDate,
+                                @RequestParam(value = "userFullName", required = false) String userFullName) {
         LessonDto lesson = lessonService.getById(lessonId);
+
         model.addAttribute(ModelAttributeNames.LESSON_ATTRIBUTE, lesson)
-            .addAttribute(ModelAttributeNames.AVAILABLE_ZONE_IDS_ATTRIBUTE, ZoneId.getAvailableZoneIds())
-            .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, lessonService.getUserCourses(customUserDetails))
-            .addAttribute(ModelAttributeNames.DATE_ATTRIBUTE, date)
-            .addAttribute(ModelAttributeNames.SCHEDULE_ID_ATTRIBUTE, scheduleId);
+            .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, lessonService.getUserCourses(userId, userRole))
+            .addAttribute(ModelAttributeNames.TIME_ZONES_ATTRIBUTE, ModelAttributeNames.TIME_ZONES_LIST)
+            .addAttribute(ModelAttributeNames.USER_CURRENT_DATE_ATTRIBUTE, userCurrentLocalDate)
+            .addAttribute(ModelAttributeNames.START_DATE_ATTRIBUTE, startDate)
+            .addAttribute(ModelAttributeNames.END_DATE_ATTRIBUTE, endDate)
+            .addAttribute(ModelAttributeNames.USER_ID_ATTRIBUTE, userId)
+            .addAttribute(ModelAttributeNames.USER_ROLE_ATTRIBUTE, userRole)
+            .addAttribute(ModelAttributeNames.USER_FULL_NAME_ATTRIBUTE, userFullName);
 
         return ViewNames.LESSON_UPDATE_FORM;
     }
 
     /**
-     * Updates an existing lesson based on the provided {@link LessonDto}.
+     * Handles the update of an existing lesson via a PUT request.
      * <p>
-     * This method validates the {@link LessonDto} for errors and, if any exist, returns the user to the update
-     * form with the errors displayed. If the validation is successful, the lesson is updated using the
-     * {@link LessonService}. The user must have the {@code LESSONS_UPDATE} authority to access this method.
+     * Validates the submitted {@link LessonDto} and updates it using {@link LessonService#update}. If validation fails,
+     * returns the update form with user courses, time zones, and user parameters; otherwise, redirects to the
+     * lessons list. For users with {@link RoleName#MANAGER} role, redirects include additional user parameters
+     * (ID, full name, role). Requires {@code LESSONS_UPDATE} authority.
      *
-     * @param model             the model to which attributes are added for the view
-     * @param customUserDetails the currently authenticated user's details
-     * @param lesson            the {@link LessonDto} containing the lesson data to be updated
-     * @param bindingResult     the result of the validation process for the lesson data
-     * @param date              the date of the lesson
-     * @param scheduleId        the schedule ID associated with the lesson
-     * @return the redirect URL to the specific study day page if the lesson update is successful
+     * @param model                the {@link Model} to hold attributes if validation fails
+     * @param lesson               the {@link LessonDto} containing updated data, must be valid
+     * @param bindingResult        the {@link BindingResult} containing validation results
+     * @param customUserDetails    the authenticated user's details from Spring Security
+     * @param userId               the ID of the user updating the lesson
+     * @param userRole             the role of the user, as a {@link RoleName}
+     * @param userCurrentLocalDate the user's current local date
+     * @param startDate            the start date of the current lesson list view
+     * @param endDate              the end date of the current lesson list view
+     * @param userFullName         the optional full name of the user
+     * @return redirect to {@link #LESSONS_LIST_REDIRECT_URL} or
+     * {@link #LESSONS_LIST_WITH_USER_REDIRECT_URL} on success, or
+     * {@link ViewNames#LESSON_UPDATE_FORM} on validation errors
      */
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('LESSONS_UPDATE')")
-    public String performLessonUpdate(Model model, @AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                      @ModelAttribute("lesson") @Valid LessonDto lesson, BindingResult bindingResult,
-                                      @RequestParam("date") LocalDate date, @RequestParam("scheduleId") long scheduleId) {
+    public String performLessonUpdate(Model model, @ModelAttribute("lesson") @Valid LessonDto lesson, BindingResult bindingResult,
+                                      @AuthenticationPrincipal CustomUserDetails customUserDetails,
+                                      @RequestParam("userId") Long userId, @RequestParam("userRole") RoleName userRole,
+                                      @RequestParam("userCurrentLocalDate") LocalDate userCurrentLocalDate,
+                                      @RequestParam("startDate") LocalDate startDate, @RequestParam("endDate") LocalDate endDate,
+                                      @RequestParam(value = "userFullName", required = false) String userFullName) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute(ModelAttributeNames.AVAILABLE_ZONE_IDS_ATTRIBUTE, ZoneId.getAvailableZoneIds())
-                .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, lessonService.getUserCourses(customUserDetails))
-                .addAttribute(ModelAttributeNames.DATE_ATTRIBUTE, date)
-                .addAttribute(ModelAttributeNames.SCHEDULE_ID_ATTRIBUTE, scheduleId);
+            model.addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, lessonService.getUserCourses(userId, userRole))
+                .addAttribute(ModelAttributeNames.TIME_ZONES_ATTRIBUTE, ModelAttributeNames.TIME_ZONES_LIST)
+                .addAttribute(ModelAttributeNames.USER_CURRENT_DATE_ATTRIBUTE, userCurrentLocalDate)
+                .addAttribute(ModelAttributeNames.START_DATE_ATTRIBUTE, startDate)
+                .addAttribute(ModelAttributeNames.END_DATE_ATTRIBUTE, endDate)
+                .addAttribute(ModelAttributeNames.USER_ID_ATTRIBUTE, userId)
+                .addAttribute(ModelAttributeNames.USER_ROLE_ATTRIBUTE, userRole)
+                .addAttribute(ModelAttributeNames.USER_FULL_NAME_ATTRIBUTE, userFullName);
             return ViewNames.LESSON_UPDATE_FORM;
         }
 
         lessonService.update(lesson);
-        return String.format(SPECIFIC_STUDY_DAY_REDIRECT_URL, date, scheduleId);
+        return customUserDetails.getRoleName().equals(RoleName.MANAGER)
+            ? LESSONS_LIST_WITH_USER_REDIRECT_URL.formatted(lesson.getScheduleId(), userCurrentLocalDate, startDate, endDate, userId, userFullName, userRole)
+            : LESSONS_LIST_REDIRECT_URL.formatted(lesson.getScheduleId(), userCurrentLocalDate, startDate, endDate);
     }
 
     /**
-     * Deletes a lesson identified by its {@code lessonId}.
+     * Deletes a lesson via a DELETE request.
      * <p>
-     * This method performs a deletion operation using the {@link LessonService} and handles any errors that occur
-     * during the process. The user must have the {@code LESSONS_DELETE} authority to access this method. After
-     * successful deletion, the user is redirected to the specific study day page.
+     * Removes the lesson identified by {@code lessonId} using {@link LessonService#deleteById} and redirects
+     * to the lessons list for the associated schedule. For users with {@link RoleName#MANAGER} role,
+     * redirects include additional user parameters (ID, full name, role). Requires {@code LESSONS_DELETE} authority.
      *
-     * @param lessonId   the ID of the lesson to be deleted
-     * @param date       the date associated with the lesson
-     * @param scheduleId the schedule ID associated with the lesson
-     * @return the redirect URL to the specific study day page after the lesson is deleted
+     * @param customUserDetails    the authenticated user's details from Spring Security
+     * @param lessonId             the ID of the lesson to delete
+     * @param scheduleId           the ID of the schedule containing the lesson
+     * @param userCurrentLocalDate the user's current local date
+     * @param startDate            the start date of the current lesson list view
+     * @param endDate              the end date of the current lesson list view
+     * @param userId               the optional ID of the user associated with the schedule
+     * @param userFullName         the optional full name of the user
+     * @param userRole             the optional role of the user, as a {@link RoleName}
+     * @return redirect to {@link #LESSONS_LIST_REDIRECT_URL} or
+     * {@link #LESSONS_LIST_WITH_USER_REDIRECT_URL}
      */
     @DeleteMapping("/{lessonId}/delete")
     @PreAuthorize("hasAuthority('LESSONS_DELETE')")
-    public String performLessonDeletion(@PathVariable("lessonId") long lessonId, @RequestParam("date") LocalDate date,
-                                        @RequestParam("scheduleId") long scheduleId) {
+    public String performLessonDeletion(@AuthenticationPrincipal CustomUserDetails customUserDetails,
+                                        @PathVariable("lessonId") long lessonId, @RequestParam("scheduleId") long scheduleId,
+                                        @RequestParam("userCurrentLocalDate") LocalDate userCurrentLocalDate,
+                                        @RequestParam("startDate") LocalDate startDate, @RequestParam("endDate") LocalDate endDate,
+                                        @RequestParam(value = "userId", required = false) Long userId,
+                                        @RequestParam(value = "userFullName", required = false) String userFullName,
+                                        @RequestParam(value = "userRole", required = false) RoleName userRole) {
         lessonService.deleteById(lessonId);
-        return String.format(SPECIFIC_STUDY_DAY_REDIRECT_URL, date, scheduleId);
+        return customUserDetails.getRoleName().equals(RoleName.MANAGER)
+            ? LESSONS_LIST_WITH_USER_REDIRECT_URL.formatted(scheduleId, userCurrentLocalDate, startDate, endDate, userId, userFullName, userRole)
+            : LESSONS_LIST_REDIRECT_URL.formatted(scheduleId, userCurrentLocalDate, startDate, endDate);
     }
 
 }

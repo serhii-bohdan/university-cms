@@ -4,12 +4,19 @@ import ua.foxminded.universitycms.dto.TopicDto;
 import ua.foxminded.universitycms.model.Topic;
 
 /**
- * The {@code TopicService} interface defines a set of operations for managing {@link Topic} entities
- * and their corresponding {@link TopicDto} representations. It extends the generic {@link Service} interface,
- * providing specialized services for managing topics within a course. This includes methods for adding and
- * updating topics, but may be extended further depending on the specific needs of the system.
+ * Service interface for managing {@link Topic} entities and their DTO representations in the university management
+ * system.
+ * <p>
+ * This interface extends the generic {@link Service} interface, specializing in operations for {@link Topic} entities
+ * mapped to {@link TopicDto} DTOs. It provides a framework for CRUD operations inherited from {@link Service} to
+ * manage topics within courses, such as adding, retrieving, updating, and deleting topics. Implementations of this
+ * interface handle business logic related to topic management, supporting extensible functionality as needed for
+ * course structuring and academic tracking.
  *
  * @author Serhii Bohdan
+ * @see Service
+ * @see Topic
+ * @see TopicDto
  */
 public interface TopicService extends Service<Topic, TopicDto> {
 }

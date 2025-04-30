@@ -1,9 +1,10 @@
 package ua.foxminded.universitycms.model.enumeration;
 
 /**
- * Enumerates the distinct roles a user can have within the application.
+ * Enumerates the distinct roles a user can have within the university management system.
  * <p>
- * Each role represents a specific level of access and authorization within the system.
+ * Each role defines a specific level of permissions and responsibilities within the application,
+ * determining the user's access to features and data.
  *
  * @author Serhii Bohdan
  */

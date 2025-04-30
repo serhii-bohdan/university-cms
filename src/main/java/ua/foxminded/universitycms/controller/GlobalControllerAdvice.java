@@ -11,42 +11,39 @@ import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
 
 /**
- * Global controller advice class for handling exceptions and configuring data binding.
- * <p>
- * This class provides an {@link ExceptionHandler} for handling {@link CustomException}
- * and an {@link InitBinder} method for automatically trimming strings in data binding.
+ * Global controller advice for handling exceptions and configuring data binding across all controllers.
+ * Provides an {@link ExceptionHandler} for {@link CustomException} and an {@link InitBinder} for
+ * trimming strings during data binding. Annotated with {@code @ControllerAdvice}.
  *
  * @author Serhii Bohdan
+ * @see CustomException
+ * @see ModelAttributeNames
+ * @see ViewNames
  */
 @ControllerAdvice
 public class GlobalControllerAdvice {
 
     /**
-     * Handles exceptions of type {@link CustomException} and prepares an error view to be displayed to the user.
-     * <p>
-     * This method is invoked when a {@code CustomException} is thrown within the application. It sets up a
-     * {@link ModelAndView} object pointing to the error page view and includes the exception details
-     * as a model attribute for rendering error-specific information on the page.
+     * Handles {@link CustomException} by rendering an error page with exception details.
+     * Invoked when a {@code CustomException} occurs, creating a {@link ModelAndView} with the error
+     * view and exception data.
      *
-     * @param ex the {@link CustomException} that was thrown
-     * @return a {@link ModelAndView} object pointing to the error page, with the exception details included as a
-     * model attribute
+     * @param ex the {@link CustomException} thrown during execution
+     * @return a {@link ModelAndView} with the error page and exception as a model attribute
      */
-    @ExceptionHandler(CustomException.class)
+    @ExceptionHandler({CustomException.class})
     public ModelAndView handleCustomException(CustomException ex) {
-        ModelAndView modelAndView = new ModelAndView(ViewNames.ERROR_PAGE);
+        ModelAndView modelAndView = new ModelAndView(ViewNames.CUSTOM_ERROR_PAGE);
         modelAndView.addObject(ModelAttributeNames.EXCEPTION_ATTRIBUTE, ex);
         return modelAndView;
     }
 
     /**
-     * Initializes a {@link WebDataBinder} to automatically trim strings.
-     * <p>
-     * This method is annotated with {@link InitBinder}, indicating that it should be invoked before
-     * data binding occurs. It registers a {@link StringTrimmerEditor} with the binder, which will automatically
-     * trim leading and trailing whitespace from String values.
+     * Configures data binding to trim strings automatically.
+     * Registers a {@link StringTrimmerEditor} with the {@link WebDataBinder} to remove leading and
+     * trailing whitespace from String inputs. Invoked before binding via {@link InitBinder}.
      *
-     * @param binder the {@link WebDataBinder} to initialize
+     * @param binder the {@link WebDataBinder} to configure
      */
     @InitBinder
     public void initBinder(WebDataBinder binder) {

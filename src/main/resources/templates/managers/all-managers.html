@@ -3,23 +3,24 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
-  <title>Managers</title>
+  <title>All Managers - University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <header th:insert="~{fragments/header :: header}"></header>
-<div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
+<div class="container-fluid" style="max-width: 750px; margin: 0 auto;">
   <h2 class="title-center">Managers</h2>
   <div class="my-3">
     <form th:action="@{/ui/v1/managers}" id="searchForm">
       <div class="row d-flex">
-        <div class="col-md-5 mt-2">
+        <div class="col-md-6 mt-2">
           <div class="search">
             <i class="fa fa-search"></i>
-            <input id="keyword" type="search" name="keyword" th:value="${#strings.trim(keyword)}" required
-                   class="form-control" placeholder="Enter manager name">
+            <input id="keyword" type="search" name="keyword" th:value="${keyword}" required
+                   class="form-control" placeholder="Enter manager email">
             <button type="submit" class="btn btn-primary">Search</button>
           </div>
         </div>
@@ -36,9 +37,6 @@
         <div class="col-md-3 mt-2 unsent-width">
           <button id="btnClear" class="btn btn-secondary">Clear</button>
         </div>
-        <div sec:authorize="hasAuthority('MANAGERS_CREATE')" class="col-md-3 mt-2 unsent-width">
-          <a class="btn btn-success" href="#">Add manager</a>
-        </div>
       </div>
     </form>
   </div>
@@ -47,23 +45,26 @@
       <thead class="table-light">
       <tr>
         <th scope="col">№</th>
-        <th scope="col">Manager name</th>
-        <th scope="col">Email</th>
-        <th scope="col">Actions</th>
+        <th scope="col" style="text-align: left">Manager name</th>
+        <th scope="col" style="text-align: left">Email</th>
+        <th sec:authorize="hasAuthority('MANAGERS_CREATE')" scope="col">Actions</th>
       </tr>
       </thead>
       <tbody>
       <tr th:each="manager, interStat : ${managers}">
         <th scope="row" th:text="${size * page + interStat.count}"></th>
-        <td th:text="${manager.firstName} + ' ' + ${manager.lastName}"></td>
-        <td th:text="${manager.email}"></td>
-        <td>
-          <a sec:authorize="hasAuthority('MANAGERS_READ')" href="#" class="fa fa-eye icon-dark no-decoration"
-             aria-hidden="true" title="View this manager"></a>
-          <a sec:authorize="hasAuthority('MANAGERS_UPDATE')" href="#" class="fa-regular fa-pen-to-square icon-dark"
-             title="Update manger info" style="text-decoration: none; margin-left: 10px;"></a>
-          <a sec:authorize="hasAuthority('MANAGERS_DELETE')" href="#" class="fa-regular fa-trash-can icon-dark btn-delete"
-             title="Delete this manager" style="margin-left: 10px;"></a>
+        <td th:text="${manager.firstName} + ' ' + ${manager.lastName}" style="text-align: left"></td>
+        <td th:text="${manager.email}" style="text-align: left"></td>
+        <td sec:authorize="hasAuthority('MANAGERS_CREATE')">
+          <a sec:authorize="hasAuthority('MANAGERS_READ')" class="fa fa-eye icon-dark no-decoration" aria-hidden="true"
+             th:href="@{/ui/v1/managers/{managerId}(managerId=${manager.id})}" title="View this manager"></a>
+          <a sec:authorize="hasAuthority('MANAGERS_UPDATE')" class="fa-regular fa-pen-to-square icon-dark"
+             th:href="@{/ui/v1/managers/{managerId}/edit(managerId=${manager.id})}" title="Update manger info"
+             style="text-decoration: none; margin-left: 10px;"></a>
+          <span sec:authorize="hasAuthority('MANAGERS_DELETE')" class="fa-regular fa-trash-can icon-dark btn-delete"
+                title="Delete this manager" style="margin-left: 10px; cursor: pointer;" data-bs-toggle="modal"
+                data-bs-target="#managerDeleteModal" th:data-manager-id="${manager.id}"
+                th:data-manager-email="${manager.email}"></span>
         </td>
       </tr>
       </tbody>
@@ -72,8 +73,34 @@
   <div class="message info-m" th:unless="${managers.size()} > 0">
     <span th:text="#{managers.no.found}"></span>
   </div>
+  <div class="my-3">
+    <div class="row d-flex">
+      <a sec:authorize="hasAuthority('MANAGERS_CREATE')" class="col-md-3 mt-2 unsent-width btn btn-success ms-auto"
+         style="margin-right: 30px;" th:href="@{/ui/v1/managers/new}">Add manager</a>
+    </div>
+  </div>
   <div
     th:insert="~{fragments/pagination :: pagination('managers', ${totalPages}, ${page}, ${size}, ${keyword})}"></div>
+</div>
+<div class="modal fade" id="managerDeleteModal" tabindex="-1" aria-labelledby="managerDeleteModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">Are you sure you want to delete this manager?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">This manager will lose the ability to use the system to manage participants in the
+        learning process after removal from the system.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form th:method="delete" th:action="@{/ui/v1/managers/managerId/delete}">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>
 <script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
@@ -92,10 +119,18 @@
 
     clearAndRedirect("/ui/v1/managers");
 
-    const allNamesOfManagers = /*[[${allNamesOfManagers}]]*/ [];
+    const allEmailsOfManagers = /*[[${allEmailsOfManagers}]]*/ [];
 
     $("#keyword").autocomplete({
-      source: allNamesOfManagers
+      source: allEmailsOfManagers
+    });
+
+    $('.btn-delete').click(function () {
+      const managerId = $(this).data('manager-id');
+      const managerEmail = $(this).data('manager-email');
+
+      $('#managerDeleteModal .modal-title').text(`Are you sure you want to delete a manager with a ${managerEmail} email?`);
+      $('#managerDeleteModal form').attr('action', `/ui/v1/managers/${managerId}/delete`);
     });
   });
 </script>

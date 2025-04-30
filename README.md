@@ -1,64 +1,79 @@
 # University CMS
 
-## Motivation & Goal
-When creating the app, I was motivated and encouraged by the following aspects:
-- The first is the desire to learn new technologies that are used to develop web applications in Java, more precisely it is: `Spring MVC`, `Spring Security`, `Thymeleaf`, `HTML`, `CSS`.
-- It should also be said that the development of this application is included in the Foxminded training program. Therefore, the second aspect of motivation was the desire to pass successfully another stage of training.
-- The last aspect was the thirst to learn more about the full cycle of software development.
+[![Java](https://img.shields.io/badge/Java-17-brightgreen)](https://docs.oracle.com/en/java/javase/17/)
+[![Spring](https://img.shields.io/badge/Spring-Boot%20|%20MVC%20|%20Security-blue)](https://docs.spring.io/spring-framework/reference/index.html)
+[![Database](https://img.shields.io/badge/Database-PostgreSQL-yellow)](https://www.postgresql.org/)
+[![Lombok](https://img.shields.io/badge/Lombok-1.18.30-red)](https://projectlombok.org/download)
+[![MapStruct](https://img.shields.io/badge/MapStruct-1.5.5.Final-purple)](https://mapstruct.org/documentation/1.5/reference/html/)
+![pipeline](https://gitlab.com/SerhiiBohdan/university-cms/badges/master/pipeline.svg)
 
-**Technologies used:**
-- *Java 17*;
-- *Spring (Boot, MVC, Data, Security)*;
-- *Hibernate*;
-- *PostgreSQL*, *Flyway*;
-- *JUnit 5*, *Mockito*, *Testcontainers*;
-- *Maven*, *Git*;
-- *Docker Compose*, *GitLab CI/CD*;
-- *HTML*, *CSS*, *Thymeleaf*, *JavaScript*.
+## Motivation & Goal
+
+The creation of **University CMS** was driven by several key motivations:
+- **Learning New Technologies**: To master modern Java web development tools like `Spring MVC`, `Spring Security`, `Bean Validation`, `Thymeleaf`, `HTML`, and `CSS`.
+- **Training Milestone**: As part of the Foxminded training program, this project marks a significant step toward completing the course successfully.
+- **Full Development Cycle**: To gain deeper insights into the complete software development lifecycle, from design to deployment.
+
+### Technologies Used
+- **Core**: *Java 17*
+- **Frameworks**: *Spring Boot, Spring MVC, Spring Data, Spring Security*
+- **Persistence**: *Hibernate, PostgreSQL, Flyway*
+- **Utilities**: *MapStruct, Lombok*
+- **Testing**: *JUnit 5, Mockito, Testcontainers*
+- **Build & VCS**: *Maven, Git*
+- **DevOps**: *Docker, GitLab CI/CD*
+- **Frontend**: *HTML, CSS, Thymeleaf, JavaScript*
 
 ## Description
 
-- **What is University CMS?** <br>
-The university CMS is a web platform designed to streamline and automate the educational process, fostering more productive interaction between teachers and students.
-- **What problems does the platform solve?** <br>
-Effective time management, planning, and meeting deadlines are crucial factors in successful learning. University CMS offers a comprehensive solution to this challenge by providing a platform that not only allows for posting educational materials but also enables the creation of personalized schedules and lesson planning. Students and teachers can easily allocate time across different courses, promoting better organization of the learning process and the development of time management skills.
-- **How to use it?** <br>
-University CMS facilitates interaction between four types of users: Administrator, Manager, Teacher, and Student. Each user type has unique roles and responsibilities, promoting a clear division of functions and adherence to the Single Responsibility Principle.
+### What is University CMS?
+University CMS is a web platform designed to streamline and automate the educational process, fostering productive interaction between teachers and students.
 
-  - *Administrator*: <br>
-   Manages managers: adds, edits, and deletes their accounts. <br>
-   Does not have access to manage teachers or students.
+### What Problems Does It Solve?
+Effective time management, planning, and meeting deadlines are critical for successful learning. University CMS addresses these by:
+- Allowing teachers to post educational materials.
+- Enabling personalized scheduling and lesson planning for students and teachers.
+- Promoting better organization and time management skills.
 
-  - *Manager*: <br>
-   Manages teachers, students, and groups: creates, edits, and deletes their accounts. <br>
-   Adds and removes students from groups.
+### How to Use It?
+The platform supports four user roles with distinct responsibilities, adhering to the **Single Responsibility Principle**:
 
-  - *Teacher*: <br>
-   Creates, edits, and manages their own courses. <br>
-   Adds students to their courses. <br>
-   Manages their own schedule based on the courses they have created. <br>
-   Evaluates students on topics within the courses they are enrolled in.
+| Role          | Responsibilities                                                                                   |
+|---------------|----------------------------------------------------------------------------------------------------|
+| **Administrator** | Manages managers: adds, edits, and deletes accounts. No access to teachers or students.           |
+| **Manager**       | Manages teachers, students, and groups: creates, edits, deletes accounts, and assigns groups.     |
+| **Teacher**       | Manages courses: creates, edits, adds students, schedules lessons, and evaluates student progress.|
+| **Student**       | Views course materials, tracks progress via evaluations, and manages their own schedule.         |
 
-  - *Student*: <br>
-   Accesses materials for the courses they are enrolled in. <br>
-   Tracks their progress based on teacher evaluations. <br>
-   Manages their own schedule and plans lessons for the courses they are enrolled in.
+## Features
+- **Role-Based Access**: Secure, distinct functionalities for each user type.
+- **Course Management**: Teachers can create, manage, and evaluate courses.
+- **Scheduling**: Personalized schedules with lesson planning capabilities.
+- **Database-Driven**: Uses PostgreSQL with Flyway for schema migrations.
+- **CI/CD Pipeline**: Automated builds and deployments via GitLab CI/CD and Docker.
 
 ## Install & Run
-To **install** this project, you must have Git version control installed on your device. It would also be nice to have a basic knowledge of using Git. You can download and learn how to use the version control system [here](https://git-scm.com/book/en/v2). Go to the folder where you want to install the project. Open Git Bash in it and enter the command:
+
+### Prerequisites
+- **Git**: Installed for cloning the repository ([Guide](https://git-scm.com/book/en/v2)).
+- **Docker**: Optional for containerized runs or database setup ([Docker Desktop](https://www.docker.com/products/docker-desktop/)).
+- **Java 17**: Required for building and running locally.
+- **PostgreSQL**: Optional if not using Docker for the database.
+
+Go to the folder where you want to install the project. Open Git Bash in it and enter the command:
 
 ```
-$ git clone https://gitlab.com/SerhiiBohdan/university-cms.git
+git clone https://gitlab.com/SerhiiBohdan/university-cms.git
 ```
 
 This way you will have the app installed.
 
 There are several ways to **run** the application **locally**. Consider them.
 1) Docker Container<br>
-   To use this method you must have [`Docker`](https://www.docker.com/products/docker-desktop/) installed on your machine ([more information](https://docs.docker.com/get-started/overview/#docker-objects)). Run it and make sure the docker daemon is running. Next, you should go to the root of the project you just downloaded. To run an application in a docker container, you should run the following command:
+   To use this method you must have Docker installed on your machine. Run it and make sure the docker daemon is running. Next, you should go to the root of the project you just downloaded. To run an application in a docker container, you should run the following command:
 
    ```
-   > docker compose up -d
+   docker compose up -d
    ```
    After all containers are successfully launched, go to your browser and enter the following URL: `http://localhost:8083/ui/v1/home`. As a result, you should see the welcome page of the application.
 
@@ -72,7 +87,6 @@ There are several ways to **run** the application **locally**. Consider them.
       You should make the following settings:<br>
         a) Create a database, name it `university`.<br>
         b) Next, you should change some settings in the [application.yml](src/main/resources/application.yml) file:<br>
-        - replace `jdbc:postgresql://db:5432/university` with `jdbc:postgresql://localhost:5432/university`;<br>
         - change the username `postgres` to the name of the database owner `university` (usually the database owner is `postgres`);<br>
         - finally replace `pass` with the database user password you use to connect to your local database.
 
@@ -80,44 +94,39 @@ There are several ways to **run** the application **locally**. Consider them.
         ```yml
         spring:
           datasource:
-            driver-class-name: org.postgresql.Driver
-            url: jdbc:postgresql://localhost:5432/school
-            username: your-database-owner-name
-            password: your-local-database-password
+          driver-class-name: org.postgresql.Driver
+          url: jdbc:postgresql://localhost:5432/university
+          username: your-database-owner-name
+          password: your-local-database-password
         ```
     2. If you have Docker installed:<br>
        a) Run Docker on your device and make sure docker daemon is running.<br>
        b) Perform the following command:
        ```
-       > docker run -it --rm --detach \
+       docker run -it --rm --detach \
             --name db \
             -e POSTGRES_USER=postgres \
             -e POSTGRES_PASSWORD=pass \
             -e POSTGRES_DB=university \
-            -p 5433:5432 \
+            -p 5432:5432 \
             postgres:15.3
        ```
-        c) Next, replace `jdbc:postgresql://db:5432/university` with `jdbc:postgresql://localhost:5433/university` in the [application.yml](src/main/resources/application.yml) file.
 
     Now you have a database in which the necessary data will be stored. And modifying the [application.yml](src/main/resources/application.yml) file will ensure that the application can successfully connect to this database at runtime. Now you can run the application by executing the following commands in the root of the project:<br>
 
     - for Windows (cmd)
     ```
-    > mvnw.cmd package -DskipTests
+     mvnw.cmd spring-boot:run
     ```
     - for Linux/MacOS
     ```
-    > ./mvnw package -DskipTests
-    ```
-    and further
-    ```
-    > java -jar target/university-cms-0.0.1-SNAPSHOT.jar
+     ./mvnw spring-boot:run
     ```
 
    Next, go to your browser and enter the following URL: `http://localhost:8083/ui/v1/home`. As a result, you should see the welcome page of the application.
 
 ## Perform authorization
-In order to log in, you need to click the "Login" button in the upper right corner of the welcome page. Below are the data for authorizing users with different roles. Use them to continue working.
+In order to log in, you need to click the "Log in" button in the upper right corner of the welcome page. Below are the data for authorizing users with different roles. Use them to continue working.
 - admin: `username - anthony.taylor@gmail.com`, `password - admin1234`;
 - manager: `username - alex.brown@gmail.com`, `password - 7aB#3mW8!yT4`;
 - teacher: `username - john.doe@gmail.com`, `password - et!@-Lj^rd123`;
@@ -132,11 +141,11 @@ The application has a set of unit tests that you can also run and verify that th
 
 * for Windows (cmd)
 ```
-> mvnw.cmd test
+mvnw.cmd test
 ```
 * for Linux/MacOS
 ```
-> ./mvnw test
+./mvnw test
 ```
 She will do the tests.
 
@@ -154,9 +163,8 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 **Topic** - corresponds to a specific topic from the course, which has a name and description; <br>
 **Mark** - has a certain meaning, topic and belongs to the student; <br>
 **Group** - corresponds to a group in an educational institution, consists of a certain number of students; <br>
-**Schedule** - contains a set of study days; <br>
-**StudyDay** - corresponds to one study day with the date and day of the week, contains a set of lessons; <br>
-**Lesson** - corresponds to one lesson in the study day, contains the start time of the lesson and the end as well as the course; <br>
+**Schedule** - contains a set of lessons; <br>
+**Lesson** - corresponds to one lesson in the schedule, contains the date, start time and end time of the lesson, and is linked to a specific course; <br>
 
 ### Business Requirements
 
@@ -196,6 +204,25 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 
 - The manager distributes and adds students to the groups.
 
+# Task 3.10 Finalize app functionality
+
+**Assignment**
+
+Using your flows descriptions from task 3.1 create list of flows to implement, call it features, consult with Mentor if required.
+
+Example:
+
+```
+Given Anonymous User D
+- User 'D' should be able to list all courses with basic info (without schedule, teacher, groups and student information)
+... etc
+```
+
+Consider feature implementation as subtask(made in new branch and merged into main/master on completion)
+
+For each feature, implement UI pages(usually list, create, edit, delete, etc.), controller/controller methods, service/service methods, repository methods.
+
+Controller tests are mandatory, add other components tests if required.
 
 # Task 3.9 Implement Schedule view + edit features
 

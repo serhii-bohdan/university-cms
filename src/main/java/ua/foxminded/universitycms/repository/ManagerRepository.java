@@ -8,39 +8,45 @@ import ua.foxminded.universitycms.model.Manager;
 import java.util.Optional;
 
 /**
- * The {@code ManagerRepository} interface is a Spring Data JPA repository
- * for {@link Manager} entities.
+ * Spring Data JPA repository for managing {@link Manager} entities in the university management system.
  * <p>
- * This interface extends {@link JpaRepository}, which provides JPA related
- * methods such as save(), findOne(), findAll(), count(), delete(). This
- * interface is annotated with {@code @Repository}, indicating that it's a
- * "Repository" bean. A Repository is a mechanism for encapsulating storage,
- * retrieval, and search behavior which emulates a collection of objects.
+ * This interface extends {@link JpaRepository}, inheriting standard CRUD operations (create, read,
+ * update, delete) and pagination support for the {@link Manager} entity, identified by a {@code Long}
+ * primary key. It also provides custom query methods to retrieve managers based on their email address.
+ * The {@code @Repository} annotation marks this interface as a Spring Data repository, enabling automatic
+ * implementation by Spring to encapsulate storage, retrieval, and search behavior for manager entities.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Manager
+ * @see org.springframework.stereotype.Repository
  */
 @Repository
 public interface ManagerRepository extends JpaRepository<Manager, Long> {
 
     /**
-     * Finds a manager by their unique email address.
+     * Retrieves a manager by their unique email address.
+     * <p>
+     * This method queries the database for a {@link Manager} entity with the specified email address,
+     * returning an {@link Optional} to handle cases where no matching manager is found.
      *
-     * @param email The email address of the manager to search for.
-     * @return An {@link Optional} containing the manager if found, or an empty Optional if not.
+     * @param email the email address of the manager to search for
+     * @return an {@link Optional} containing the manager if found, or an empty {@link Optional} if no
+     * manager matches the provided email
      */
     Optional<Manager> findByEmail(String email);
 
     /**
-     * Finds managers based on their first name and last name, ignoring case.
+     * Retrieves a paginated list of managers by their email address.
      * <p>
-     * This method leverages Spring Data JPA's naming convention to derive a query from the method name.
-     * It searches for managers whose first name and last name match the provided parameters, irrespective of case.
+     * This method queries the database for {@link Manager} entities matching the specified email address,
+     * returning results as a {@link Page} object to support pagination and sorting. The {@link Pageable}
+     * parameter defines the page size, page number, and sort options.
      *
-     * @param firstName The first name to search for (case-insensitive).
-     * @param lastName  The last name to search for (case-insensitive).
-     * @param pageable  Pagination information for controlling the returned results.
-     * @return A {@link Page} of managers matching the search criteria, possibly empty if none are found.
+     * @param email    the email address of the managers to search for
+     * @param pageable the pagination and sorting configuration
+     * @return a {@link Page} containing the matching managers, or an empty page if no matches are found
      */
-    Page<Manager> findByName_FirstNameAndName_LastNameIgnoreCase(String firstName, String lastName, Pageable pageable);
+    Page<Manager> findByEmail(String email, Pageable pageable);
 
 }

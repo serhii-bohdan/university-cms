@@ -1,247 +1,288 @@
 package ua.foxminded.universitycms.util;
 
+import java.util.List;
+
 /**
- * Utility class that contains constant attribute names used for storing
- * various entities in the Spring MVC Model.
- * <p>
- * This class cannot be instantiated and is designed to hold static final
- * constants, which are used as keys to store and retrieve data in the Model.
+ * Utility class containing constant attribute names for storing entities in the Spring MVC Model.
+ * Designed as a non-instantiable class with static final constants used as keys for model data.
  *
  * @author Serhii Bohdan
+ * @see org.springframework.ui.Model
  */
 public class ModelAttributeNames {
 
     /**
      * Private constructor to prevent instantiation of this utility class.
-     * Calling this constructor will throw an IllegalStateException.
+     * Throws an {@link IllegalStateException} if called.
      */
     private ModelAttributeNames() {
         throw new IllegalStateException("Utility class");
     }
 
     /**
-     * The attribute name used to store the current page number in the Spring MVC Model.
+     * Attribute name for storing the current page number in the Spring MVC Model.
      */
     public static final String PAGE_ATTRIBUTE = "page";
 
     /**
-     * The attribute name used to store the total number of items in the dataset in the Spring MVC Model.
+     * Attribute name for storing the total number of items in the dataset in the Spring MVC Model.
      */
     public static final String TOTAL_ITEMS_ATTRIBUTE = "totalItems";
 
     /**
-     * The attribute name used to store the total number of pages in the dataset in the Spring MVC Model.
+     * Attribute name for storing the total number of pages in the dataset in the Spring MVC Model.
      */
     public static final String TOTAL_PAGES_ATTRIBUTE = "totalPages";
 
     /**
-     * The attribute name used to store the page size in the Spring MVC Model.
+     * Attribute name for storing the page size in the Spring MVC Model.
      */
     public static final String SIZE_ATTRIBUTE = "size";
 
     /**
-     * Used as a model attribute to store a keyword for search.
+     * Attribute name for storing a search keyword in the Spring MVC Model.
      */
     public static final String KEYWORD_ATTRIBUTE = "keyword";
 
     /**
-     * The attribute name used to store a password update request in the model.
+     * Attribute name for storing a password update request in the Spring MVC Model.
      */
     public static final String PASSWORD_UPDATE_REQUEST_ATTRIBUTE = "passwordUpdateRequest";
 
     /**
-     * Used as a model attribute to store error messages related to validation.
-     */
-    public static final String ERROR_MESSAGE_ATTRIBUTE = "validationErrorMessage";
-
-    /**
-     * The attribute name used to store exception details in the Spring MVC Model.
+     * Attribute name for storing exception details in the Spring MVC Model.
      */
     public static final String EXCEPTION_ATTRIBUTE = "exception";
 
     /**
-     * The attribute name used to store a list of administrators in the Spring MVC Model.
+     * Attribute name for storing user-related data in the Spring MVC Model.
+     */
+    public static final String USER_ATTRIBUTE = "user";
+
+    /**
+     * Attribute name for storing the user's ID in the Spring MVC Model.
+     */
+    public static final String USER_ID_ATTRIBUTE = "userId";
+
+    /**
+     * Attribute name for storing the user's full name in the Spring MVC Model.
+     */
+    public static final String USER_FULL_NAME_ATTRIBUTE = "userFullName";
+
+    /**
+     * Attribute name for storing the user's role in the Spring MVC Model.
+     */
+    public static final String USER_ROLE_ATTRIBUTE = "userRole";
+
+    /**
+     * Attribute name for storing a list of administrators in the Spring MVC Model.
      */
     public static final String ADMINS_ATTRIBUTE = "admins";
 
     /**
-     * The attribute name used to store all names of administrators in the Spring MVC Model.
+     * Attribute name for storing a single admin DTO in the Spring MVC Model.
      */
-    public static final String ADMINS_ALL_NAMES_ATTRIBUTE = "allNamesOfAdmins";
+    public static final String ADMIN_ATTRIBUTE = "admin";
 
     /**
-     * The attribute name used to store a list of groups in the Spring MVC Model.
+     * Attribute name for storing all email addresses of admins in the Spring MVC Model.
+     */
+    public static final String ADMINS_ALL_EMAILS_ATTRIBUTE = "allEmailsOfAdmins";
+
+    /**
+     * Attribute name for storing a list of groups in the Spring MVC Model.
      */
     public static final String GROUPS_ATTRIBUTE = "groups";
 
     /**
-     * The attribute name used to store a group object in the Spring MVC Model.
+     * Attribute name for storing a group object in the Spring MVC Model.
      */
     public static final String GROUP_ATTRIBUTE = "group";
 
     /**
-     * The attribute name used to store all names of groups in the Spring MVC Model.
+     * Attribute name for storing all names of groups in the Spring MVC Model.
      */
     public static final String GROUPS_ALL_NAMES_ATTRIBUTE = "allNamesOfGroups";
 
     /**
-     * The attribute name used to store a list of all existing groups in the Spring MVC Model.
+     * Attribute name for storing a list of all existing groups in the Spring MVC Model.
      */
     public static final String ALL_GROUPS_ATTRIBUTE = "allExistingGroups";
 
     /**
-     * The attribute name used to store a list of managers in the Spring MVC Model.
+     * Attribute name for storing a list of managers in the Spring MVC Model.
      */
     public static final String MANAGERS_ATTRIBUTE = "managers";
 
     /**
-     * The attribute name used to store all names of managers in the Spring MVC Model.
+     * Attribute name for storing a single manager DTO in the Spring MVC Model.
      */
-    public static final String MANAGERS_ALL_NAMES_ATTRIBUTE = "allNamesOfManagers";
+    public static final String MANAGER_ATTRIBUTE = "manager";
 
     /**
-     * The attribute name used to store a list of students in the Spring MVC Model.
+     * Attribute name for storing all email addresses of managers in the Spring MVC Model.
+     */
+    public static final String MANAGERS_ALL_EMAILS_ATTRIBUTE = "allEmailsOfManagers";
+
+    /**
+     * Attribute name for storing a list of students in the Spring MVC Model.
      */
     public static final String STUDENTS_ATTRIBUTE = "students";
 
     /**
-     * Used as a model attribute to store the student object.
+     * Attribute name for storing a student object in the Spring MVC Model.
      */
     public static final String STUDENT_ATTRIBUTE = "student";
 
     /**
-     * The attribute name used to store the student ID in the Spring MVC Model.
+     * Attribute name for storing the student ID in the Spring MVC Model.
      */
     public static final String STUDENT_ID_ATTRIBUTE = "studentId";
 
     /**
-     * The attribute name used to store the student's full name in the Spring MVC Model.
+     * Attribute name for storing the student's full name in the Spring MVC Model.
      */
     public static final String STUDENT_FULL_NAME_ATTRIBUTE = "studentFullName";
 
     /**
-     * The attribute name used to store all emails of students in the Spring MVC Model.
+     * Attribute name for storing all email addresses of students in the Spring MVC Model.
      */
     public static final String STUDENTS_ALL_EMAILS_ATTRIBUTE = "allEmailsOfStudents";
 
     /**
-     * The attribute name used to store students who are not enrolled in any course.
+     * Attribute name for storing students not enrolled in any course in the Spring MVC Model.
      */
     public static final String NOT_ENROLLED_STUDENTS_ATTRIBUTE = "notEnrolledStudents";
 
     /**
-     * The attribute name used to store student email addresses in the Spring MVC Model.
+     * Attribute name for storing student email addresses in the Spring MVC Model.
      */
     public static final String STUDENT_EMAILS_ATTRIBUTE = "studentEmails";
 
     /**
-     * Model attribute name for a teacher object.
+     * Attribute name for storing a teacher object in the Spring MVC Model.
      */
     public static final String TEACHER_ATTRIBUTE = "teacher";
 
     /**
-     * The attribute name used to store a list of teachers in the Spring MVC Model.
+     * Attribute name for storing a list of teachers in the Spring MVC Model.
      */
     public static final String TEACHERS_ATTRIBUTE = "teachers";
 
     /**
-     * The attribute name used to store all emails of teachers in the Spring MVC Model.
+     * Attribute name for storing all email addresses of teachers in the Spring MVC Model.
      */
     public static final String TEACHERS_ALL_EMAILS_ATTRIBUTE = "allEmailsOfTeachers";
 
     /**
-     * Used as a model attribute to store the course object.
+     * Attribute name for storing a course object in the Spring MVC Model.
      */
     public static final String COURSE_ATTRIBUTE = "course";
 
     /**
-     * The attribute name used to store a list of courses in the Spring MVC Model.
+     * Attribute name for storing a list of courses in the Spring MVC Model.
      */
     public static final String COURSES_ATTRIBUTE = "courses";
 
     /**
-     * The attribute name used to store the course ID in the Spring MVC Model.
+     * Attribute name for storing the course ID in the Spring MVC Model.
      */
     public static final String COURSE_ID_ATTRIBUTE = "courseId";
 
     /**
-     * The attribute name used to store all names of courses in the Spring MVC Model.
+     * Attribute name for storing all names of courses in the Spring MVC Model.
      */
     public static final String COURSES_ALL_NAMES_ATTRIBUTE = "allNamesOfCourses";
 
     /**
-     * The attribute name used to store the user's courses in the Spring MVC Model.
+     * Attribute name for storing the user's courses in the Spring MVC Model.
      */
     public static final String USER_COURSES_ATTRIBUTE = "userCourses";
 
     /**
-     * The attribute name used to store the names of the user's courses in the Spring MVC Model.
+     * Attribute name for storing the names of the user's courses in the Spring MVC Model.
      */
     public static final String USER_COURSES_NAMES_ATTRIBUTE = "userCoursesNames";
 
     /**
-     * The attribute name used to store students of a course in the Spring MVC Model.
+     * Attribute name for storing students of a course in the Spring MVC Model.
      */
     public static final String COURSE_STUDENTS_ATTRIBUTE = "courseStudents";
 
     /**
-     * The attribute name used to store the topic data in the Spring MVC Model.
+     * Attribute name for storing a topic object in the Spring MVC Model.
      */
     public static final String TOPIC_ATTRIBUTE = "topic";
 
     /**
-     * The attribute name used to store a list of topics in the Spring MVC Model.
+     * Attribute name for storing a list of topics in the Spring MVC Model.
      */
     public static final String TOPICS_ATTRIBUTE = "topics";
 
     /**
-     * The attribute name used to store a list of unrated topics in the Spring MVC Model.
+     * Attribute name for storing a list of unrated topics in the Spring MVC Model.
      */
     public static final String UNRATED_TOPICS_ATTRIBUTE = "unratedTopics";
 
     /**
-     * The attribute name used to store the names of topics in the Spring MVC Model.
+     * Attribute name for storing the names of topics in the Spring MVC Model.
      */
     public static final String TOPIC_NAMES_ATTRIBUTE = "namesOfTopics";
 
     /**
-     * The attribute name used to store the mark data in the Spring MVC Model.
+     * Attribute name for storing a mark object in the Spring MVC Model.
      */
     public static final String MARK_ATTRIBUTE = "mark";
 
     /**
-     * The attribute name used to store a list of marks in the Spring MVC Model.
+     * Attribute name for storing a list of marks in the Spring MVC Model.
      */
     public static final String MARKS_ATTRIBUTE = "marks";
 
     /**
-     * The attribute name used to store a schedule object in the Spring MVC Model.
-     */
-    public static final String SCHEDULE_ATTRIBUTE = "schedule";
-
-    /**
-     * Attribute name used to store the schedule ID in the model.
+     * Attribute name for storing the schedule ID in the Spring MVC Model.
      */
     public static final String SCHEDULE_ID_ATTRIBUTE = "scheduleId";
 
     /**
-     * The attribute name used to store a study day object in the Spring MVC Model.
+     * Attribute name for storing the current date of the user in the Spring MVC Model.
      */
-    public static final String STUDY_DAY_ATTRIBUTE = "studyDay";
+    public static final String USER_CURRENT_DATE_ATTRIBUTE = "userCurrentDate";
 
     /**
-     * Attribute name used to store the date in the model.
+     * Attribute name for storing the start date of a period in the Spring MVC Model.
      */
-    public static final String DATE_ATTRIBUTE = "date";
+    public static final String START_DATE_ATTRIBUTE = "startDate";
 
     /**
-     * The attribute name used to store a lesson object in the Spring MVC Model.
+     * Attribute name for storing the end date of a period in the Spring MVC Model.
+     */
+    public static final String END_DATE_ATTRIBUTE = "endDate";
+
+    /**
+     * Attribute name for storing a lesson object in the Spring MVC Model.
      */
     public static final String LESSON_ATTRIBUTE = "lesson";
 
     /**
-     * Attribute name for the list of available time zone IDs.
+     * Attribute name for storing a list of lessons in the Spring MVC Model.
      */
-    public static final String AVAILABLE_ZONE_IDS_ATTRIBUTE = "availableZoneIds";
+    public static final String LESSONS_ATTRIBUTE = "lessons";
+
+    /**
+     * Attribute name for storing a list of time zones in the Spring MVC Model.
+     */
+    public static final String TIME_ZONES_ATTRIBUTE = "timeZones";
+
+    /**
+     * List of supported time zone offsets in UTC format.
+     */
+    public static final List<String> TIME_ZONES_LIST = List.of(
+        "-12:00", "-11:00", "-10:00", "-09:30", "-09:00", "-08:00", "-07:00", "-06:00",
+        "-05:00", "-04:00", "-03:30", "-03:00", "-02:00", "-01:00", "+00:00", "+01:00",
+        "+02:00", "+03:00", "+03:30", "+04:00", "+04:30", "+05:00", "+05:30", "+05:45",
+        "+06:00", "+06:30", "+07:00", "+08:00", "+08:45", "+09:00", "+09:30", "+10:00",
+        "+10:30", "+11:00", "+12:00", "+12:45", "+13:00", "+14:00"
+    );
 
 }

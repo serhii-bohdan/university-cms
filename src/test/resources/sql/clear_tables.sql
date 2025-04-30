@@ -30,9 +30,6 @@ ALTER SEQUENCE schedules_id_seq RESTART WITH 1;
 DELETE FROM lessons;
 ALTER SEQUENCE lessons_id_seq RESTART WITH 1;
 
-DELETE FROM study_days;
-ALTER SEQUENCE study_days_id_seq RESTART WITH 1;
-
 DELETE FROM roles_permissions;
 
 DELETE FROM roles;

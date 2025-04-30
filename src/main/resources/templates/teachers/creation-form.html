@@ -4,7 +4,8 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
-  <title>Teachers</title>
+  <title>Add New Teacher - University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -12,7 +13,12 @@
 <body>
 <header th:insert="~{fragments/header :: header}"></header>
 <div class="container-fluid" style="max-width: 600px; margin: 0 auto;">
-  <h2 class="title-center">Add a new teacher</h2>
+  <div class="row d-flex">
+    <a class="fa fa-arrow-left col mt-3" th:href="@{/ui/v1/teachers}" aria-hidden="true"
+       title="Back to the list of teachers"
+       style="width: 100%; max-width: max-content; padding-left: 0; padding-right: 0; padding-top: 0.8rem; cursor: pointer; text-decoration: none; color: #0A0921"></a>
+    <h2 class="title-center col mt-3">Add a new teacher</h2>
+  </div>
   <form th:method="post" th:action="@{/ui/v1/teachers/add}" th:object="${teacher}">
     <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
       <ul style="margin-bottom: 0">
@@ -20,22 +26,22 @@
       </ul>
     </div>
     <div class="form-group form-group-margin">
-      <label class="form-control-label-margin" for="firstName">Enter teacher first name</label>
+      <label class="form-control-label-margin" for="firstName" style="font-weight: bold">Enter teacher first name</label>
       <input type="text" class="form-control" id="firstName" th:field="*{firstName}">
       <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="invalid-validation"></div>
     </div>
     <div class="form-group form-group-margin">
-      <label class="form-control-label-margin" for="lastName">Enter teacher last name</label>
+      <label class="form-control-label-margin" for="lastName" style="font-weight: bold">Enter teacher last name</label>
       <input type="text" class="form-control" id="lastName" th:field="*{lastName}">
       <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="invalid-validation"></div>
     </div>
     <div class="form-group form-group-margin">
-      <label class="form-control-label-margin" for="email">Enter teacher email</label>
+      <label class="form-control-label-margin" for="email" style="font-weight: bold">Enter teacher email</label>
       <input type="email" class="form-control" id="email" th:field="*{email}">
       <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-validation"></div>
     </div>
     <div class="form-group form-group-margin">
-      <label class="form-control-label-margin" for="password">Enter password</label>
+      <label class="form-control-label-margin" for="password" style="font-weight: bold">Enter password</label>
       <div style="display: flex; align-items: center; position: relative; width: 100%;">
         <input type="password" class="form-control" id="password" th:field="*{password}"
                style="flex: 1; padding-right: 35px;">
@@ -45,8 +51,19 @@
       <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-validation"></div>
     </div>
     <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="locationZoneOffset" style="font-weight: bold">Choose a time zone</label>
+      <select id="locationZoneOffset" class="form-control" th:field="*{locationZoneOffset}">
+        <option th:each="timeZone : ${timeZones}"
+                th:value="${timeZone}"
+                th:text="${timeZone}">
+        </option>
+      </select>
+      <div th:if="${#fields.hasErrors('locationZoneOffset')}" th:errors="*{locationZoneOffset}"
+           class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
       <div class="form-check">
-        <label class="form-check-label" for="isActive">Activate teacher</label>
+        <label class="form-check-label" for="isActive" style="font-weight: bold">Activate teacher</label>
         <input class="form-check-input" type="checkbox" value="" id="isActive" th:field="*{isActive}">
         <div th:if="${#fields.hasErrors('isActive')}" th:errors="*{isActive}" class="invalid-validation"></div>
       </div>

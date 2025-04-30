@@ -14,17 +14,18 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 /**
- * The {@code Topic} class represents a topic covered within a course and
- * inherits from the {@link AbstractEntity} class.
+ * Represents a topic entity within a course in the university management system.
  * <p>
- * This class is annotated with {@code @Entity}, indicating that it's a JPA
- * entity. This means that instances of this class can be persisted to the
- * database. The {@code @Table} annotation specifies the name of the database
- * table that corresponds to this entity. This class includes fields for the
- * topic's ID, name, description, the course it belongs to, and the marks
- * associated with it. It also includes methods to get and set these fields.
+ * This class extends {@link AbstractEntity} to inherit a unique identifier and defines attributes
+ * specific to a topic, such as its name, description, order within the course, the associated course,
+ * and related student marks. It is mapped to the {@code topics} table in the database using JPA
+ * annotations. Instances of this class represent individual topics covered within a {@link Course},
+ * with associated {@link Mark} entities reflecting student performance.
  *
  * @author Serhii Bohdan
+ * @see AbstractEntity
+ * @see Course
+ * @see Mark
  */
 @Getter
 @Setter
@@ -37,33 +38,49 @@ import lombok.experimental.SuperBuilder;
 public class Topic extends AbstractEntity {
 
     /**
-     * The name of the topic.
+     * The name of the topic, identifying it within the course.
+     * <p>
+     * This field is mapped to the {@code topic_name} column in the {@code topics} table.
      */
     @Column(name = "topic_name")
     private String topicName;
 
     /**
-     * A description of the topic content.
+     * A description of the topic's content and scope.
+     * <p>
+     * This field is mapped to the {@code topic_description} column in the {@code topics} table.
      */
     @Column(name = "topic_description")
     private String topicDescription;
 
     /**
-     * The order (position) of the topic within the course curriculum.
-     * Lower numbers indicate topics covered earlier in the course.
+     * The order of the topic within the course curriculum.
+     * <p>
+     * This field is mapped to the {@code topic_order} column in the {@code topics} table. Lower values
+     * indicate topics covered earlier in the course sequence, enabling a structured progression of
+     * material.
      */
     @Column(name = "topic_order")
     private Integer topicOrder;
 
     /**
-     * The course that this topic belongs to.
+     * The course to which this topic belongs.
+     * <p>
+     * This field establishes a many-to-one relationship with the {@link Course} entity and is mapped
+     * to the {@code course_id} column in the {@code topics} table. The course is lazily fetched
+     * ({@code FetchType.LAZY}) and must not be null, linking the topic to its parent course.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
     /**
-     * The student marks (grades) associated with this topic.
+     * The set of student marks associated with this topic.
+     * <p>
+     * This field defines a one-to-many relationship with the {@link Mark} entity, mapped by the
+     * {@code topic} field in {@link Mark}. Marks are lazily fetched ({@code FetchType.LAZY}) and
+     * managed with a cascading removal policy ({@code CascadeType.REMOVE}), meaning marks are deleted
+     * when the topic is removed. The set is initialized as an empty {@code HashSet}.
      */
     @OneToMany(mappedBy = "topic", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<Mark> marks = new HashSet<>();

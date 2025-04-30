@@ -27,6 +27,7 @@ import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
 import ua.foxminded.universitycms.dto.TeacherCreationDto;
 import ua.foxminded.universitycms.dto.TeacherDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
+import ua.foxminded.universitycms.exception.UserNotFoundException;
 import ua.foxminded.universitycms.model.Teacher;
 import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.repository.TeacherRepository;
@@ -35,9 +36,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@WebMvcTest(controllers = TeacherController.class)
-@ContextConfiguration(classes = ControllerTestConfig.class)
-@Import(SecurityConfig.class)
+@WebMvcTest(controllers = {TeacherController.class})
+@ContextConfiguration(classes = {ControllerTestConfig.class})
+@Import({SecurityConfig.class})
 class TeacherControllerTest {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
@@ -55,11 +56,11 @@ class TeacherControllerTest {
 
     @Test
     @WithMockUser(authorities = {"TEACHERS_READ"})
-    void getPageWithTeachers_shouldReturnPageWithTeachersThatFoundByKeyword_whenKeywordNotNullAndNotBlank() throws Exception {
-        String keyword = "FirstName1 LastName1";
+    void getPageWithTeachers_shouldReturnPageWithTeachersThatFoundByKeyword_whenKeywordNotNull() throws Exception {
+        String keyword = "test@gmail.com";
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(teacherServiceMock.getAll()).thenReturn(getAllTeachersForTest());
-        when(teacherServiceMock.getTeacherInPageByEmail(keyword, pageable)).thenReturn(getEmptyPageForTest());
+        when(teacherServiceMock.getAll()).thenReturn(getEmptyTeachersListForTest());
+        when(teacherServiceMock.findTeachers(pageable, keyword)).thenReturn(getEmptyTeachersPageForTest());
 
         mockMvc.perform(get("/ui/v1/teachers")
                 .param("keyword", keyword))
@@ -72,15 +73,17 @@ class TeacherControllerTest {
             .andExpect(model().attribute("keyword", keyword))
             .andExpect(view().name("teachers/all-teachers"));
 
-        verify(teacherServiceMock, times(1)).getTeacherInPageByEmail(keyword, pageable);
+        verify(teacherServiceMock, times(1)).findTeachers(pageable, keyword);
+        verify(teacherServiceMock, times(1)).getAll();
+        verify(teacherServiceMock, times(1)).extractTeacherEmails(any());
     }
 
     @Test
     @WithMockUser(authorities = {"TEACHERS_READ"})
     void getPageWithTeachers_shouldReturnPageWithAllTeachers_whenKeywordIsNull() throws Exception {
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(teacherServiceMock.getAll()).thenReturn(getAllTeachersForTest());
-        when(teacherServiceMock.getTeachersPage(pageable)).thenReturn(getEmptyPageForTest());
+        when(teacherServiceMock.getAll()).thenReturn(getEmptyTeachersListForTest());
+        when(teacherServiceMock.findTeachers(pageable, null)).thenReturn(getEmptyTeachersPageForTest());
 
         mockMvc.perform(get("/ui/v1/teachers"))
             .andExpect(status().isOk())
@@ -89,31 +92,12 @@ class TeacherControllerTest {
             .andExpect(model().attributeExists("totalItems"))
             .andExpect(model().attributeExists("totalPages"))
             .andExpect(model().attributeExists("size"))
+            .andExpect(model().attributeDoesNotExist("keyword"))
             .andExpect(view().name("teachers/all-teachers"));
 
-        verify(teacherServiceMock, times(1)).getTeachersPage(pageable);
-    }
-
-    @Test
-    @WithMockUser(authorities = {"TEACHERS_READ"})
-    void getPageWithTeachers_shouldReturnPageWithAllTeachers_whenKeywordIsBlank() throws Exception {
-        String keyword = "               ";
-        Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(teacherServiceMock.getAll()).thenReturn(getAllTeachersForTest());
-        when(teacherServiceMock.getTeachersPage(pageable)).thenReturn(getEmptyPageForTest());
-
-        mockMvc.perform(get("/ui/v1/teachers")
-                .param("keyword", keyword))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("teachers"))
-            .andExpect(model().attributeExists("page"))
-            .andExpect(model().attributeExists("totalItems"))
-            .andExpect(model().attributeExists("totalPages"))
-            .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("keyword", ""))
-            .andExpect(view().name("teachers/all-teachers"));
-
-        verify(teacherServiceMock, times(1)).getTeachersPage(pageable);
+        verify(teacherServiceMock, times(1)).findTeachers(pageable, null);
+        verify(teacherServiceMock, times(1)).getAll();
+        verify(teacherServiceMock, times(1)).extractTeacherEmails(any());
     }
 
     @Test
@@ -122,8 +106,8 @@ class TeacherControllerTest {
         String invalidPageNumber = "-1";
         String invalidPageSize = "0";
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(teacherServiceMock.getAll()).thenReturn(getAllTeachersForTest());
-        when(teacherServiceMock.getTeachersPage(pageable)).thenReturn(getEmptyPageForTest());
+        when(teacherServiceMock.getAll()).thenReturn(getEmptyTeachersListForTest());
+        when(teacherServiceMock.findTeachers(pageable, null)).thenReturn(getEmptyTeachersPageForTest());
 
         mockMvc.perform(get("/ui/v1/teachers")
                 .param("page", invalidPageNumber)
@@ -136,7 +120,9 @@ class TeacherControllerTest {
             .andExpect(model().attribute("size", DEFAULT_PAGE_SIZE))
             .andExpect(view().name("teachers/all-teachers"));
 
-        verify(teacherServiceMock, times(1)).getTeachersPage(pageable);
+        verify(teacherServiceMock, times(1)).findTeachers(pageable, null);
+        verify(teacherServiceMock, times(1)).getAll();
+        verify(teacherServiceMock, times(1)).extractTeacherEmails(any());
     }
 
     @Test
@@ -167,7 +153,7 @@ class TeacherControllerTest {
         mockMvc.perform(get("/ui/v1/teachers/{teacherId}", teacherId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(teacherServiceMock, times(1)).getById(teacherId);
     }
@@ -178,6 +164,7 @@ class TeacherControllerTest {
         mockMvc.perform(get("/ui/v1/teachers/new"))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("teacher"))
+            .andExpect(model().attributeExists("timeZones"))
             .andExpect(view().name("teachers/creation-form"));
     }
 
@@ -188,6 +175,7 @@ class TeacherControllerTest {
         String lastName = "LastName";
         String email = "test@email.com";
         String password = "password";
+        String locationZoneOffset = "+00:00";
         Boolean isActive = true;
 
         mockMvc.perform(post("/ui/v1/teachers/add")
@@ -197,6 +185,7 @@ class TeacherControllerTest {
                 .param("lastName", lastName)
                 .param("email", email)
                 .param("password", password)
+                .param("locationZoneOffset", locationZoneOffset)
                 .param("isActive", String.valueOf(isActive)))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/ui/v1/teachers"));
@@ -233,6 +222,7 @@ class TeacherControllerTest {
         mockMvc.perform(get("/ui/v1/teachers/{teacherId}/edit", teacherId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("teacher"))
+            .andExpect(model().attributeExists("timeZones"))
             .andExpect(view().name("teachers/update-form"));
 
         verify(teacherServiceMock, times(1)).getById(teacherId);
@@ -251,7 +241,7 @@ class TeacherControllerTest {
         mockMvc.perform(get("/ui/v1/teachers/{teacherId}/edit", teacherId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(teacherServiceMock, times(1)).getById(teacherId);
     }
@@ -263,6 +253,7 @@ class TeacherControllerTest {
         String firstName = "FirstName";
         String lastName = "LastName";
         String email = "test@email.com";
+        String locationZoneOffset = "+00:00";
         Boolean isActive = true;
 
         mockMvc.perform(put("/ui/v1/teachers/update")
@@ -272,9 +263,10 @@ class TeacherControllerTest {
                 .param("firstName", firstName)
                 .param("lastName", lastName)
                 .param("email", email)
+                .param("locationZoneOffset", locationZoneOffset)
                 .param("isActive", String.valueOf(isActive)))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/teachers/%s", teacherId)));
+            .andExpect(redirectedUrl("/ui/v1/teachers/%s".formatted(teacherId)));
 
         verify(teacherServiceMock, times(1)).update(any(TeacherDto.class));
     }
@@ -293,7 +285,10 @@ class TeacherControllerTest {
                 .param("lastName", lastName)
                 .param("email", email))
             .andExpect(status().isOk())
+            .andExpect(model().attributeExists("timeZones"))
             .andExpect(view().name("teachers/update-form"));
+
+        verify(teacherServiceMock, never()).update(any(TeacherDto.class));
     }
 
     @Test
@@ -302,6 +297,7 @@ class TeacherControllerTest {
         String firstName = "FirstName";
         String lastName = "LastName";
         String email = "test@email.com";
+        String locationZoneOffset = "+00:00";
         Boolean isActive = true;
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
         EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
@@ -315,10 +311,11 @@ class TeacherControllerTest {
                 .param("firstName", firstName)
                 .param("lastName", lastName)
                 .param("email", email)
+                .param("locationZoneOffset", locationZoneOffset)
                 .param("isActive", String.valueOf(isActive)))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(teacherServiceMock, times(1)).update(any(TeacherDto.class));
     }
@@ -350,7 +347,7 @@ class TeacherControllerTest {
                 .with(csrf()))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(teacherServiceMock, times(1)).deleteById(teacherId);
     }
@@ -389,7 +386,7 @@ class TeacherControllerTest {
                 .param("newPassword", newPassword)
                 .param("confirmNewPassword", confirmNewPassword))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/teachers/%s", teacherId)));
+            .andExpect(redirectedUrl("/ui/v1/teachers/%s".formatted(teacherId)));
 
         verify(teacherServiceMock, times(1)).updateTeacherPassword(any(PasswordUpdateRequestDto.class));
     }
@@ -398,24 +395,33 @@ class TeacherControllerTest {
     @WithMockUser(authorities = {"TEACHERS_UPDATE"})
     void performPasswordUpdate_shouldPageWithPasswordUpdateForm_whenPasswordValidationRulesAreViolated() throws Exception {
         long teacherId = 1L;
+        RoleName roleName = RoleName.TEACHER;
         String currentPassword = "currentPassword";
         String newPassword = "newPassword";
         String confirmNewPassword = "           ";
+        Teacher teacherMock = mock(Teacher.class);
+        TeacherRepository teacherRepositoryMock = context.getBean(TeacherRepository.class);
+        PasswordEncoder passwordEncoder = context.getBean(PasswordEncoder.class);
+        when(teacherRepositoryMock.findById(teacherId)).thenReturn(Optional.of(teacherMock));
+        when(teacherMock.getPasswordHash()).thenReturn(passwordEncoder.encode(currentPassword));
 
         mockMvc.perform(patch("/ui/v1/teachers/update-pass")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .with(csrf())
                 .param("userId", String.valueOf(teacherId))
+                .param("roleName", roleName.name())
                 .param("currentPassword", currentPassword)
                 .param("newPassword", newPassword)
                 .param("confirmNewPassword", confirmNewPassword))
             .andExpect(status().isOk())
             .andExpect(view().name("security/password-update-form"));
+
+        verify(teacherServiceMock, never()).updateTeacherPassword(any(PasswordUpdateRequestDto.class));
     }
 
     @Test
     @WithMockUser(authorities = {"TEACHERS_UPDATE"})
-    void performPasswordUpdate_shouldReturnPageWithErrorMessage_whenTeacherServiceThrowEntityNotFoundException() throws Exception {
+    void performPasswordUpdate_shouldReturnPageWithErrorMessage_whenTeacherServiceThrowUserNotFoundException() throws Exception {
         long teacherId = 1L;
         RoleName roleName = RoleName.TEACHER;
         String currentPassword = "currentPassword";
@@ -423,14 +429,14 @@ class TeacherControllerTest {
         String confirmNewPassword = "newPassword";
         Teacher teacherMock = mock(Teacher.class);
         HttpStatus httpStatus = HttpStatus.NOT_FOUND;
-        EntityNotFoundException entityNotFoundExceptionMock = mock(EntityNotFoundException.class);
+        UserNotFoundException userNotFoundExceptionMock = mock(UserNotFoundException.class);
         TeacherRepository teacherRepositoryMock = context.getBean(TeacherRepository.class);
         PasswordEncoder passwordEncoder = context.getBean(PasswordEncoder.class);
         when(teacherRepositoryMock.findById(teacherId)).thenReturn(Optional.of(teacherMock));
         when(teacherMock.getPasswordHash()).thenReturn(passwordEncoder.encode(currentPassword));
-        when(entityNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
-        when(entityNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
-        doThrow(entityNotFoundExceptionMock).when(teacherServiceMock).updateTeacherPassword(any(PasswordUpdateRequestDto.class));
+        when(userNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(userNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
+        doThrow(userNotFoundExceptionMock).when(teacherServiceMock).updateTeacherPassword(any(PasswordUpdateRequestDto.class));
 
         mockMvc.perform(patch("/ui/v1/teachers/update-pass")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -442,16 +448,16 @@ class TeacherControllerTest {
                 .param("confirmNewPassword", confirmNewPassword))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(teacherServiceMock, times(1)).updateTeacherPassword(any(PasswordUpdateRequestDto.class));
     }
 
-    private List<TeacherDto> getAllTeachersForTest() {
+    private List<TeacherDto> getEmptyTeachersListForTest() {
         return new ArrayList<>();
     }
 
-    private Page<TeacherDto> getEmptyPageForTest() {
+    private Page<TeacherDto> getEmptyTeachersPageForTest() {
         return new PageImpl<>(new ArrayList<>());
     }
 

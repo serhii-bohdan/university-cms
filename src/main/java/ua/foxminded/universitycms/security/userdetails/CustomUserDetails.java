@@ -1,45 +1,67 @@
 package ua.foxminded.universitycms.security.userdetails;
 
 import org.springframework.security.core.userdetails.UserDetails;
+import ua.foxminded.universitycms.model.FullName;
 import ua.foxminded.universitycms.model.enumeration.RoleName;
 
 /**
- * Custom extension of the Spring Security {@link UserDetails} interface.
- *
- * <p>This interface provides additional attributes relevant to the application's users,
- * such as the user's ID, first name, last name, and role name, along with the standard
- * Spring Security user details like username, password, and authorities.
+ * Custom extension of the Spring Security {@link UserDetails} interface for enhanced user representation.
+ * <p>
+ * This interface augments the standard {@link UserDetails} contract by adding application-specific attributes,
+ * such as the user's unique identifier, first name, last name, and role name, alongside core security details
+ * like username, password, and authorities. It enables a richer representation of users within the university
+ * management system's security context, supporting authentication and authorization processes.
  *
  * @author Serhii Bohdan
+ * @see UserDetails
+ * @see RoleName
+ * @see FullName
  */
 public interface CustomUserDetails extends UserDetails {
 
     /**
-     * Returns the unique identifier (ID) of the user.
+     * Retrieves the unique identifier of the user.
      *
-     * @return the user's ID
+     * @return the user's ID as a {@code Long} value
      */
     Long getId();
 
     /**
-     * Returns the user's first name.
+     * Retrieves the user's first name.
      *
-     * @return the user's first name
+     * @return the user's first name as a {@code String}
      */
     String getFirstName();
 
     /**
-     * Returns the user's last name.
+     * Retrieves the user's last name.
      *
-     * @return the user's last name
+     * @return the user's last name as a {@code String}
      */
     String getLastName();
 
     /**
-     * Returns the name of the role associated with the user.
+     * Retrieves the user's time zone offset from UTC.
      *
-     * @return the user's role name as a {@link RoleName} enum value
+     * @return the time zone offset as a {@code String}, e.g., "+02:00" or "-05:00"
+     */
+    String getLocationZoneOffset();
+
+    /**
+     * Retrieves the role name assigned to the user.
+     *
+     * @return the user's role as a {@link RoleName} enum value
      */
     RoleName getRoleName();
+
+    /**
+     * Sets the user's full name.
+     * <p>
+     * This method allows updating the user's name information using a {@link FullName} object, which
+     * typically includes both first and last names.
+     *
+     * @param fullName the {@link FullName} object containing the user's first and last names
+     */
+    void setFullName(FullName fullName);
 
 }

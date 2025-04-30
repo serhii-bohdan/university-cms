@@ -1,13 +1,9 @@
 package ua.foxminded.universitycms.util;
 
 /**
- * Utility class that contains constant view names for the Spring MVC application.
- * <p>
- * These constants represent the logical view names used by controllers to
- * render specific views. This helps centralize view names, making it easier
- * to manage and modify them without hard-coding view names throughout the application.
- * <p>
- * This class cannot be instantiated and is designed to hold static final constants.
+ * Utility class containing constant view names for the Spring MVC application.
+ * Provides logical view names used by controllers to render specific views, centralizing them
+ * for easier management. Designed as a non-instantiable class with static final constants.
  *
  * @author Serhii Bohdan
  */
@@ -15,189 +11,224 @@ public class ViewNames {
 
     /**
      * Private constructor to prevent instantiation of this utility class.
-     * Calling this constructor will throw an IllegalStateException.
+     * Throws an {@link IllegalStateException} if called.
      */
     private ViewNames() {
         throw new IllegalStateException("Utility class");
     }
 
     /**
-     * View name for the error page.
+     * View name for displaying the error page.
      */
-    public static final String ERROR_PAGE = "error-page";
+    public static final String CUSTOM_ERROR_PAGE = "custom-error-page";
 
     /**
-     * View name for the login page.
+     * View name for displaying the login page.
      */
     public static final String LOGIN_PAGE = "security/login";
 
     /**
-     * The view name for the password update form.
+     * View name for displaying the password update form.
      */
     public static final String PASSWORD_UPDATE_FORM = "security/password-update-form";
 
     /**
-     * View name for the home page.
+     * View name for displaying the home page.
      */
     public static final String HOME_PAGE = "home";
 
     /**
-     * View name for the page that displays all administrators.
+     * View name for displaying the authorized user's profile page.
+     */
+    public static final String AUTHORIZED_USER_PROFILE_PAGE = "authorized/profile-page";
+
+    /**
+     * View name for displaying the authorized user's password update form.
+     */
+    public static final String AUTHORIZED_USER_PASSWORD_UPDATE_FORM = "authorized/password-update-form";
+
+    /**
+     * View name for displaying the authorized user's name update form.
+     */
+    public static final String AUTHORIZED_USER_NAME_UPDATE_FORM = "authorized/name-update-form";
+
+    /**
+     * View name for displaying all administrators.
      */
     public static final String ALL_ADMINS_PAGE = "admins/all-admins";
 
     /**
-     * View name for the page that displays all groups.
+     * View name for displaying the admin creation form.
+     */
+    public static final String ADMIN_CREATION_FORM = "admins/creation-form";
+
+    /**
+     * View name for displaying the administrator update form.
+     */
+    public static final String ADMIN_UPDATE_FORM = "admins/update-form";
+
+    /**
+     * View name for displaying the details of a specific administrator.
+     */
+    public static final String PARTICULAR_ADMIN = "admins/particular-admin";
+
+    /**
+     * View name for displaying all groups.
      */
     public static final String ALL_GROUPS_PAGE = "groups/all-groups";
 
     /**
-     * The view name for the group creation form.
+     * View name for displaying the group creation form.
      */
     public static final String GROUP_CREATION_FORM = "groups/creation-form";
 
     /**
-     * The view name for the group update form.
+     * View name for displaying the group update form.
      */
     public static final String GROUP_UPDATE_FORM = "groups/update-form";
 
     /**
-     * The view name for displaying a specific group.
+     * View name for displaying a specific group.
      */
     public static final String SPECIFIC_GROUP = "groups/specific-group";
 
     /**
-     * The view name for displaying groups available for enrollment in a course.
+     * View name for displaying groups available for course enrollment.
      */
     public static final String GROUPS_FOR_ENROLL_IN_COURSE = "groups/groups-for-enroll-in-course";
 
     /**
-     * View name for the page that displays all managers.
+     * View name for displaying all managers.
      */
     public static final String ALL_MANAGERS_PAGE = "managers/all-managers";
 
     /**
-     * View name for the calendar page.
+     * View name for displaying the manager creation form.
      */
-    public static final String CALENDAR = "schedule/calendar";
+    public static final String MANAGER_CREATION_FORM = "managers/creation-form";
 
     /**
-     * View name for the page that displays all students.
+     * View name for displaying the manager update form.
+     */
+    public static final String MANAGER_UPDATE_FORM = "managers/update-form";
+
+    /**
+     * View name for displaying a specific manager's details.
+     */
+    public static final String PARTICULAR_MANAGER = "managers/particular-manager";
+
+    /**
+     * View name for displaying all students.
      */
     public static final String ALL_STUDENTS_PAGE = "students/all-students";
 
     /**
-     * The view name for the student creation form.
+     * View name for displaying the student creation form.
      */
     public static final String STUDENT_CREATION_FORM = "students/creation-form";
 
     /**
-     * The view name for the student update form.
+     * View name for displaying the student update form.
      */
     public static final String STUDENT_UPDATE_FORM = "students/update-form";
 
     /**
-     * View name for the page that displays students who are not enrolled in any course.
+     * View name for displaying students not enrolled in any course.
      */
     public static final String STUDENTS_NOT_ENROLLED_IN_COURSE = "students/not-enrolled-in-course";
 
     /**
-     * The view name used to display details of a particular student.
+     * View name for displaying a specific student's details.
      */
     public static final String PARTICULAR_STUDENT = "students/particular-student";
 
     /**
-     * The view name for displaying the actual study day schedule.
+     * View name for displaying lessons assigned to an educator.
      */
-    public static final String ACTUAL_STUDY_DAY_PAGE = "schedule/actual-study-day";
+    public static final String EDUCATOR_LESSONS = "schedule/educator-lessons";
 
     /**
-     * The view name for displaying the past study day schedule.
-     */
-    public static final String PAST_STUDY_DAY_PAGE = "schedule/past-study-day";
-
-    /**
-     * View name for the lesson creation form page.
+     * View name for displaying the lesson creation form.
      */
     public static final String LESSON_CREATION_FORM = "schedule/lesson-creation-form";
 
     /**
-     * View name for the lesson update form page.
+     * View name for displaying the lesson update form.
      */
     public static final String LESSON_UPDATE_FORM = "schedule/lesson-update-form";
 
     /**
-     * View name for the page that displays all teachers.
+     * View name for displaying all teachers.
      */
     public static final String ALL_TEACHERS_PAGE = "teachers/all-teachers";
 
     /**
-     * The view name for the page that displays detailed information about a specific teacher.
+     * View name for displaying a specific teacher's details.
      */
     public static final String PARTICULAR_TEACHER = "teachers/particular-teacher";
 
     /**
-     * View name for the teacher creation form page.
+     * View name for displaying the teacher creation form.
      */
     public static final String TEACHER_CREATION_FORM = "teachers/creation-form";
 
     /**
-     * View name for the teacher update form page.
+     * View name for displaying the teacher update form.
      */
     public static final String TEACHER_UPDATE_FORM = "teachers/update-form";
 
     /**
-     * View name for the page that displays all courses.
+     * View name for displaying all courses.
      */
     public static final String ALL_COURSES_PAGE = "courses/all-courses";
 
     /**
-     * View name for the page that displays the user's courses.
+     * View name for displaying the user's courses.
      */
     public static final String USER_COURSES = "courses/user-courses";
 
     /**
-     * View name for the page that displays a specific course.
+     * View name for displaying a specific course.
      */
     public static final String SPECIFIC_COURSE = "courses/specific-course";
 
     /**
-     * View name for the course creation form.
+     * View name for displaying the course creation form.
      */
     public static final String COURSE_CREATION_FORM = "courses/creation-form";
 
     /**
-     * View name for the course update form.
+     * View name for displaying the course update form.
      */
     public static final String COURSE_UPDATE_FORM = "courses/update-form";
 
     /**
-     * View name for the page that displays students enrolled in a course.
+     * View name for displaying students enrolled in a course.
      */
     public static final String COURSE_STUDENTS = "courses/course-students";
 
     /**
-     * View name for the topic creation form.
+     * View name for displaying the topic creation form.
      */
     public static final String TOPIC_CREATION_FORM = "topics/creation-form";
 
     /**
-     * View name for the topic update form.
+     * View name for displaying the topic update form.
      */
     public static final String TOPIC_UPDATE_FORM = "topics/update-form";
 
     /**
-     * View name for the page that displays a student's marks.
+     * View name for displaying a student's marks.
      */
     public static final String STUDENT_MARKS = "marks/student-marks";
 
     /**
-     * View name for the mark creation form.
+     * View name for displaying the mark creation form.
      */
     public static final String MARK_CREATION_FORM = "marks/creation-form";
 
     /**
-     * View name for the mark update form.
+     * View name for displaying the mark update form.
      */
     public static final String MARK_UPDATE_FORM = "marks/update-form";
 

@@ -4,7 +4,9 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
-  <title>Schedule</title>
+  <title th:text="'Edit Lesson - ' + ${lesson.courseName} + ' - University CMS'">Edit Lesson - University
+    CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -12,55 +14,74 @@
 <body>
 <header th:insert="~{fragments/header :: header}"></header>
 <div class="container-fluid" style="max-width: 600px; margin: 0 auto;">
-  <h2 class="title-center">Update existing lesson information</h2>
-  <form th:action="@{/ui/v1/lessons/update(date=${date}, scheduleId=${scheduleId})}" th:method="put"
-        th:object="${lesson}">
+  <div th:if="${#authentication.principal.roleName.name == 'MANAGER'}" class="row d-flex">
+    <a class="fa fa-arrow-left col mt-3" th:href="@{/ui/v1/lessons(userId=${userId}, userRole=${userRole}, scheduleId=${lesson.scheduleId},
+    userCurrentLocalDate=${userCurrentDate}, startDate=${startDate}, endDate=${endDate}, userFullName=${userFullName})}"
+       aria-hidden="true" th:title="'Back to ' + ${userFullName} + ' schedule'"
+       style="width: 100%; max-width: max-content; padding-left: 0; padding-right: 0; padding-top: 0.8rem; cursor: pointer; text-decoration: none; color: #0A0921"></a>
+    <h2 class="title-center col mt-3" th:text="'Update information about ' + ${userFullName} + ' lesson'">Update existing lesson information</h2>
+  </div>
+  <div th:unless="${#authentication.principal.roleName.name == 'MANAGER'}" class="row d-flex">
+    <a class="fa fa-arrow-left col mt-3" th:href="@{/ui/v1/lessons(scheduleId=${lesson.scheduleId}, userCurrentLocalDate=${userCurrentDate}, startDate=${startDate}, endDate=${endDate})}"
+       aria-hidden="true" title="Return to the lesson schedule"
+       style="width: 100%; max-width: max-content; padding-left: 0; padding-right: 0; padding-top: 0.8rem; cursor: pointer; text-decoration: none; color: #0A0921"></a>
+    <h2 class="title-center col mt-3">Update existing lesson information</h2>
+  </div>
+  <form th:action="@{/ui/v1/lessons/update(userId=${userId}, userRole=${userRole}, userCurrentLocalDate=${userCurrentDate}, startDate=${startDate}, endDate=${endDate}, userFullName=${userFullName})}"
+        th:method="put" th:object="${lesson}">
     <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
       <ul style="margin-bottom: 0">
         <li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li>
       </ul>
     </div>
     <div class="form-group form-group-margin">
-      <label class="form-control-label-margin" for="lessonStartTime">Lesson start time</label>
+      <label class="form-control-label-margin" for="courseSelect" style="font-weight: bold">Course for the lesson</label>
+      <select id="courseSelect" class="form-control" th:field="*{courseId}">
+        <option th:each="course : ${userCourses.entrySet()}"
+                th:value="${course.value}"
+                th:text="${course.key}"
+                th:selected="${course.key} == ${lesson.courseName}">
+        </option>
+      </select>
+      <div th:if="${#fields.hasErrors('courseId')}" th:errors="*{courseId}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="zoneOffset" style="font-weight: bold">Zone offset</label>
+      <select id="zoneOffset" class="form-control" th:field="*{zoneOffset}">
+        <option th:each="timeZone : ${timeZones}"
+                th:value="${timeZone}"
+                th:text="${timeZone}"
+                th:selected="${timeZone == lesson.zoneOffset}">
+        </option>
+      </select>
+      <div th:if="${#fields.hasErrors('zoneOffset')}" th:errors="*{zoneOffset}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="date" style="font-weight: bold">Date of the lesson</label>
+      <input type="date" class="form-control" id="date" th:field="*{date}">
+      <div th:if="${#fields.hasErrors('date')}" th:errors="*{date}" class="invalid-validation"></div>
+    </div>
+    <div class="form-group form-group-margin">
+      <label class="form-control-label-margin" for="lessonStartTime" style="font-weight: bold">Lesson start time</label>
       <input type="time" class="form-control" id="lessonStartTime" th:field="*{lessonStartTime}">
       <div th:if="${#fields.hasErrors('lessonStartTime')}" th:errors="*{lessonStartTime}"
            class="invalid-validation"></div>
     </div>
     <div class="form-group form-group-margin">
-      <label class="form-control-label-margin" for="lessonEndTime">Lesson end time</label>
+      <label class="form-control-label-margin" for="lessonEndTime" style="font-weight: bold">Lesson end time</label>
       <input type="time" class="form-control" id="lessonEndTime" th:field="*{lessonEndTime}">
       <div th:if="${#fields.hasErrors('lessonEndTime')}" th:errors="*{lessonEndTime}" class="invalid-validation"></div>
     </div>
-    <div class="form-group form-group-margin">
-      <label class="form-control-label-margin" for="zoneSelect">Time zone</label>
-      <select id="zoneSelect" class="form-control" th:field="*{timezone}">
-        <option th:each="zoneId : ${availableZoneIds}"
-                th:value="${zoneId}"
-                th:text="${zoneId}"
-                th:selected="${zoneId} == ${lesson.timezone}">
-        </option>
-      </select>
-      <div th:if="${#fields.hasErrors('timezone')}" th:errors="*{timezone}" class="invalid-validation"></div>
-    </div>
-    <div class="form-group form-group-margin">
-      <label class="form-control-label-margin" for="courseSelect">Course for the lesson</label>
-      <select id="courseSelect" class="form-control" th:field="*{course.id}">
-        <option th:each="course : ${userCourses.entrySet()}"
-                th:value="${course.value}"
-                th:text="${course.key}"
-                th:selected="${course.key} == ${lesson.course.courseName}">
-        </option>
-      </select>
-      <div th:if="${#fields.hasErrors('course')}" th:errors="*{course}" class="invalid-validation"></div>
-    </div>
     <input type="hidden" class="form-control" th:field="*{id}">
-    <input type="hidden" th:field="*{studyDayId}">
+    <input type="hidden" th:field="*{scheduleId}">
     <button sec:authorize="hasAuthority('LESSONS_UPDATE')" type="submit" id="updateButton"
             class="btn btn-success form-group-margin">Update
     </button>
-    <a th:href="@{../../../../ui/v1/study-days/{date}(date=${date}, scheduleId=${scheduleId})}"
-       class="btn btn-secondary form-group-margin"
-       style="margin-left: 20px">Cancel</a>
+    <a th:if="${#authentication.principal.roleName.name == 'MANAGER'}" th:href="@{../../../../ui/v1/lessons(userId=${userId}, userRole=${userRole}, scheduleId=${lesson.scheduleId},
+    userCurrentLocalDate=${userCurrentDate}, startDate=${startDate}, endDate=${endDate}, userFullName=${userFullName})}"
+       class="btn btn-secondary form-group-margin" style="margin-left: 20px">Cancel</a>
+    <a th:unless="${#authentication.principal.roleName.name == 'MANAGER'}" th:href="@{../../../../ui/v1/lessons(scheduleId=${lesson.scheduleId}, userCurrentLocalDate=${userCurrentDate},
+    startDate=${startDate}, endDate=${endDate})}" class="btn btn-secondary form-group-margin" style="margin-left: 20px">Cancel</a>
   </form>
 </div>
 <footer th:insert="~{fragments/footer :: footer}"></footer>
