@@ -3,86 +3,40 @@ package ua.foxminded.universitycms.model;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import java.time.ZonedDateTime;
 
 /**
- * The {@code Manager} class represents a manager user in the system and inherits
- * from the abstract {@link AbstractEntity} class.
+ * Represents a manager user within the university management system.
  * <p>
- * This class is annotated with {@code @Entity}, indicating that it's a JPA entity.
- * This means that instances of this class can be persisted to a database table named "managers"
- * as specified by the {@code @Table} annotation.
- * <p>
- * Additionally, it defines JPA lifecycle methods {@code onCreate()} and {@code onUpdate()}
- * to automatically set timestamps before persisting or updating the entity.
+ * This class extends {@link User} to inherit common user properties and adds attributes specific to
+ * managers, such as their assigned role. It is mapped to the {@code managers} table in the database
+ * using JPA annotations. Instances of this class represent individual manager users with permissions
+ * defined by their associated {@link Role}. The class also inherits lifecycle callbacks from
+ * {@link User} to automatically set creation and update timestamps.
  *
  * @author Serhii Bohdan
+ * @see User
+ * @see Role
  */
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"email", "passwordHash"})
+@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @SuperBuilder
 @Entity
 @Table(name = "managers")
-public class Manager extends AbstractEntity {
-
-    /**
-     * The manager's full name.
-     */
-    @Embedded
-    private Name name;
-
-    /**
-     * The manager's email address.
-     */
-    @Column(name = "email")
-    private String email;
-
-    /**
-     * The hashed password for secure storage.
-     */
-    @Column(name = "password_hash")
-    private String passwordHash;
+public class Manager extends User {
 
     /**
      * The role assigned to the manager, defining their permissions within the system.
+     * <p>
+     * This field establishes a many-to-one relationship with the {@link Role} entity and is mapped to
+     * the {@code role_id} column in the {@code managers} table. The role is eagerly fetched
+     * ({@code FetchType.EAGER}) and must not be null, as it determines the manager's access rights
+     * and responsibilities.
      */
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
-
-    /**
-     * The date and time when the manager record was created in the database,
-     * including time zone information.
-     */
-    @Column(name = "created_at")
-    private ZonedDateTime createdAt;
-
-    /**
-     * The date and time when the manager record was last updated in the database,
-     * including time zone information.
-     */
-    @Column(name = "updated_at")
-    private ZonedDateTime updatedAt;
-
-    /**
-     * This method is called before persisting the entity. It sets the {@code createdAt} field
-     * to the current timestamp.
-     */
-    @PrePersist
-    protected void onCreate() {
-        setCreatedAt(ZonedDateTime.now());
-    }
-
-    /**
-     * This method is called before updating the entity. It sets the {@code updatedAt} field
-     * to the current timestamp.
-     */
-    @PreUpdate
-    protected void onUpdate() {
-        setUpdatedAt(ZonedDateTime.now());
-    }
 
 }

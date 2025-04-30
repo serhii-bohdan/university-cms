@@ -5,12 +5,18 @@ import org.springframework.stereotype.Repository;
 import ua.foxminded.universitycms.model.Permission;
 
 /**
- * Repository interface for managing {@link Permission} entities.
+ * Spring Data JPA repository for managing {@link Permission} entities in the university management system.
  * <p>
- * Provides standard CRUD (Create, Read, Update, Delete) operations for permissions through
- * the inherited {@link JpaRepository} interface.
+ * This interface extends {@link JpaRepository}, inheriting standard CRUD operations (create, read,
+ * update, delete) for the {@link Permission} entity, identified by a {@code Long} primary key. The
+ * {@code @Repository} annotation marks this interface as a Spring Data repository, enabling automatic
+ * implementation by Spring to encapsulate storage, retrieval, and search behavior for permission
+ * entities.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Permission
+ * @see org.springframework.stereotype.Repository
  */
 @Repository
 public interface PermissionRepository extends JpaRepository<Permission, Long> {

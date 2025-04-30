@@ -6,16 +6,19 @@ import jakarta.validation.Payload;
 import ua.foxminded.universitycms.util.validator.UniqueUserEmailValidator;
 
 /**
- * Annotation for ensuring the uniqueness of a user's email address.
+ * Annotation to enforce uniqueness of a user's email address within the university management system.
  * <p>
- * This annotation is applied at the class level to validate that the email provided by a user
- * is unique across the system. It uses the {@link UniqueUserEmailValidator} to check if an
- * existing user is already registered with the given email.
- * <p>
- * If the email is not unique, a default or custom error message will be generated. This
- * annotation can be applied to any class that contains an email field requiring uniqueness validation.
+ * This annotation is applied at the class level to ensure that a user's email, as provided in a data object,
+ * is unique across all registered users in the system, preventing duplicate email registrations. The validation
+ * logic is implemented in {@link UniqueUserEmailValidator}, which checks for existing users with the same email.
+ * As part of the Jakarta Bean Validation framework, this annotation is processed at runtime to validate email
+ * uniqueness.
  *
  * @author Serhii Bohdan
+ * @see UniqueUserEmailValidator
+ * @see jakarta.validation.Constraint
+ * @see java.lang.annotation.ElementType#TYPE
+ * @see java.lang.annotation.RetentionPolicy#RUNTIME
  */
 @Documented
 @Constraint(validatedBy = {UniqueUserEmailValidator.class})
@@ -24,25 +27,34 @@ import ua.foxminded.universitycms.util.validator.UniqueUserEmailValidator;
 public @interface UniqueUserEmail {
 
     /**
-     * Specifies the default error message when the email uniqueness validation fails.
+     * Specifies the default error message returned when the email uniqueness validation fails.
+     * <p>
+     * This message is used if no custom message is provided, indicating that the email is already
+     * registered. It can be overridden by specifying a different value in the annotation usage.
      *
-     * @return the error message
+     * @return the default error message as a {@code String}
      */
     String message() default """
         A user with this email already exists. Please enter another email.
         """;
 
     /**
-     * Allows the specification of validation groups to which this constraint belongs.
+     * Defines the validation groups to which this constraint belongs.
+     * <p>
+     * Allows grouping of validation constraints for conditional or contextual validation scenarios.
+     * By default, no groups are specified.
      *
-     * @return an array of group classes
+     * @return an array of validation group classes
      */
     Class<?>[] groups() default {};
 
     /**
-     * Can be used to provide custom payload objects to the constraint.
+     * Provides custom payload objects for extending the constraint with additional metadata.
+     * <p>
+     * Can be used by clients of the validation API to attach custom data to the constraint. By
+     * default, no payloads are specified.
      *
-     * @return an array of payload types
+     * @return an array of payload classes implementing {@link Payload}
      */
     Class<? extends Payload>[] payload() default {};
 

@@ -11,33 +11,30 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 /**
- * The {@code Schedule} class represents a structured schedule of study days.
- * It holds information about the collection of associated {@link StudyDay} objects.
- * {@code Schedule} inherits from the {@link AbstractEntity} class.
- * <p>
- * This class is annotated with {@code @Entity}, indicating that it's a JPA
- * entity. This means that instances of this class can be persisted to the
- * database. The {@code @Table} annotation specifies the name of the database
- * table that corresponds to this entity. This class includes fields for the
- * schedule's ID and the study days in the schedule. It also includes methods to
- * get and set these fields.
+ * Entity representing a schedule in the university management system.
+ * Extends {@link AbstractEntity} to inherit an ID and contains a collection of {@link Lesson}
+ * objects defining its structure. Mapped to the {@code schedules} table via JPA annotations.
  *
  * @author Serhii Bohdan
+ * @see AbstractEntity
+ * @see Lesson
  */
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = "studyDays")
-@ToString(callSuper = true, exclude = "studyDays")
+@EqualsAndHashCode(exclude = {"lessons"})
+@ToString(callSuper = true, exclude = {"lessons"})
 @SuperBuilder
 @Entity
 @Table(name = "schedules")
 public class Schedule extends AbstractEntity {
 
     /**
-     * The collection of {@link StudyDay} objects that make up this schedule.
+     * Collection of lessons associated with this schedule.
+     * Defined as a one-to-many relationship with {@link Lesson}, mapped by the {@code schedule}
+     * field in {@link Lesson}. Uses lazy fetching and cascades removal to associated lessons.
      */
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    private Set<StudyDay> studyDays = new HashSet<>();
+    private Set<Lesson> lessons = new HashSet<>();
 
 }

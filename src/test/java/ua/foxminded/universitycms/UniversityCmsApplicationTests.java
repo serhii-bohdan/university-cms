@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(classes = {UniversityCmsApplication.class})
-@ActiveProfiles("test")
+@ActiveProfiles({"test"})
 class UniversityCmsApplicationTests {
 
     @Test

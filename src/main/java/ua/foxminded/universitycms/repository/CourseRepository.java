@@ -10,47 +10,59 @@ import ua.foxminded.universitycms.model.Course;
 import ua.foxminded.universitycms.model.Student;
 
 /**
- * The {@code CourseRepository} interface is a Spring Data JPA repository for
- * {@link Course} entities.
+ * Spring Data JPA repository for managing {@link Course} entities in the university management system.
  * <p>
- * This interface extends {@link JpaRepository}, which provides JPA related
- * methods such as save(), findOne(), findAll(), count(), delete(). This
- * interface is annotated with {@code @Repository}, indicating that it's a
- * "Repository" bean. A Repository is a mechanism for encapsulating storage,
- * retrieval, and search behavior which emulates a collection of objects.
+ * This interface extends {@link JpaRepository}, inheriting standard CRUD operations (create, read,
+ * update, delete) and pagination support for the {@link Course} entity, identified by a {@code Long}
+ * primary key. It also provides custom query methods to retrieve courses based on specific criteria,
+ * such as course name, author, or student association. The {@code @Repository} annotation marks this
+ * interface as a Spring Data repository, enabling automatic implementation by Spring to encapsulate
+ * storage, retrieval, and search behavior.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Course
+ * @see Student
+ * @see org.springframework.stereotype.Repository
  */
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
     /**
-     * Finds courses with a name that matches the given name, ignoring case sensitivity.
-     * The results are returned as a {@link Page} of courses, allowing for pagination
-     * and sorting.
+     * Retrieves courses with a name matching the specified value, ignoring case sensitivity.
+     * <p>
+     * This method queries the database for {@link Course} entities where the course name matches the
+     * provided value (case-insensitive), returning results as a {@link Page} object to support
+     * pagination and sorting. The {@link Pageable} parameter defines the page size, page number, and
+     * sort options.
      *
-     * @param name     the name to search for, ignoring case
-     * @param pageable the pagination information, such as page number and size
-     * @return a {@link Page} of matching courses, or an empty {@link Page} if none found
+     * @param name     the course name to search for, ignoring case
+     * @param pageable the pagination and sorting configuration
+     * @return a {@link Page} containing matching courses, or an empty page if no matches are found
      */
     Page<Course> findCourseByCourseNameIgnoreCase(String name, Pageable pageable);
 
     /**
-     * Finds courses authored by the specified teacher.
+     * Retrieves all courses authored by a specific teacher.
+     * <p>
+     * This method queries the database for {@link Course} entities where the author (teacher) matches
+     * the specified ID, returning the results as a {@link List}.
      *
-     * @param authorId the ID of the author (teacher)
-     * @return a list of courses authored by the specified teacher, or an empty list if none found
+     * @param authorId the ID of the teacher who authored the courses
+     * @return a {@link List} of courses authored by the specified teacher, or an empty list if none are found
      */
     List<Course> findByAuthorId(long authorId);
 
     /**
-     * Retrieves the list of courses associated with a specific student by their ID.
+     * Retrieves all courses associated with a specific student by their ID.
      * <p>
      * This method uses a custom JPQL query to join the {@link Student} entity with its associated
-     * {@link Course} entities and returns the courses for the given student ID.
+     * {@link Course} entities through the many-to-many relationship, returning a list of courses in
+     * which the student with the specified ID is enrolled.
      *
      * @param studentId the ID of the student whose courses are to be retrieved
-     * @return a list of courses associated with the specified student, or an empty list if no courses are found
+     * @return a {@link List} of courses associated with the specified student, or an empty list if no
+     * courses are found
      */
     @Query("SELECT c FROM Student s JOIN s.courses c WHERE s.id = :studentId")
     List<Course> findStudentCoursesByStudentId(long studentId);

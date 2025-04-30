@@ -4,7 +4,6 @@ DECLARE
   var_teacher_id BIGINT;
   var_course_id BIGINT;
   var_schedule_id BIGINT := 1;
-  var_study_day_id BIGINT := 1;
   var_day_date DATE := CURRENT_DATE;
   var_week_day VARCHAR;
   var_lesson_start_time TIME;
@@ -17,8 +16,6 @@ BEGIN
 
     FOR i IN 1..31 LOOP
       var_week_day := TRIM(UPPER(TO_CHAR(var_day_date, 'Day')));
-      INSERT INTO study_days (day_date, week_day, schedule_id)
-      VALUES (var_day_date, var_week_day, var_schedule_id);
 
       IF var_week_day NOT IN('SATURDAY', 'SUNDAY') THEN
         FOR var_course_id IN (SELECT id FROM courses WHERE teacher_id = var_teacher_id) LOOP
@@ -26,8 +23,8 @@ BEGIN
           var_lesson_end_time = var_lesson_start_time + (RANDOM() * (3*60*60))::int * INTERVAL '1 second';
 
           IF var_lesson_end_time > var_lesson_start_time AND RANDOM() < 0.8 THEN
-            INSERT INTO lessons (lesson_start_time, lesson_end_time, timezone, course_id, study_day_id)
-            VALUES (var_lesson_start_time::TIME, var_lesson_end_time::TIME, 'America/New_York', var_course_id, var_study_day_id);
+            INSERT INTO lessons (date, lesson_start_time, lesson_end_time, zone_offset, course_id, schedule_id)
+            VALUES (var_day_date, var_lesson_start_time::TIME, var_lesson_end_time::TIME, '+00:00', var_course_id, var_schedule_id);
           END IF;
 
           var_last_lesson_end_time := var_lesson_end_time;
@@ -35,7 +32,6 @@ BEGIN
 
       END IF;
 
-      var_study_day_id = var_study_day_id + 1;
       var_day_date = var_day_date + 1;
       var_last_lesson_end_time := '07:00:00' + (RANDOM() * (5*60*60))::int * INTERVAL '1 second';
     END LOOP;

@@ -18,8 +18,8 @@ import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.service.MarkService;
 import java.util.*;
 
-@WebMvcTest(controllers = MarkController.class)
-@Import(SecurityConfig.class)
+@WebMvcTest(controllers = {MarkController.class})
+@Import({SecurityConfig.class})
 class MarkControllerTest {
 
     private static final String ERROR_MESSAGE = "Error message.";
@@ -32,13 +32,13 @@ class MarkControllerTest {
 
     @Test
     @WithMockUser(authorities = "MARKS_READ")
-    void getPageWithStudentMarks_shouldReturnPageWithStudentCourseMarksThatFoundByKeyword_whenKeywordNotNullAndNotBlank() throws Exception {
+    void getPageWithStudentMarks_shouldReturnPageWithStudentCourseMarksThatFoundByKeyword_whenKeywordNotNull() throws Exception {
         long studentId = 1;
         long courseId = 1;
         String studentFullName = "FullName";
         String keyword = "TopicName1";
-        when(markServiceMock.getNamesOfTopicsInCourse(courseId)).thenReturn(getAllNamesOfTopicsInCourseForTest());
-        when(markServiceMock.getStudentCourseMarksByTopicName(studentId, courseId, keyword)).thenReturn(getEmptyMarksListForTest());
+        when(markServiceMock.getNamesOfTopicsInCourse(courseId)).thenReturn(getTopicNamesInCourseForTest());
+        when(markServiceMock.findStudentCourseMarksByTopicName(studentId, courseId, keyword)).thenReturn(getEmptyMarksListForTest());
 
         mockMvc.perform(get("/ui/v1/marks")
                 .param("cid", String.valueOf(courseId))
@@ -55,7 +55,7 @@ class MarkControllerTest {
             .andExpect(view().name("marks/student-marks"));
 
         verify(markServiceMock, times(1)).getNamesOfTopicsInCourse(courseId);
-        verify(markServiceMock, times(1)).getStudentCourseMarksByTopicName(studentId, courseId, keyword);
+        verify(markServiceMock, times(1)).findStudentCourseMarksByTopicName(studentId, courseId, keyword);
     }
 
     @Test
@@ -64,8 +64,8 @@ class MarkControllerTest {
         long studentId = 1;
         long courseId = 1;
         String studentFullName = "FullName";
-        when(markServiceMock.getNamesOfTopicsInCourse(courseId)).thenReturn(getAllNamesOfTopicsInCourseForTest());
-        when(markServiceMock.getStudentCourseMarks(studentId, courseId)).thenReturn(getEmptyMarksListForTest());
+        when(markServiceMock.getNamesOfTopicsInCourse(courseId)).thenReturn(getTopicNamesInCourseForTest());
+        when(markServiceMock.findStudentCourseMarksByTopicName(studentId, courseId, null)).thenReturn(getEmptyMarksListForTest());
 
         mockMvc.perform(get("/ui/v1/marks")
                 .param("cid", String.valueOf(courseId))
@@ -81,35 +81,7 @@ class MarkControllerTest {
             .andExpect(view().name("marks/student-marks"));
 
         verify(markServiceMock, times(1)).getNamesOfTopicsInCourse(courseId);
-        verify(markServiceMock, times(1)).getStudentCourseMarks(studentId, courseId);
-    }
-
-    @Test
-    @WithMockUser(authorities = "MARKS_READ")
-    void getPageWithStudentMarks_shouldReturnPageWithStudentCourseMarks_whenKeywordIsBlank() throws Exception {
-        long studentId = 1;
-        long courseId = 1;
-        String studentFullName = "FullName";
-        String blankKeyword = "       ";
-        when(markServiceMock.getNamesOfTopicsInCourse(courseId)).thenReturn(getAllNamesOfTopicsInCourseForTest());
-        when(markServiceMock.getStudentCourseMarks(studentId, courseId)).thenReturn(getEmptyMarksListForTest());
-
-        mockMvc.perform(get("/ui/v1/marks")
-                .param("cid", String.valueOf(courseId))
-                .param("sid", String.valueOf(studentId))
-                .param("fullName", studentFullName)
-                .param("keyword", blankKeyword))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("marks"))
-            .andExpect(model().attributeExists("studentId"))
-            .andExpect(model().attributeExists("courseId"))
-            .andExpect(model().attributeExists("studentFullName"))
-            .andExpect(model().attributeExists("keyword"))
-            .andExpect(model().attributeExists("namesOfTopics"))
-            .andExpect(view().name("marks/student-marks"));
-
-        verify(markServiceMock, times(1)).getNamesOfTopicsInCourse(courseId);
-        verify(markServiceMock, times(1)).getStudentCourseMarks(studentId, courseId);
+        verify(markServiceMock, times(1)).findStudentCourseMarksByTopicName(studentId, courseId, null);
     }
 
     @Test
@@ -117,8 +89,8 @@ class MarkControllerTest {
     void getPageWithStudentMarks_should400ClientError_whenStudentFullNameParameterIsNull() throws Exception {
         long studentId = 1;
         long courseId = 1;
-        when(markServiceMock.getNamesOfTopicsInCourse(courseId)).thenReturn(getAllNamesOfTopicsInCourseForTest());
-        when(markServiceMock.getStudentCourseMarks(studentId, courseId)).thenReturn(getEmptyMarksListForTest());
+        when(markServiceMock.getNamesOfTopicsInCourse(courseId)).thenReturn(getTopicNamesInCourseForTest());
+        when(markServiceMock.findStudentCourseMarksByTopicName(studentId, courseId, null)).thenReturn(getEmptyMarksListForTest());
 
         mockMvc.perform(get("/ui/v1/marks", courseId)
                 .param("cid", String.valueOf(courseId))
@@ -167,7 +139,7 @@ class MarkControllerTest {
                 .param("sid", String.valueOf(studentId))
                 .param("fullName", studentFullName))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/marks?sid=%s&cid=%s&fullName=%s", studentId, courseId, studentFullName)));
+            .andExpect(redirectedUrl("/ui/v1/marks?sid=%s&cid=%s&fullName=%s".formatted(studentId, courseId, studentFullName)));
 
         verify(markServiceMock, times(1)).save(any(MarkDto.class));
     }
@@ -241,7 +213,7 @@ class MarkControllerTest {
                 .param("fullName", studentFullName))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(markServiceMock, times(1)).getById(markId);
     }
@@ -264,7 +236,7 @@ class MarkControllerTest {
                 .param("sid", String.valueOf(studentId))
                 .param("fullName", studentFullName))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/marks?sid=%s&cid=%s&fullName=%s", studentId, courseId, studentFullName)));
+            .andExpect(redirectedUrl("/ui/v1/marks?sid=%s&cid=%s&fullName=%s".formatted(studentId, courseId, studentFullName)));
 
         verify(markServiceMock, times(1)).update(any(MarkDto.class));
     }
@@ -303,7 +275,7 @@ class MarkControllerTest {
                 .param("sid", String.valueOf(studentId))
                 .param("fullName", studentFullName))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/marks?sid=%s&cid=%s&fullName=%s", studentId, courseId, studentFullName)));
+            .andExpect(redirectedUrl("/ui/v1/marks?sid=%s&cid=%s&fullName=%s".formatted(studentId, courseId, studentFullName)));
 
         verify(markServiceMock, times(1)).deleteById(markId);
     }
@@ -328,12 +300,12 @@ class MarkControllerTest {
                 .param("fullName", studentFullName))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(markServiceMock, times(1)).deleteById(markId);
     }
 
-    private List<String> getAllNamesOfTopicsInCourseForTest() {
+    private List<String> getTopicNamesInCourseForTest() {
         return Arrays.asList("TopicName1", "TopicName2", "TopicName3", "TopicName4");
     }
 

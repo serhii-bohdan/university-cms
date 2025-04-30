@@ -9,35 +9,39 @@ import ua.foxminded.universitycms.model.Topic;
 import java.util.List;
 
 /**
- * The {@code MarkRepository} interface is a Spring Data JPA repository for
- * {@link Mark} entities.
+ * Spring Data JPA repository for managing {@link Mark} entities in the university management system.
  * <p>
- * This interface extends {@link JpaRepository}, which provides JPA related
- * methods such as save(), findOne(), findAll(), count(), delete(). This
- * interface is annotated with {@code @Repository}, indicating that it's a
- * "Repository" bean. A Repository is a mechanism for encapsulating storage,
- * retrieval, and search behavior which emulates a collection of objects.
+ * This interface extends {@link JpaRepository}, inheriting standard CRUD operations (create, read,
+ * update, delete) for the {@link Mark} entity, identified by a {@code Long} primary key. It also
+ * provides a custom query method to retrieve marks based on student and course criteria. The
+ * {@code @Repository} annotation marks this interface as a Spring Data repository, enabling automatic
+ * implementation by Spring to encapsulate storage, retrieval, and search behavior for mark entities.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Mark
+ * @see Topic
+ * @see org.springframework.stereotype.Repository
  */
 @Repository
 public interface MarkRepository extends JpaRepository<Mark, Long> {
 
     /**
-     * Finds marks for a student enrolled in a specific course.
+     * Retrieves all marks for a student within a specific course, ordered by topic sequence.
      * <p>
-     * This method uses a custom JPQL query to achieve the desired result.
-     * It joins the {@link Mark} entity with the associated {@link Topic} and filters
-     * the results based on the provided student ID and course ID. The marks are
-     * ordered by the topic order within the course.
+     * This method executes a custom JPQL query that joins the {@link Mark} entity with its associated
+     * {@link Topic} entity, filtering results by the specified student ID and course ID. The returned
+     * marks are sorted by the {@code topicOrder} field of the {@link Topic} to reflect the progression
+     * of topics within the course.
      *
-     * @param studentId the ID of the student to find marks for
-     * @param courseId  the ID of the course to find marks within
-     * @return a list of marks for the specified student and course, or an empty list if none found
+     * @param studentId the ID of the student whose marks are to be retrieved
+     * @param courseId  the ID of the course for which marks are to be retrieved
+     * @return a {@link List} of marks for the specified student and course, ordered by topic order,
+     * or an empty list if no marks are found
      */
     @Query("SELECT m FROM Mark m JOIN m.topic t " +
-           "WHERE m.student.id = :studentId AND t.course.id = :courseId " +
-           "ORDER BY t.topicOrder")
+        "WHERE m.student.id = :studentId AND t.course.id = :courseId " +
+        "ORDER BY t.topicOrder")
     List<Mark> findMarksByStudentIdAndCourseId(@Param("studentId") Long studentId, @Param("courseId") Long courseId);
 
 }

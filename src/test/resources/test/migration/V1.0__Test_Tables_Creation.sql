@@ -20,6 +20,7 @@ CREATE TABLE admins (
   last_name VARCHAR NOT NULL,
   email VARCHAR NOT NULL,
   password_hash VARCHAR NOT NULL,
+  location_zone_offset VARCHAR NOT NULL,
   role_id BIGINT REFERENCES roles(id),
   created_at TIMESTAMP,
   updated_at TIMESTAMP
@@ -31,6 +32,7 @@ CREATE TABLE managers (
    last_name VARCHAR NOT NULL,
    email VARCHAR NOT NULL,
    password_hash VARCHAR NOT NULL,
+   location_zone_offset VARCHAR NOT NULL,
    role_id BIGINT REFERENCES roles(id),
    created_at TIMESTAMP,
    updated_at TIMESTAMP
@@ -53,6 +55,7 @@ CREATE TABLE teachers (
   last_name VARCHAR NOT NULL,
   email VARCHAR NOT NULL,
   password_hash VARCHAR NOT NULL,
+  location_zone_offset VARCHAR NOT NULL,
   role_id BIGINT REFERENCES roles(id),
   is_active BOOLEAN NOT NULL,
   schedule_id BIGINT REFERENCES schedules(id),
@@ -66,6 +69,7 @@ CREATE TABLE students (
   last_name VARCHAR NOT NULL,
   email VARCHAR NOT NULL,
   password_hash VARCHAR NOT NULL,
+  location_zone_offset VARCHAR NOT NULL,
   role_id BIGINT REFERENCES roles(id),
   is_active BOOLEAN NOT NULL,
   group_id BIGINT REFERENCES groups(id) ON DELETE CASCADE NOT NULL,
@@ -105,18 +109,12 @@ CREATE TABLE marks (
   topic_id BIGINT REFERENCES topics(id) ON DELETE CASCADE NOT NULL
 );
 
-CREATE TABLE study_days (
-  id BIGSERIAL PRIMARY KEY,
-  day_date DATE NOT NULL,
-  week_day VARCHAR NOT NULL,
-  schedule_id BIGINT REFERENCES schedules(id) ON DELETE CASCADE NOT NULL
-);
-
 CREATE TABLE lessons (
   id BIGSERIAL PRIMARY KEY,
+  date DATE NOT NULL,
   lesson_start_time TIME NOT NULL,
   lesson_end_time TIME NOT NULL,
-  timezone VARCHAR NOT NULL,
+  zone_offset VARCHAR NOT NULL,
   course_id BIGINT REFERENCES courses(id) ON DELETE CASCADE NOT NULL,
-  study_day_id BIGINT REFERENCES study_days(id) ON DELETE CASCADE NOT NULL
+  schedule_id BIGINT REFERENCES schedules(id) ON DELETE CASCADE NOT NULL
 );

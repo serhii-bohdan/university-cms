@@ -2,84 +2,94 @@ package ua.foxminded.universitycms.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.Mapper;
-import ua.foxminded.universitycms.dto.CourseDto;
 import ua.foxminded.universitycms.dto.LessonDto;
-import ua.foxminded.universitycms.model.Lesson;
-import ua.foxminded.universitycms.model.StudyDay;
 import ua.foxminded.universitycms.model.Course;
+import ua.foxminded.universitycms.model.Lesson;
 
 /**
- * Interface defining mappings between {@link Lesson} entities and {@link LessonDto} data transfer objects.
- * This mapper utilizes the MapStruct library for efficient and type-safe conversion.
+ * Mapper interface for converting between {@link Lesson} entities and {@link LessonDto} objects.
+ * Extends {@link Mapper} to define type-safe mappings using MapStruct. Integrates with Spring via
+ * {@code @Mapper} and supports bidirectional conversion and partial updates between lesson entities
+ * and DTOs.
  *
  * @author Serhii Bohdan
+ * @see Mapper
+ * @see Lesson
+ * @see LessonDto
  */
-@Mapper(componentModel = "spring", uses = {CourseMapper.class})
+@Mapper(componentModel = "spring")
 public interface LessonMapper extends ua.foxminded.universitycms.mapper.Mapper<Lesson, LessonDto> {
 
     /**
-     * Converts a {@link Lesson} entity to a corresponding {@link LessonDto} object.
-     * This method performs the following mapping:
+     * Converts a {@link Lesson} entity to a {@link LessonDto} object.
+     * Maps entity fields to DTO, including:
      * <ul>
-     *   <li>Maps the ID of the associated {@link StudyDay} to the `studyDayId` field in the DTO.</li>
+     *   <li>{@code course.id} to {@code courseId}</li>
+     *   <li>{@code course.courseName} to {@code courseName}</li>
+     *   <li>{@code schedule.id} to {@code scheduleId}</li>
      * </ul>
      *
-     * @param entity the {@link Lesson} entity to be converted
-     * @return a new {@link LessonDto} object representing the converted data
+     * @param entity the {@link Lesson} entity to convert
+     * @return the resulting {@link LessonDto} object
      */
     @Override
-    @Mapping(source = "studyDay.id", target = "studyDayId")
+    @Mapping(source = "course.id", target = "courseId")
+    @Mapping(source = "course.courseName", target = "courseName")
+    @Mapping(source = "schedule.id", target = "scheduleId")
     LessonDto toDto(Lesson entity);
 
     /**
-     * Converts a {@link LessonDto} object to a corresponding {@link Lesson} entity.
-     * This method performs the following mapping (inverse of `toDto`):
+     * Converts a {@link LessonDto} object to a {@link Lesson} entity.
+     * Maps DTO fields to entity, including:
      * <ul>
-     *   <li>Maps the `studyDayId` field from the DTO to the ID of the associated {@link StudyDay} in the entity.</li>
+     *   <li>{@code courseId} to {@code course.id}</li>
+     *   <li>{@code courseName} to {@code course.courseName}</li>
+     *   <li>{@code scheduleId} to {@code schedule.id}</li>
      * </ul>
      *
-     * @param dto the {@link LessonDto} object to be converted
-     * @return a new {@link Lesson} entity representing the converted data
+     * @param dto the {@link LessonDto} object to convert
+     * @return the resulting {@link Lesson} entity
      */
     @Override
-    @Mapping(source = "studyDayId", target = "studyDay.id")
+    @Mapping(source = "courseId", target = "course.id")
+    @Mapping(source = "courseName", target = "course.courseName")
+    @Mapping(source = "scheduleId", target = "schedule.id")
     Lesson toEntity(LessonDto dto);
 
     /**
-     * Partially updates a {@link Lesson} entity using non-null properties from a {@link LessonDto}.
+     * Updates an existing {@link Lesson} entity with non-null fields from a {@link LessonDto}.
      * <p>
-     * This method allows for selective updates, where only the non-null fields in the {@link LessonDto}
-     * are applied to the target {@link Lesson} entity. Fields in the DTO that are {@code null} will not override
-     * the corresponding fields in the entity, preserving their original values.
-     * <p>
-     * The method specifically maps:
+     * Performs a partial update by mapping non-null fields from the DTO to the entity, retaining existing
+     * entity data for null DTO fields via {@link NullValuePropertyMappingStrategy#IGNORE}. The following mappings
+     * are applied:
      * <ul>
-     *   <li>The {@code studyDayId} field in the DTO to the {@code id} of the associated {@link StudyDay} in the entity.</li>
-     *   <li>The {@code course} field in the DTO to the {@link Course} entity using the {@code courseDtoToCourseEntity} mapping.</li>
+     *   <li>{@code courseId} to {@code course}, using the {@link #buildCourseEntityWithId} method</li>
+     *   <li>{@code scheduleId} to {@code schedule.id}</li>
      * </ul>
      *
-     * @param dto    the {@link LessonDto} containing data for the update
-     * @param entity the target {@link Lesson} entity to be updated
-     * @return the updated {@link Lesson} entity with applied changes
+     * @param dto    the {@link LessonDto} containing the updated data
+     * @param entity the {@link Lesson} entity to update
+     * @return the updated {@link Lesson} entity
      */
-    @Mapping(source = "studyDayId", target = "studyDay.id")
-    @Mapping(source = "course", target = "course", qualifiedByName = "courseDtoToCourseEntity")
+    @Mapping(source = "courseId", target = "course", qualifiedByName = "buildCourseEntityWithId")
+    @Mapping(source = "scheduleId", target = "schedule.id")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Lesson partialUpdate(LessonDto dto, @MappingTarget Lesson entity);
 
     /**
-     * Converts a {@link CourseDto} to a {@link Course} entity for use in mapping operations.
+     * Constructs a {@link Course} entity with the specified ID for mapping purposes.
      * <p>
-     * This method extracts the {@code id} field from the {@link CourseDto} and maps it to a new {@link Course} entity.
-     * Other fields in the {@link Course} entity remain unset.
+     * This utility method creates a minimal {@link Course} object with only the ID field set, designed for
+     * use in mappings such as {@link #partialUpdate}. It provides a lightweight course reference when full course
+     * data is not required.
      *
-     * @param dto the {@link CourseDto} to be converted
-     * @return a {@link Course} entity containing only the {@code id} field from the {@link CourseDto}
+     * @param courseId the ID to assign to the {@link Course} entity
+     * @return a new {@link Course} instance with the specified ID
      */
-    @Named("courseDtoToCourseEntity")
-    static Course courseDtoToCourseEntity(CourseDto dto) {
+    @Named("buildCourseEntityWithId")
+    static Course buildCourseEntityWithId(Long courseId) {
         return Course.builder()
-            .id(dto.getId())
+            .id(courseId)
             .build();
     }
 

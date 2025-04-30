@@ -7,80 +7,108 @@ import org.springframework.data.domain.Pageable;
 import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
 import ua.foxminded.universitycms.dto.StudentCreationDto;
 import ua.foxminded.universitycms.dto.StudentDto;
+import ua.foxminded.universitycms.model.FullName;
 import ua.foxminded.universitycms.model.Student;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 /**
- * The {@code StudentService} interface defines a set of operations for managing {@link Student} entities and their
- * corresponding {@link StudentDto} representations. It extends the generic {@link Service} interface, offering
- * specialized services specifically tailored for students, including paginated retrieval, searching by name, and
- * group-based operations.
+ * Service interface for managing {@link Student} entities and their DTO representations in the university management
+ * system.
+ * <p>
+ * This interface extends the generic {@link Service} interface, specializing in operations for {@link Student}
+ * entities mapped to {@link StudentDto} DTOs. It provides methods for CRUD operations inherited from {@link Service},
+ * along with additional functionality such as creating students from creation DTOs, paginated retrieval with email
+ * filtering, retrieving unenrolled students, fetching group mappings, updating passwords and full names, and extracting
+ * student emails. Implementations of this interface handle business logic related to student management, leveraging
+ * validation constraints for data integrity.
  *
  * @author Serhii Bohdan
+ * @see Service
+ * @see Student
+ * @see StudentDto
+ * @see StudentCreationDto
+ * @see PasswordUpdateRequestDto
+ * @see FullName
  */
 public interface StudentService extends Service<Student, StudentDto> {
 
     /**
-     * Saves a new student entity based on the provided {@link StudentCreationDto}.
-     * This method validates the input DTO and creates a new {@link Student} entity in the database.
-     * The newly created student is returned as a {@link StudentDto} for further use.
+     * Saves a new student entity based on the provided creation DTO.
+     * <p>
+     * Creates a new student in the system using the data from the {@link StudentCreationDto}, applying validation
+     * rules ({@link Valid}) to ensure data integrity and the {@link NotNull} constraint to ensure the DTO is provided.
      *
-     * @param dto the {@link StudentCreationDto} containing the data for creating a new student.
-     *            Must not be {@code null} and must be valid.
-     * @return a {@link StudentDto} representing the newly saved student.
+     * @param dto the {@link StudentCreationDto} containing the data for the new student, must be non-null and valid
+     * @return a {@link StudentDto} representing the saved student, including its generated ID
      */
     StudentDto save(@NotNull @Valid StudentCreationDto dto);
 
     /**
-     * Retrieves a page of student data containing all students. This method retrieves
-     * a paginated list of all students from the underlying data store. It utilizes the provided
-     * `Pageable` object to specify the page number, size.
-     *
-     * @param pageable the Pageable object containing pagination information (size, page number)
-     * @return a Page object containing a list of StudentDto objects representing the requested page of students
-     */
-    Page<StudentDto> getStudentsPage(@NotNull Pageable pageable);
-
-    /**
-     * Retrieves a paginated list of students by their email address.
+     * Retrieves a paginated list of students, optionally filtered by email.
      * <p>
-     * This method queries students based on the specified email address, returning
-     * results as a {@link Page} of {@link StudentDto} objects.
+     * Fetches students from the system based on the provided {@link Pageable} paging parameters and an optional
+     * email filter. The {@link NotNull} constraint ensures that the paging configuration is provided.
      *
-     * @param email    the email address of the students to search for
-     * @param pageable the pagination information, including page number and size
-     * @return a {@link Page} containing {@link StudentDto} objects matching the specified email
+     * @param pageable the paging and sorting configuration for the query, must be non-null
+     * @param email    an optional email filter; if null or empty, all students are retrieved
+     * @return a {@link Page} of {@link StudentDto} objects representing the filtered and paginated students
      */
-    Page<StudentDto> getStudentInPageByEmail(@NotNull String email, @NotNull Pageable pageable);
+    Page<StudentDto> findStudents(@NotNull Pageable pageable, String email);
 
     /**
-     * Retrieves a list of students who are not enrolled in the specified course.
-     *
-     * @param courseId the ID of the course
-     * @return a list of {@link StudentDto} objects representing the students who are not enrolled in the course
-     */
-    List<StudentDto> getListOfStudentsNotEnrolledInCourse(long courseId);
-
-    /**
-     * Retrieves a map of all existing groups.
+     * Retrieves a list of students not enrolled in a specific course, optionally filtered by email.
      * <p>
-     * The map contains group names as keys and group IDs as values, allowing
-     * quick access to all existing group information.
+     * Identifies and returns students who are not currently enrolled in the course specified by {@code courseId},
+     * with an optional filter by {@code email} to narrow the results.
      *
-     * @return a map with group names as keys and corresponding group IDs as values
+     * @param courseId the ID of the course to check for unenrolled students
+     * @param email    an optional email filter; if null or empty, all unenrolled students are retrieved
+     * @return a {@link List} of {@link StudentDto} objects representing students not enrolled in the course
+     */
+    List<StudentDto> getUnEnrolledStudents(long courseId, String email);
+
+    /**
+     * Retrieves a mapping of all existing groups in the system.
+     * <p>
+     * Returns a map where the keys are group names and the values are their corresponding group IDs, providing
+     * a convenient way to access all group information for selection or reference purposes.
+     *
+     * @return a {@link Map} with group names as keys and their IDs as values
      */
     Map<String, Long> getAllExistingGroups();
 
     /**
-     * Updates the password of an existing student.
+     * Updates a student's password based on the provided request.
      * <p>
-     * This method takes a {@link PasswordUpdateRequestDto} object containing the student ID, current password,
-     * new password, and password confirmation. It validates the request and, if successful, updates the student's
-     * password in the system.
+     * Modifies the password of a student identified in the {@link PasswordUpdateRequestDto}, ensuring the
+     * request meets validation criteria. The {@link NotNull} constraint ensures that the request DTO is provided.
      *
-     * @param passwordUpdateRequest the DTO containing the password update information
+     * @param passwordUpdateRequest the {@link PasswordUpdateRequestDto} containing the password update details,
+     *                              must be non-null
      */
     void updateStudentPassword(@NotNull PasswordUpdateRequestDto passwordUpdateRequest);
+
+    /**
+     * Extracts email addresses from a collection of students.
+     * <p>
+     * Converts the provided collection of {@link StudentDto} objects into a list of their email addresses.
+     * The {@link NotNull} constraint ensures that the input collection is not null.
+     *
+     * @param students the collection of {@link StudentDto} objects from which to extract emails, must be non-null
+     * @return a {@link List} of email addresses as strings
+     */
+    List<String> extractStudentEmails(@NotNull Collection<StudentDto> students);
+
+    /**
+     * Updates a student's full name.
+     * <p>
+     * Changes the full name of the student identified by {@code studentId} to the provided {@link FullName} object.
+     *
+     * @param studentId the ID of the student whose full name is to be updated
+     * @param fullName  the new {@link FullName} object containing the updated first and last names
+     */
+    void updateStudentFullName(long studentId, FullName fullName);
 
 }

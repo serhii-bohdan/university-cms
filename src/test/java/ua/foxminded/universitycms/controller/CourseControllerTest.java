@@ -25,7 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import ua.foxminded.universitycms.ControllerTestConfig;
 import ua.foxminded.universitycms.config.SecurityConfig;
 import ua.foxminded.universitycms.dto.CourseDto;
+import ua.foxminded.universitycms.dto.StudentDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
+import ua.foxminded.universitycms.exception.InvalidUserRoleException;
 import ua.foxminded.universitycms.exception.UserNotFoundException;
 import ua.foxminded.universitycms.exception.ValidationException;
 import ua.foxminded.universitycms.model.enumeration.RoleName;
@@ -33,9 +35,9 @@ import ua.foxminded.universitycms.security.userdetails.CustomUserDetails;
 import ua.foxminded.universitycms.service.CourseService;
 import java.util.*;
 
-@WebMvcTest(controllers = CourseController.class)
-@ContextConfiguration(classes = ControllerTestConfig.class)
-@Import(SecurityConfig.class)
+@WebMvcTest(controllers = {CourseController.class})
+@ContextConfiguration(classes = {ControllerTestConfig.class})
+@Import({SecurityConfig.class})
 class CourseControllerTest {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
@@ -58,11 +60,11 @@ class CourseControllerTest {
 
     @Test
     @WithMockUser(authorities = {"COURSES_READ"})
-    void getPageWithCourses_shouldReturnPageWithCoursesThatFoundByKeyword_whenKeywordNotNullAndNotBlank() throws Exception {
+    void getPageWithCourses_shouldReturnPageWithCoursesThatFoundByKeyword_whenKeywordNotNull() throws Exception {
         String keyword = "CourseName1";
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(courseServiceMock.getAll()).thenReturn(getCoursesForTest());
-        when(courseServiceMock.getCourseByNameInPage(keyword, pageable)).thenReturn(getEmptyPageForTest());
+        when(courseServiceMock.getAll()).thenReturn(getEmptyCoursesListForTest());
+        when(courseServiceMock.findCourses(pageable, keyword)).thenReturn(getEmptyCoursesPageForTest());
 
         mockMvc.perform(get("/ui/v1/courses")
                 .param("keyword", keyword))
@@ -76,15 +78,17 @@ class CourseControllerTest {
             .andExpect(model().attribute("keyword", keyword))
             .andExpect(view().name("courses/all-courses"));
 
-        verify(courseServiceMock, times(1)).getCourseByNameInPage(keyword, pageable);
+        verify(courseServiceMock, times(1)).findCourses(pageable, keyword);
+        verify(courseServiceMock, times(1)).getAll();
+        verify(courseServiceMock, times(1)).extractCourseNames(any());
     }
 
     @Test
     @WithMockUser(authorities = {"COURSES_READ"})
     void getPageWithCourses_shouldReturnPageWithAllCourses_whenKeywordIsNull() throws Exception {
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(courseServiceMock.getAll()).thenReturn(getCoursesForTest());
-        when(courseServiceMock.getAllCoursesInPage(pageable)).thenReturn(getEmptyPageForTest());
+        when(courseServiceMock.getAll()).thenReturn(getEmptyCoursesListForTest());
+        when(courseServiceMock.findCourses(pageable, null)).thenReturn(getEmptyCoursesPageForTest());
 
         mockMvc.perform(get("/ui/v1/courses"))
             .andExpect(status().isOk())
@@ -97,30 +101,9 @@ class CourseControllerTest {
             .andExpect(model().attributeDoesNotExist("keyword"))
             .andExpect(view().name("courses/all-courses"));
 
-        verify(courseServiceMock, times(1)).getAllCoursesInPage(pageable);
-    }
-
-    @Test
-    @WithMockUser(authorities = {"COURSES_READ"})
-    void getPageWithCourses_shouldReturnPageWithAllCourses_whenKeywordIsBlank() throws Exception {
-        String keyword = "       ";
-        Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(courseServiceMock.getAll()).thenReturn(getCoursesForTest());
-        when(courseServiceMock.getAllCoursesInPage(pageable)).thenReturn(getEmptyPageForTest());
-
-        mockMvc.perform(get("/ui/v1/courses")
-                .param("keyword", keyword))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("allNamesOfCourses"))
-            .andExpect(model().attributeExists("courses"))
-            .andExpect(model().attributeExists("page"))
-            .andExpect(model().attributeExists("totalItems"))
-            .andExpect(model().attributeExists("totalPages"))
-            .andExpect(model().attributeExists("size"))
-            .andExpect(model().attribute("keyword", ""))
-            .andExpect(view().name("courses/all-courses"));
-
-        verify(courseServiceMock, times(1)).getAllCoursesInPage(pageable);
+        verify(courseServiceMock, times(1)).findCourses(pageable, null);
+        verify(courseServiceMock, times(1)).getAll();
+        verify(courseServiceMock, times(1)).extractCourseNames(any());
     }
 
     @Test
@@ -129,8 +112,8 @@ class CourseControllerTest {
         String invalidPageNumber = "-1";
         String invalidPageSize = "0";
         Pageable pageable = PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
-        when(courseServiceMock.getAll()).thenReturn(getCoursesForTest());
-        when(courseServiceMock.getAllCoursesInPage(pageable)).thenReturn(getEmptyPageForTest());
+        when(courseServiceMock.getAll()).thenReturn(getEmptyCoursesListForTest());
+        when(courseServiceMock.findCourses(pageable, null)).thenReturn(getEmptyCoursesPageForTest());
 
         mockMvc.perform(get("/ui/v1/courses")
                 .param("page", invalidPageNumber)
@@ -145,18 +128,18 @@ class CourseControllerTest {
             .andExpect(model().attribute("size", DEFAULT_PAGE_SIZE))
             .andExpect(view().name("courses/all-courses"));
 
-        verify(courseServiceMock, times(1)).getAllCoursesInPage(pageable);
+        verify(courseServiceMock, times(1)).findCourses(pageable, null);
+        verify(courseServiceMock, times(1)).getAll();
+        verify(courseServiceMock, times(1)).extractCourseNames(any());
     }
 
     @Test
-    void getPageWithCoursesForUser_shouldReturnPageWithTeacherCourseFoundByName_whenLoggedInUserHasTeacherRoleAndKeywordNotNullAndNotBlank() throws Exception {
-        long teacherId = 1L;
+    void getPageWithCoursesForUser_shouldReturnPageWithUserCourseFoundByName_whenKeywordNotNull() throws Exception {
         String keyword = "CourseName1";
-        List<CourseDto> teacherCourses = getEmptyCoursesListForTest();
-        when(customUserDetails.getId()).thenReturn(teacherId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.TEACHER);
+        List<CourseDto> userCourses = getEmptyCoursesListForTest();
         when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
-        when(courseServiceMock.getTeacherCourseByCourseName(teacherId, keyword)).thenReturn(teacherCourses);
+        when(courseServiceMock.getUserCourses(customUserDetails)).thenReturn(userCourses);
+        when(courseServiceMock.filterCoursesByName(userCourses, keyword)).thenReturn(userCourses);
 
         mockMvc.perform(get("/ui/v1/courses/my")
                 .param("keyword", keyword)
@@ -167,19 +150,17 @@ class CourseControllerTest {
             .andExpect(model().attribute("keyword", keyword))
             .andExpect(view().name("courses/user-courses"));
 
-        verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-        verify(courseServiceMock, times(1)).getTeacherCourseByCourseName(teacherId, keyword);
+        verify(courseServiceMock, times(1)).getUserCourses(customUserDetails);
+        verify(courseServiceMock, times(1)).filterCoursesByName(userCourses, keyword);
+        verify(courseServiceMock, times(1)).extractCourseNames(userCourses);
     }
 
     @Test
-    void getPageWithCoursesForUser_shouldReturnPageWithAllTeacherCourses_whenLoggedInUserHasTeacherRoleAndKeywordIsNull() throws Exception {
-        long teacherId = 1L;
-        List<CourseDto> teacherCourses = getEmptyCoursesListForTest();
-        when(customUserDetails.getId()).thenReturn(teacherId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.TEACHER);
+    void getPageWithCoursesForUser_shouldReturnPageWithAllUserCourses_whenKeywordIsNull() throws Exception {
+        List<CourseDto> userCourses = getEmptyCoursesListForTest();
         when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
-        when(courseServiceMock.getTeacherCourses(teacherId)).thenReturn(teacherCourses);
+        when(courseServiceMock.getUserCourses(customUserDetails)).thenReturn(userCourses);
+        when(courseServiceMock.filterCoursesByName(userCourses, null)).thenReturn(userCourses);
 
         mockMvc.perform(get("/ui/v1/courses/my")
                 .with(user(customUserDetails)))
@@ -189,149 +170,43 @@ class CourseControllerTest {
             .andExpect(model().attributeDoesNotExist("keyword"))
             .andExpect(view().name("courses/user-courses"));
 
-        verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-        verify(courseServiceMock, times(1)).getTeacherCourses(teacherId);
+        verify(courseServiceMock, times(1)).getUserCourses(customUserDetails);
+        verify(courseServiceMock, times(1)).filterCoursesByName(userCourses, null);
+        verify(courseServiceMock, times(1)).extractCourseNames(userCourses);
     }
 
     @Test
-    void getPageWithCoursesForUser_shouldReturnPageWithAllTeacherCourses_whenLoggedInUserHasTeacherRoleAndKeywordIsBlank() throws Exception {
-        long teacherId = 1L;
-        String keyword = "   ";
-        List<CourseDto> teacherCourses = getEmptyCoursesListForTest();
-        when(customUserDetails.getId()).thenReturn(teacherId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.TEACHER);
+    void getPageWithCoursesForUser_shouldReturnPageWithErrorMessage_whenCourseServiceThrowInvalidUserRoleException() throws Exception {
+        InvalidUserRoleException invalidUserRoleException = mock(InvalidUserRoleException.class);
         when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
-        when(courseServiceMock.getTeacherCourses(teacherId)).thenReturn(teacherCourses);
-
-        mockMvc.perform(get("/ui/v1/courses/my")
-                .param("keyword", keyword)
-                .with(user(customUserDetails)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("userCoursesNames"))
-            .andExpect(model().attributeExists("userCourses"))
-            .andExpect(model().attribute("keyword", ""))
-            .andExpect(view().name("courses/user-courses"));
-
-        verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-        verify(courseServiceMock, times(1)).getTeacherCourses(teacherId);
-    }
-
-    @Test
-    void getPageWithCoursesForUser_shouldReturnPageWithErrorMessage_whenLoggedInUserHasTeacherRoleAndUserNotFoundExceptionIsThrown() throws Exception {
-        long teacherId = 1L;
-        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
-        UserNotFoundException userNotFoundExceptionMock = mock(UserNotFoundException.class);
-        when(customUserDetails.getId()).thenReturn(teacherId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.TEACHER);
-        when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
-        when(userNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
-        when(userNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
-        when(courseServiceMock.getTeacherCourses(teacherId)).thenThrow(userNotFoundExceptionMock);
+        when(invalidUserRoleException.getHttpStatus()).thenReturn(HttpStatus.FORBIDDEN);
+        when(invalidUserRoleException.getMessage()).thenReturn(ERROR_MESSAGE);
+        when(courseServiceMock.getUserCourses(customUserDetails)).thenThrow(invalidUserRoleException);
 
         mockMvc.perform(get("/ui/v1/courses/my")
                 .with(user(customUserDetails)))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
-        verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-        verify(courseServiceMock, times(1)).getTeacherCourses(teacherId);
+        verify(courseServiceMock, times(1)).getUserCourses(customUserDetails);
     }
 
     @Test
-    void getPageWithCoursesForUser_shouldReturnPageWithStudentsCourseFoundByName_whenLoggedInUserHasStudentRoleAndKeywordNotNullAndNotBlank() throws Exception {
-        long studentId = 1L;
-        String keyword = "CourseName1";
-        List<CourseDto> studentCourses = getEmptyCoursesListForTest();
-        when(customUserDetails.getId()).thenReturn(studentId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.STUDENT);
-        when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
-        when(courseServiceMock.getStudentCourseByCourseName(studentId, keyword)).thenReturn(studentCourses);
-
-        mockMvc.perform(get("/ui/v1/courses/my")
-                .param("keyword", keyword)
-                .with(user(customUserDetails)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("userCoursesNames"))
-            .andExpect(model().attributeExists("userCourses"))
-            .andExpect(model().attribute("keyword", keyword))
-            .andExpect(view().name("courses/user-courses"));
-
-        verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-        verify(courseServiceMock, times(1)).getStudentCourseByCourseName(studentId, keyword);
-    }
-
-    @Test
-    void getPageWithCoursesForUser_shouldReturnPageWithAllStudentCourses_whenLoggedInUserHasStudentRoleAndKeywordIsNull() throws Exception {
-        long studentId = 1L;
-        List<CourseDto> studentCourses = getEmptyCoursesListForTest();
-        when(customUserDetails.getId()).thenReturn(studentId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.STUDENT);
-        when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
-        when(courseServiceMock.getStudentCourses(studentId)).thenReturn(studentCourses);
-
-        mockMvc.perform(get("/ui/v1/courses/my")
-                .with(user(customUserDetails)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("userCoursesNames"))
-            .andExpect(model().attributeExists("userCourses"))
-            .andExpect(model().attributeDoesNotExist("keyword"))
-            .andExpect(view().name("courses/user-courses"));
-
-        verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-        verify(courseServiceMock, times(1)).getStudentCourses(studentId);
-    }
-
-    @Test
-    void getPageWithCoursesForUser_shouldReturnPageWithAllStudentCourses_whenLoggedInUserHasStudentRoleAndKeywordIsBlank() throws Exception {
-        long studentId = 1L;
-        String keyword = "";
-        List<CourseDto> studentCourses = getEmptyCoursesListForTest();
-        when(customUserDetails.getId()).thenReturn(studentId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.STUDENT);
-        when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
-        when(courseServiceMock.getStudentCourses(studentId)).thenReturn(studentCourses);
-
-        mockMvc.perform(get("/ui/v1/courses/my")
-                .param("keyword", keyword)
-                .with(user(customUserDetails)))
-            .andExpect(status().isOk())
-            .andExpect(model().attributeExists("userCoursesNames"))
-            .andExpect(model().attributeExists("userCourses"))
-            .andExpect(model().attribute("keyword", keyword))
-            .andExpect(view().name("courses/user-courses"));
-
-        verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-        verify(courseServiceMock, times(1)).getStudentCourses(studentId);
-    }
-
-    @Test
-    void getPageWithCoursesForUser_shouldReturnPageWithErrorMessage_whenLoggedInUserHasStudentRoleAndUserNotFoundExceptionIsThrown() throws Exception {
-        long studentId = 1L;
-        HttpStatus httpStatus = HttpStatus.NOT_FOUND;
+    void getPageWithCoursesForUser_shouldReturnPageWithErrorMessage_whenCourseServiceThrowUserNotFoundException() throws Exception {
         UserNotFoundException userNotFoundExceptionMock = mock(UserNotFoundException.class);
-        when(customUserDetails.getId()).thenReturn(studentId);
-        when(customUserDetails.getRoleName()).thenReturn(RoleName.STUDENT);
         when(customUserDetails.getAuthorities()).thenReturn((Set) Collections.singleton(new SimpleGrantedAuthority("COURSES_READ")));
         when(userNotFoundExceptionMock.getMessage()).thenReturn(ERROR_MESSAGE);
-        when(userNotFoundExceptionMock.getHttpStatus()).thenReturn(httpStatus);
-        when(courseServiceMock.getStudentCourses(studentId)).thenThrow(userNotFoundExceptionMock);
+        when(userNotFoundExceptionMock.getHttpStatus()).thenReturn(HttpStatus.NOT_FOUND);
+        when(courseServiceMock.getUserCourses(customUserDetails)).thenThrow(userNotFoundExceptionMock);
 
         mockMvc.perform(get("/ui/v1/courses/my")
                 .with(user(customUserDetails)))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
-        verify(customUserDetails, times(1)).getId();
-        verify(customUserDetails, times(1)).getRoleName();
-        verify(courseServiceMock, times(1)).getStudentCourses(studentId);
+        verify(courseServiceMock, times(1)).getUserCourses(customUserDetails);
     }
 
     @Test
@@ -379,7 +254,7 @@ class CourseControllerTest {
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}", courseId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).getById(courseId);
     }
@@ -461,7 +336,7 @@ class CourseControllerTest {
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/edit", courseId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).getById(courseId);
     }
@@ -482,7 +357,7 @@ class CourseControllerTest {
                 .param("courseDescription", courseDescription)
                 .param("authorId", String.valueOf(authorId)))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s", courseId)));
+            .andExpect(redirectedUrl("/ui/v1/courses/my/%s".formatted(courseId)));
 
         verify(courseServiceMock, times(1)).update(any(CourseDto.class));
     }
@@ -524,7 +399,7 @@ class CourseControllerTest {
                 .param("authorId", String.valueOf(authorId)))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).update(any(CourseDto.class));
     }
@@ -558,7 +433,7 @@ class CourseControllerTest {
                 .with(csrf()))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).deleteById(courseId);
     }
@@ -568,8 +443,9 @@ class CourseControllerTest {
     void getCourseStudents_shouldPageWithCourseStudents_whenCourseWithGivenIdExistAndKeywordIsNull() throws Exception {
         long courseId = 1L;
         CourseDto courseMock = mock(CourseDto.class);
+        Set<StudentDto> courseStudentsMock = Set.of();
         when(courseServiceMock.getById(courseId)).thenReturn(courseMock);
-        when(courseMock.getStudents()).thenReturn(Set.of());
+        when(courseMock.getStudents()).thenReturn(courseStudentsMock);
 
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/students", courseId))
             .andExpect(status().isOk())
@@ -580,7 +456,8 @@ class CourseControllerTest {
             .andExpect(view().name("courses/course-students"));
 
         verify(courseServiceMock, times(1)).getById(courseId);
-        verify(courseMock, times(2)).getStudents();
+        verify(courseMock, times(1)).getStudents();
+        verify(courseServiceMock, times(1)).filterCourseStudentsByEmail(courseStudentsMock, null);
     }
 
     @Test
@@ -589,8 +466,9 @@ class CourseControllerTest {
         long courseId = 1L;
         String keyword = "student.email@gmail.com";
         CourseDto courseMock = mock(CourseDto.class);
+        Set<StudentDto> courseStudentsMock = Set.of();
         when(courseServiceMock.getById(courseId)).thenReturn(courseMock);
-        when(courseMock.getStudents()).thenReturn(Set.of());
+        when(courseMock.getStudents()).thenReturn(courseStudentsMock);
 
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/students", courseId)
                 .param("keyword", keyword))
@@ -602,7 +480,8 @@ class CourseControllerTest {
             .andExpect(view().name("courses/course-students"));
 
         verify(courseServiceMock, times(1)).getById(courseId);
-        verify(courseMock, times(2)).getStudents();
+        verify(courseMock, times(1)).getStudents();
+        verify(courseServiceMock, times(1)).filterCourseStudentsByEmail(courseStudentsMock, keyword);
     }
 
     @Test
@@ -618,7 +497,7 @@ class CourseControllerTest {
         mockMvc.perform(get("/ui/v1/courses/my/{courseId}/students", courseId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).getById(courseId);
     }
@@ -632,7 +511,7 @@ class CourseControllerTest {
         mockMvc.perform(delete("/ui/v1/courses/my/{courseId}/students/{studentId}/deduct", courseId, studentId)
                 .with(csrf()))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s/students", courseId)));
+            .andExpect(redirectedUrl("/ui/v1/courses/my/%s/students".formatted(courseId)));
 
         verify(courseServiceMock, times(1)).deductStudentFromCourse(courseId, studentId);
     }
@@ -652,7 +531,7 @@ class CourseControllerTest {
                 .with(csrf()))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).deductStudentFromCourse(courseId, studentId);
     }
@@ -672,7 +551,7 @@ class CourseControllerTest {
                 .with(csrf()))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).deductStudentFromCourse(courseId, studentId);
     }
@@ -686,7 +565,7 @@ class CourseControllerTest {
         mockMvc.perform(post("/ui/v1/courses/my/{courseId}/students/{studentId}/enroll", courseId, studentId)
                 .with(csrf()))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s/students", courseId)));
+            .andExpect(redirectedUrl("/ui/v1/courses/my/%s/students".formatted(courseId)));
 
         verify(courseServiceMock, times(1)).enrollStudentInCourse(courseId, studentId);
     }
@@ -706,7 +585,7 @@ class CourseControllerTest {
                 .with(csrf()))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).enrollStudentInCourse(courseId, studentId);
     }
@@ -726,7 +605,7 @@ class CourseControllerTest {
                 .with(csrf()))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).enrollStudentInCourse(courseId, studentId);
     }
@@ -740,7 +619,7 @@ class CourseControllerTest {
         mockMvc.perform(post("/ui/v1/courses/my/{courseId}/group/{groupId}/enroll", courseId, groupId)
                 .with(csrf()))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%d/students", courseId)));
+            .andExpect(redirectedUrl("/ui/v1/courses/my/%d/students".formatted(courseId)));
 
         verify(courseServiceMock, times(1)).enrollAllStudentsFromGroupInCourse(courseId, groupId);
     }
@@ -760,20 +639,16 @@ class CourseControllerTest {
                 .with(csrf()))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(courseServiceMock, times(1)).enrollAllStudentsFromGroupInCourse(courseId, groupId);
-    }
-
-    private List<CourseDto> getCoursesForTest() {
-        return new ArrayList<>();
     }
 
     private List<CourseDto> getEmptyCoursesListForTest() {
         return new ArrayList<>();
     }
 
-    private Page<CourseDto> getEmptyPageForTest() {
+    private Page<CourseDto> getEmptyCoursesPageForTest() {
         return new PageImpl<>(new ArrayList<>());
     }
 

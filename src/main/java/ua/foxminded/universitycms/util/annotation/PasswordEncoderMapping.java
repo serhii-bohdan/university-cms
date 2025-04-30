@@ -5,15 +5,23 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.mapstruct.Qualifier;
+import ua.foxminded.universitycms.security.PasswordEncoderMapper;
 
 /**
- * Custom annotation used to qualify and map specific password encoder methods in the application.
+ * Custom qualifier annotation for identifying specific password encoding methods in the university
+ * management system.
  * <p>
- * This annotation serves as a qualifier in dependency injection scenarios where a particular
- * password encoder needs to be explicitly specified. It is particularly useful when multiple
- * implementations of a password encoder are available, allowing precise selection of the desired one.
+ * This annotation is used in conjunction with MapStruct to mark methods responsible for password
+ * encoding, enabling precise selection of the desired encoding logic when multiple implementations are
+ * available. It facilitates dependency injection and mapping scenarios by distinguishing a particular
+ * {@link PasswordEncoderMapper} method, ensuring that passwords are securely encoded during operations
+ * such as user creation or updates. The annotation is applied at the method level and retained at the
+ * class level for runtime processing.
  *
  * @author Serhii Bohdan
+ * @see org.mapstruct.Qualifier
+ * @see java.lang.annotation.ElementType#METHOD
+ * @see java.lang.annotation.RetentionPolicy#CLASS
  */
 @Qualifier
 @Target({ElementType.METHOD})

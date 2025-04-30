@@ -1,71 +1,238 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    header {
+      background: #1a1a2e !important;
+      color: white;
+      padding: 1rem 0;
+    }
+
+    .hero-section {
+      background: #1a1a2e;
+      color: white;
+      padding: 4rem 0;
+    }
+
+    .hero-icon {
+      font-size: 300px;
+      color: #ffffff;
+      transition: transform 0.3s ease;
+    }
+
+    .hero-icon:hover {
+      transform: scale(1.05);
+    }
+
+    .feature-card {
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px);
+    }
+
+    .welcome-text {
+      max-width: 600px;
+    }
+
+    .feature-icon {
+      font-size: 80px;
+      color: #007bff;
+      margin-top: 1rem;
+    }
+
+    .welcome-back {
+      padding-top: 1.5rem !important;
+    }
+
+    .welcome-back .alert {
+      margin-bottom: 0;
+    }
+
+    .details-section {
+      background-color: #f8f9fa;
+    }
+
+    .details-section .list-group-item {
+      border: none;
+      background: transparent;
+    }
+
+    .details-section .fw-bold {
+      color: #1a1a2e;
+    }
+  </style>
 </head>
 <body>
-<header th:insert="~{fragments/header :: header}"></header>
-<main role="main" id="home" class="container">
-  <div class="jumbotron">
-    <h2 class="title-center">Welcome dear user 👋</h2>
-    <p class="lead">
-      Improve and automate your learning process using our CMS. Our platform is designed to streamline administrative
-      tasks, enhance teaching and learning experiences, and foster meaningful communication between students, teachers,
-      and managers. With our CMS, you can easily manage courses, track student progress, and create engaging
-      content that meets the needs of today's learners. Join us in transforming education for a better future.
-    </p>
-    <hr class="home my-4">
-    <div class="row">
-      <div class="col-md-6">
-        <p class="button-like">Basic features:</p>
-        <ol class="list-group list-group-numbered">
-          <li class="list-group-item d-flex justify-content-between align-items-start">
-            <div class="ms-2 me-auto">
-              <div class="fw-bold">For Manager:</div>
-              <ol class="custom-counter">
-                <li>Manages groups in the system (create, update, delete).
-                </li>
-                <li>Add, delete, and edit information about participants in the learning process (teachers, students).</li>
-              </ol>
-            </div>
-          </li>
-          <li class="list-group-item d-flex justify-content-between align-items-start">
-            <div class="ms-2 me-auto">
-              <div class="fw-bold">For Teachers:</div>
-              <ol class="custom-counter">
-                <li>Create and edit your courses.</li>
-                <li>Add students to courses.</li>
-                <li>Evaluate students by giving marks.</li>
-                <li>Compose and manage your lessons schedule.</li>
-              </ol>
-            </div>
-          </li>
-          <li class="list-group-item d-flex justify-content-between align-items-start">
-            <div class="ms-2 me-auto">
-              <div class="fw-bold">For Students:</div>
-              <ol class="custom-counter">
-                <li>Use the courses that are present on the platform.</li>
-                <li>Track your performance using marks.</li>
-                <li>Create and manage your schedule.</li>
-              </ol>
-            </div>
-          </li>
-        </ol>
-      </div>
-      <div class="col-md-6">
-        <img th:src="@{/images/learning-image.jpg}" class="img-fluid rounded mx-auto d-block" alt="Learning Image">
+<header th:fragment="header" class="p-3">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+      <img th:src="@{/images/header-logo.svg}" width="45" height="45" alt="">
+      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+        <li><a th:href="@{/ui/v1/home}" class="nav-link px-2 text-white">Home</a></li>
+        <li><a sec:authorize="hasAuthority('ADMINS_READ')" th:href="@{/ui/v1/admins}" class="nav-link px-2 text-white">Admins</a>
+        </li>
+        <li><a sec:authorize="hasAuthority('MANAGERS_READ')" th:href="@{/ui/v1/managers}"
+               class="nav-link px-2 text-white">Managers</a></li>
+        <li><a sec:authorize="hasAuthority('STUDENTS_CREATE')" th:href="@{/ui/v1/students}"
+               class="nav-link px-2 text-white">Students</a></li>
+        <li><a sec:authorize="hasAuthority('TEACHERS_CREATE')" th:href="@{/ui/v1/teachers}"
+               class="nav-link px-2 text-white">Teachers</a></li>
+        <li><a sec:authorize="hasAuthority('GROUPS_CREATE')" th:href="@{/ui/v1/groups}"
+               class="nav-link px-2 text-white">Groups</a></li>
+        <li><a sec:authorize="hasAuthority('COURSES_READ')" th:href="@{/ui/v1/courses/my}"
+               class="nav-link px-2 text-white">Courses</a></li>
+        <li><a sec:authorize="hasAuthority('SCHEDULE_CREATE')" th:href="@{/ui/v1/schedule}"
+               class="nav-link px-2 text-white">Schedule</a></li>
+      </ul>
+      <div class="text-end">
+        <a sec:authorize="isAnonymous()" type="button" class="btn btn-outline-light me-2"
+           th:href="@{/form-login}">Log in
+        </a>
+        <div sec:authorize="isAuthenticated()" style="display: flex; align-items: center;">
+          <a
+            th:if="${#authentication.principal != null && T(ua.foxminded.universitycms.security.userdetails.CustomUserDetails).isInstance(#authentication.principal)}"
+            th:text="${#authentication.principal.firstName + ' ' + #authentication.principal.lastName}"
+            th:href="@{/ui/v1/iam}" style="margin-right: 15px; color: #ffdd00; text-decoration: none;"></a>
+          <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal"
+                  data-bs-target="#confirmModal">Log out
+          </button>
+        </div>
       </div>
     </div>
   </div>
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" style="color: black" id="confirmModalLabel">Please confirm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="color: black">Are you sure you want to log out?</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form th:action="@{/logout}" method="post">
+            <button class="btn btn-danger" type="submit">Log out</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h1 class="display-4 fw-bold mb-3">University CMS</h1>
+          <p class="welcome-text fs-5 mb-4">
+            Welcome to our comprehensive university management system.
+            Streamline your academic journey with our powerful tools and features.
+          </p>
+          <a sec:authorize="isAnonymous()" th:href="@{/form-login}" class="btn btn-outline-light btn-lg ms-2">
+            Get Started
+          </a>
+        </div>
+        <div class="col-lg-6 text-center">
+          <i class="fas fa-university hero-icon"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="container welcome-back" sec:authorize="isAuthenticated()">
+    <div class="alert alert-info text-center">
+      <h4>Welcome back,
+        <span th:text="${#authentication.principal.firstName + ' ' + #authentication.principal.lastName}">
+          User
+        </span>!
+      </h4>
+      <p>Access your personalized dashboard and start managing your university tasks.</p>
+    </div>
+  </section>
+  <section class="py-5">
+    <div class="container">
+      <h2 class="text-center mb-5">Key Features</h2>
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+          <div class="card h-100 feature-card shadow">
+            <div class="text-center">
+              <i class="fas fa-book-open feature-icon"></i>
+            </div>
+            <div class="card-body text-center">
+              <h5 class="card-title">Course Management</h5>
+              <p class="card-text">Easily manage courses, schedules, and academic content.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card h-100 feature-card shadow">
+            <div class="text-center">
+              <i class="fas fa-users feature-icon"></i>
+            </div>
+            <div class="card-body text-center">
+              <h5 class="card-title">User Administration</h5>
+              <p class="card-text">Efficiently handle students, teachers, and managers.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="card h-100 feature-card shadow">
+            <div class="text-center">
+              <i class="fas fa-calendar-alt feature-icon"></i>
+            </div>
+            <div class="card-body text-center">
+              <h5 class="card-title">Smart Scheduling</h5>
+              <p class="card-text">Organize lessons and events with our intuitive system.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="details-section">
+    <div class="container">
+      <h2 class="text-center mb-5">User Roles & Responsibilities</h2>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover text-center">
+          <thead class="table-dark">
+          <tr>
+            <th>Role</th>
+            <th>Responsibilities</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td><strong>Administrator</strong></td>
+            <td>Manages managers: adds, edits, and deletes accounts. No access to teachers or students.</td>
+          </tr>
+          <tr>
+            <td><strong>Manager</strong></td>
+            <td>Manages teachers, students, and groups: creates, edits, deletes accounts, and assigns groups.</td>
+          </tr>
+          <tr>
+            <td><strong>Teacher</strong></td>
+            <td>Manages courses: creates, edits, adds students, schedules lessons, and evaluates student progress.</td>
+          </tr>
+          <tr>
+            <td><strong>Student</strong></td>
+            <td>Views course materials, tracks progress via evaluations, and manages their own schedule.</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 </main>
 <footer th:insert="~{fragments/footer :: footer}"></footer>
-<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
-<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
-<script th:src="@{/webjars/jquery-ui/1.13.2/jquery-ui.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

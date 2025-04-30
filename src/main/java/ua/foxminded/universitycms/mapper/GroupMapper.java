@@ -8,48 +8,59 @@ import ua.foxminded.universitycms.dto.GroupDto;
 import ua.foxminded.universitycms.model.Group;
 
 /**
- * Interface defining mappings between {@link Group} entities and {@link GroupDto} data transfer objects.
- * This mapper utilizes the MapStruct library for efficient and type-safe conversion.
+ * Mapper interface for converting between {@link Group} entities and {@link GroupDto} objects in the university
+ * management system.
  * <p>
- * It leverages the {@link StudentMapper} to handle nested student object conversions within the group.
+ * This interface extends the generic {@link Mapper} contract to provide type-safe mappings specific to group entities.
+ * It leverages the MapStruct library for efficient conversions between persistence-layer entities and application-layer
+ * DTOs, supporting bidirectional mapping, partial updates, and bulk transformations. The {@code @Mapper} annotation
+ * integrates this interface with Spring and utilizes {@link StudentMapper} to handle nested student object conversions
+ * within the group.
  *
  * @author Serhii Bohdan
+ * @see Mapper
+ * @see Group
+ * @see GroupDto
+ * @see StudentMapper
  */
-@Mapper(componentModel = "spring", uses = StudentMapper.class)
+@Mapper(componentModel = "spring", uses = {StudentMapper.class})
 public interface GroupMapper extends ua.foxminded.universitycms.mapper.Mapper<Group, GroupDto> {
 
     /**
-     * Converts a {@link Group} entity to a corresponding {@link GroupDto} object. This
-     * method utilizes the configured mappings to convert the group entity and its
-     * potentially associated students.
+     * Converts a {@link Group} entity to a {@link GroupDto} object.
+     * <p>
+     * Maps the entity's fields to the DTO, including any nested student data, which is handled by the
+     * {@link StudentMapper}. This method ensures a complete transformation of the group entity into its DTO
+     * representation.
      *
-     * @param entity the {@link Group} entity to be converted
-     * @return a new {@link GroupDto} object representing the converted data
+     * @param entity the {@link Group} entity to convert
+     * @return the resulting {@link GroupDto} object
      */
     @Override
     GroupDto toDto(Group entity);
 
     /**
-     * Converts a {@link GroupDto} object to a corresponding {@link Group} entity. This method
-     * utilizes the configured mappings to convert the group DTO and its potentially associated
-     * student data.
+     * Converts a {@link GroupDto} object to a {@link Group} entity.
+     * <p>
+     * Maps the DTO's fields to the entity, including any nested student data, which is handled by the
+     * {@link StudentMapper}. This method ensures a complete transformation of the DTO into its entity representation.
      *
-     * @param dto the {@link GroupDto} object to be converted
-     * @return a new {@link Group} entity representing the converted data
+     * @param dto the {@link GroupDto} object to convert
+     * @return the resulting {@link Group} entity
      */
     @Override
     Group toEntity(GroupDto dto);
 
     /**
-     * Partially updates a {@link Group} entity based on the provided {@link GroupDto}.
+     * Partially updates an existing {@link Group} entity with data from a {@link GroupDto} object.
      * <p>
-     * This method merges the properties of the `dto` object with the existing `entity` object,
-     * updating only the non-null properties in the `dto`. This allows for selective updates without
-     * overwriting existing data.
+     * Updates only the non-null fields from the DTO into the target entity, preserving existing entity data for
+     * null DTO fields. The {@link BeanMapping} annotation with {@code NullValuePropertyMappingStrategy.IGNORE}
+     * ensures this selective update behavior. Nested student data is managed via the {@link StudentMapper}.
      *
-     * @param dto    the {@link GroupDto} object containing the updated data
-     * @param entity the {@link Group} entity to be partially updated
-     * @return the partially updated {@link Group} entity
+     * @param dto    the {@link GroupDto} object containing updated data
+     * @param entity the existing {@link Group} entity to update
+     * @return the updated {@link Group} entity
      */
     @Override
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

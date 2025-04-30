@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title th:text="${manager.firstName} + ' ' + ${manager.lastName} + ' - Manager Details - University CMS'">Manager
+    Details - University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
+  <div class="row d-flex">
+    <a class="fa fa-arrow-left col mt-3" th:href="@{/ui/v1/managers}" aria-hidden="true"
+       title="Back to the list of managers"
+       style="width: 100%; max-width: max-content; padding-left: 0; padding-right: 0; padding-top: 0.8rem; cursor: pointer; text-decoration: none; color: #0A0921"></a>
+    <h2 class="title-center col mt-3" th:text="${manager.firstName + ' ' + manager.lastName}"></h2>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">First name:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${manager.firstName}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Last name:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${manager.lastName}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Email:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${manager.email}"></div>
+  </div>
+  <div sec:authorize="hasAuthority('MANAGERS_UPDATE')" class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Password:</div>
+    <div class="col-md-2 mt-3 unsent-width" style="padding-left: inherit;">
+      <span>**********</span>
+      <a class="fas fa-edit" style="text-decoration: none; padding-left: 5px;" title="Change password"
+         th:href="@{/ui/v1/managers/{managerId}/change-pass(managerId=${manager.id})}"></a>
+    </div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Time zone:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${manager.locationZoneOffset}"></div>
+  </div>
+  <div sec:authorize="hasAuthority('MANAGERS_CREATE')" class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Created at:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${#temporals.format(manager.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></div>
+  </div>
+  <div sec:authorize="hasAuthority('MANAGERS_UPDATE')" class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Last updated:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${#temporals.format(manager.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></div>
+  </div>
+  <div class="my-2">
+    <hr class="my-1">
+  </div>
+  <div class="my-4">
+    <div class="row d-flex">
+      <a sec:authorize="hasAuthority('MANAGERS_UPDATE')" class="col-md-3 unsent-width btn btn-secondary"
+         th:href="@{/ui/v1/managers/{managerId}/edit(managerId=${manager.id})}"
+         style="margin-left: 12px; margin-right: 15px">Edit</a>
+      <span sec:authorize="hasAuthority('MANAGERS_DELETE')" class="col-md-3 unsent-width btn btn-danger"
+            data-bs-toggle="modal" data-bs-target="#managerDeleteModal">Delete</span>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="managerDeleteModal" tabindex="-1" aria-labelledby="managerDeleteModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel"
+            th:text="'Are you sure you want to delete a manager with a ' + ${manager.email} + ' email?'"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">This manager will lose the ability to use the system to manage participants in the
+        learning process after removal from the system.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form sec:authorize="hasAuthority('MANAGERS_DELETE')" th:method="delete"
+              th:action="@{/ui/v1/managers/{managerId}/delete(managerId=${manager.id})}">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+</body>
+</html>

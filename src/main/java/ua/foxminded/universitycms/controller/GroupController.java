@@ -3,7 +3,6 @@ package ua.foxminded.universitycms.controller;
 import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -18,14 +17,19 @@ import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
 
 /**
- * This Spring Boot Web Controller handles requests related to managing and displaying groups.
- * It maps GET requests to the {@code /ui/v1/groups} path.
+ * Spring MVC Controller for handling group-related requests under the {@code /ui/v1/groups} path.
+ * Manages operations such as displaying group lists, creating, updating, and deleting groups.
+ * Uses {@link GroupService} for business logic. Annotated with {@code @Controller} for MVC
+ * handling and {@code @RequiredArgsConstructor} for dependency injection.
  *
  * @author Serhii Bohdan
+ * @see GroupService
+ * @see ModelAttributeNames
+ * @see ViewNames
  */
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/ui/v1/groups")
+@RequestMapping({"/ui/v1/groups"})
 public class GroupController {
 
     /**
@@ -39,31 +43,28 @@ public class GroupController {
     private static final String SPECIFIC_GROUP_REDIRECT_URL = "redirect:/ui/v1/groups/%s";
 
     /**
-     * The {@link GroupService} used to interact with group data.
+     * Service for interacting with group data and performing business logic operations.
      */
     private final GroupService groupService;
 
     /**
-     * Retrieves a page of group data for display and populates the model with necessary attributes.
-     * <p>
-     * This method handles GET requests to the endpoint responsible for displaying a paginated list of groups.
-     * It utilizes the {@code groupService} to retrieve group data based on a provided keyword (optional)
-     * and pagination information.
+     * Displays a paginated list of groups, optionally filtered by keyword.
+     * Handles GET requests to {@code /ui/v1/groups}. Retrieves groups via
+     * {@link GroupService#findGroups} and adds pagination data and names to the model.
+     * Requires {@code GROUPS_READ} authority.
      *
-     * @param model    the Spring MVC Model object used to store data for the view
-     * @param keyword  an optional search keyword for filtering groups by name (can be blank)
-     * @param pageable the Pageable object containing pagination information (size, page number)
-     * @return the logical view name {@code groups/all-groups} representing the group list template
+     * @param model    the {@link Model} to store view data
+     * @param keyword  optional keyword to filter groups by name; may be blank
+     * @param pageable pagination info from {@link PageableDefault}
+     * @return view name {@link ViewNames#ALL_GROUPS_PAGE} for the group list
      */
     @GetMapping
     @PreAuthorize("hasAuthority('GROUPS_READ')")
     public String getPageWithGroups(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                     @PageableDefault Pageable pageable) {
-        Page<GroupDto> groupsPage = StringUtils.isBlank(keyword)
-            ? groupService.getGroupsPage(pageable)
-            : groupService.getGroupInPageByName(keyword, pageable);
+        Page<GroupDto> groupsPage = groupService.findGroups(pageable, keyword);
 
-        model.addAttribute(ModelAttributeNames.GROUPS_ALL_NAMES_ATTRIBUTE, getGroupNames(groupService.getAll()))
+        model.addAttribute(ModelAttributeNames.GROUPS_ALL_NAMES_ATTRIBUTE, groupService.extractGroupNames(groupService.getAll()))
             .addAttribute(ModelAttributeNames.GROUPS_ATTRIBUTE, groupsPage.getContent())
             .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
             .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, groupsPage.getTotalElements())
@@ -75,28 +76,25 @@ public class GroupController {
     }
 
     /**
-     * Retrieves a page displaying groups whose students are not enrolled in a specific course.
-     * <p>
-     * This method handles GET requests to the {@code /ui/v1/groups/for-enroll} endpoint and returns
-     * a view containing a list of groups that are eligible for enrollment in a specified course.
-     * It supports optional keyword-based filtering for group names.
+     * Displays groups with students not enrolled in a specific course, optionally filtered by keyword.
+     * Handles GET requests to {@code /ui/v1/groups/for-enroll}. Retrieves groups via
+     * {@link GroupService#getGroupsWithUnEnrolledStudents} and filters them. Requires
+     * {@code GROUPS_READ}.
      *
-     * @param model    the Spring MVC Model object used to store data for the view
-     * @param keyword  an optional keyword for filtering group names (can be null or blank)
-     * @param courseId the ID of the course to find groups for enrollment
-     * @return the logical view name {@code ViewNames.GROUPS_FOR_ENROLL_IN_COURSE} representing the page with groups eligible for enrollment
+     * @param model    the {@link Model} to store view data
+     * @param keyword  optional keyword to filter groups by name; may be blank
+     * @param courseId the ID of the course to check enrollment against
+     * @return view name {@link ViewNames#GROUPS_FOR_ENROLL_IN_COURSE} for the list
      */
     @GetMapping("/for-enroll")
     @PreAuthorize("hasAuthority('GROUPS_READ')")
     public String getPageWithGroupsForEnrollInCourse(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                                      @RequestParam("cid") long courseId) {
-        List<GroupDto> groupsWhoseStudentsNotEnrolledInCourse = groupService.getListOfGroupsWhoseStudentsNotEnrolledInCourse(courseId);
-        List<GroupDto> selectedGroups = StringUtils.isBlank(keyword)
-            ? groupsWhoseStudentsNotEnrolledInCourse
-            : findGroupByName(groupsWhoseStudentsNotEnrolledInCourse, keyword);
+        List<GroupDto> allUnEnrolledGroups = groupService.getGroupsWithUnEnrolledStudents(courseId);
+        List<GroupDto> filteredGroups = groupService.filterGroupsByName(allUnEnrolledGroups, keyword);
 
-        model.addAttribute(ModelAttributeNames.GROUPS_ALL_NAMES_ATTRIBUTE, getGroupNames(groupsWhoseStudentsNotEnrolledInCourse))
-            .addAttribute(ModelAttributeNames.GROUPS_ATTRIBUTE, selectedGroups)
+        model.addAttribute(ModelAttributeNames.GROUPS_ALL_NAMES_ATTRIBUTE, groupService.extractGroupNames(allUnEnrolledGroups))
+            .addAttribute(ModelAttributeNames.GROUPS_ATTRIBUTE, filteredGroups)
             .addAttribute(ModelAttributeNames.COURSE_ID_ATTRIBUTE, courseId)
             .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
@@ -104,15 +102,13 @@ public class GroupController {
     }
 
     /**
-     * Retrieves a specific group by its ID.
-     * <p>
-     * This method handles GET requests to the {@code /ui/v1/groups/{groupId}} endpoint. It retrieves the group
-     * with the provided {@code groupId} using the {@code groupService}. If the group is found, it adds the group data
-     * to the model for display in the specific group view.
+     * Displays details of a specific group.
+     * Handles GET requests to {@code /ui/v1/groups/{groupId}}. Retrieves group data via
+     * {@link GroupService#getById} and adds it to the model. Requires {@code GROUPS_READ}.
      *
-     * @param model   the Spring MVC Model object used to store data for the view
-     * @param groupId the ID of the group to retrieve
-     * @return the logical view name {@code ViewNames.SPECIFIC_GROUP} representing the specific group template
+     * @param model   the {@link Model} to store view data
+     * @param groupId the ID of the group to display
+     * @return view name {@link ViewNames#SPECIFIC_GROUP} for group details
      */
     @GetMapping("/{groupId}")
     @PreAuthorize("hasAuthority('GROUPS_READ')")
@@ -122,14 +118,12 @@ public class GroupController {
     }
 
     /**
-     * Retrieves the group creation form.
-     * <p>
-     * This method handles GET requests to the {@code /ui/v1/groups/new} endpoint. It
-     * creates a new empty {@link GroupDto} object and adds it to the model for display
-     * in the group creation form template.
+     * Displays the form for creating a new group.
+     * Handles GET requests to {@code /ui/v1/groups/new}. Prepares a {@link GroupDto} for the form.
+     * Requires {@code GROUPS_CREATE} authority.
      *
-     * @param model the Spring MVC Model object used to store data for the view
-     * @return the group creation template
+     * @param model the {@link Model} to store form data
+     * @return view name {@link ViewNames#GROUP_CREATION_FORM} for the creation form
      */
     @GetMapping("/new")
     @PreAuthorize("hasAuthority('GROUPS_CREATE')")
@@ -140,14 +134,14 @@ public class GroupController {
     }
 
     /**
-     * Processes group creation form submission and saves a new group.
-     * <p>
-     * Handles validation, delegation to groupService, and redirects on success.
-     * Requires {@code GROUPS_CREATE} authority.
+     * Processes the submission of the group creation form.
+     * Handles POST requests to {@code /ui/v1/groups/create}. Validates {@link GroupDto} and saves
+     * the group via {@link GroupService#save}. Returns the form on errors. Requires
+     * {@code GROUPS_CREATE}.
      *
-     * @param group         the group data to be created (received from the form)
-     * @param bindingResult the binding result containing any validation errors
-     * @return a redirect URL on success, the creation form view name on validation errors
+     * @param group         the {@link GroupDto} with form data
+     * @param bindingResult validation results for the DTO
+     * @return redirect to {@link #ALL_GROUPS_REDIRECT_URL} or form view on errors
      */
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('GROUPS_CREATE')")
@@ -162,15 +156,13 @@ public class GroupController {
     }
 
     /**
-     * Retrieves the group update form for a specific group.
-     * <p>
-     * This method handles GET requests to the {@code /ui/v1/groups/{groupId}/edit} endpoint. It retrieves
-     * the group with the provided {@code groupId} using the {@code groupService}. If the group is found, it adds
-     * the group data to the model for display in the group update form.
+     * Displays the form for updating a group's information.
+     * Handles GET requests to {@code /ui/v1/groups/{groupId}/edit}. Retrieves group data via
+     * {@link GroupService#getById} for the form. Requires {@code GROUPS_UPDATE}.
      *
-     * @param model   the Spring MVC Model object used to store data for the view
-     * @param groupId the ID of the group to be updated
-     * @return the group update template
+     * @param model   the {@link Model} to store form data
+     * @param groupId the ID of the group to update
+     * @return view name {@link ViewNames#GROUP_UPDATE_FORM} for the update form
      */
     @GetMapping("/{groupId}/edit")
     @PreAuthorize("hasAuthority('GROUPS_UPDATE')")
@@ -180,18 +172,13 @@ public class GroupController {
     }
 
     /**
-     * Attempts to update an existing group.
-     * <p>
-     * This method handles PUT requests to the {@code /ui/v1/groups/update} endpoint. It binds
-     * the request parameters to a {@link GroupDto} object and validates it. If there are
-     * validation errors, it returns the group update form view name. Otherwise, it attempts
-     * to update the group using the {@code groupService}. If successful, it redirects the user to
-     * the all groups page.
+     * Processes the update of a group's information.
+     * Handles PUT requests to {@code /ui/v1/groups/update}. Validates {@link GroupDto} and updates
+     * via {@link GroupService#update}. Returns form on errors. Requires {@code GROUPS_UPDATE}.
      *
-     * @param group         the group data to be updated (received from the form)
-     * @param bindingResult the binding result containing any validation errors
-     * @return the view name of the group update form if validation errors exist,
-     * or a redirect URL to the specific group page on a successful update
+     * @param group         the {@link GroupDto} with updated data
+     * @param bindingResult validation results for the DTO
+     * @return redirect to group page or form view on errors
      */
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('GROUPS_UPDATE')")
@@ -201,36 +188,22 @@ public class GroupController {
         }
 
         groupService.update(group);
-        return String.format(SPECIFIC_GROUP_REDIRECT_URL, group.getId());
+        return SPECIFIC_GROUP_REDIRECT_URL.formatted(group.getId());
     }
 
     /**
-     * Deletes an existing group.
-     * <p>
-     * This method handles DELETE requests to the {@code /ui/v1/groups/{groupId}/delete} endpoint, where
-     * {@code groupId} is the ID of the group to be deleted. It attempts to delete the group using the
-     * {@code groupService}. If successful, it redirects the user to the all groups page.
+     * Deletes a group from the system.
+     * Handles DELETE requests to {@code /ui/v1/groups/{groupId}/delete}. Deletes group via
+     * {@link GroupService#deleteById} and redirects. Requires {@code GROUPS_DELETE}.
      *
-     * @param groupId the ID of the group to be deleted
-     * @return a redirect URL on success
+     * @param groupId the ID of the group to delete
+     * @return redirect to {@link #ALL_GROUPS_REDIRECT_URL}
      */
     @DeleteMapping("/{groupId}/delete")
     @PreAuthorize("hasAuthority('GROUPS_DELETE')")
     public String performGroupDeletion(@PathVariable("groupId") long groupId) {
         groupService.deleteById(groupId);
         return ALL_GROUPS_REDIRECT_URL;
-    }
-
-    private List<String> getGroupNames(List<GroupDto> groups) {
-        return groups.stream()
-            .map(GroupDto::getGroupName)
-            .toList();
-    }
-
-    private List<GroupDto> findGroupByName(List<GroupDto> groups, String groupName) {
-        return groups.stream()
-            .filter(g -> g.getGroupName().equals(groupName))
-            .toList();
     }
 
 }

@@ -3,7 +3,8 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
-  <title>Courses</title>
+  <title>All Courses – University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
   <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
   <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
   <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -11,14 +12,20 @@
 <body>
 <header th:insert="~{fragments/header :: header}"></header>
 <div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
-  <h2 class="title-center">Courses</h2>
+  <div class="row d-flex">
+    <a class="fa fa-arrow-left col mt-3" th:href="@{/ui/v1/courses/my}" aria-hidden="true"
+       title="Back to the list of my courses"
+       style="width: 100%; max-width: max-content; padding-left: 0; padding-right: 0; padding-top: 0.8rem; cursor: pointer; text-decoration: none; color: #0A0921"></a>
+    <h2 class="title-center col mt-3">All courses</h2>
+  </div>
   <div class="my-3">
     <form th:action="@{/ui/v1/courses}" id="searchForm">
       <div class="row d-flex">
         <div class="col-md-6 mt-2">
           <div class="search">
             <i class="fa fa-search"></i>
-            <input id="keyword" type="search" name="keyword" th:value="${keyword}" required class="form-control" placeholder="Enter course name">
+            <input id="keyword" type="search" name="keyword" th:value="${keyword}" required class="form-control"
+                   placeholder="Enter course name">
             <button type="submit" class="btn btn-primary">Search</button>
           </div>
         </div>
@@ -26,8 +33,10 @@
           <div class="input-group-prepend">
             <label class="input-group-text" for="size">Items per page:</label>
           </div>
-          <select form="searchForm" name="size" th:value="${size}" onchange="changePageSize()" class="size-select" id="size">
-            <option th:each="s : ${#numbers.sequence(1, 20)}" th:value="${s}" th:text="${s}" th:selected="${s == size}"></option>
+          <select form="searchForm" name="size" th:value="${size}" onchange="changePageSize()" class="size-select"
+                  id="size">
+            <option th:each="s : ${#numbers.sequence(1, 20)}" th:value="${s}" th:text="${s}"
+                    th:selected="${s == size}"></option>
           </select>
         </div>
         <div class="col-md-3 mt-2 unsent-width">
@@ -36,27 +45,21 @@
       </div>
     </form>
   </div>
-  <div class="my-0">
-    <div class="row d-flex">
-        <a class="col-md-3 mt-2 unsent-width btn btn-light btn-light-cus" th:href="@{/ui/v1/courses/my}"
-           style="margin-left: 12px;">My courses</a>
-    </div>
-  </div>
   <div th:if="${courses.size()} > 0">
     <table class="table table-striped table-hover table-responsive-xl">
       <thead class="table-light">
       <tr>
         <th scope="col">№</th>
-        <th scope="col">Course name</th>
-        <th scope="col">Author name</th>
+        <th scope="col" style="text-align: left">Course name</th>
+        <th scope="col" style="text-align: left">Author name</th>
         <th scope="col">Number of topics</th>
       </tr>
       </thead>
       <tbody>
       <tr th:each="course, interStat : ${courses}">
         <th scope="row" th:text="${size * page + interStat.count}"></th>
-        <td th:text="*{course.courseName}"></td>
-        <td th:text="*{course.authorFirstName + ' ' + course.authorLastName}"></td>
+        <td th:text="*{course.courseName}" style="text-align: left"></td>
+        <td th:text="*{course.authorFirstName + ' ' + course.authorLastName}" style="text-align: left"></td>
         <td th:text="*{course.topics.size()}"></td>
       </tr>
       </tbody>

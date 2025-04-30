@@ -4,33 +4,41 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import ua.foxminded.universitycms.model.Admin;
+import ua.foxminded.universitycms.model.FullName;
 import ua.foxminded.universitycms.model.enumeration.RoleName;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of {@link CustomUserDetails} that wraps an {@link Admin} entity.
- *
- * <p>This class is used by Spring Security to represent the authenticated admin user. It provides the necessary
- * details about the admin, such as their authorities (permissions), password, username (email), and other relevant information.
+ * Implementation of {@link CustomUserDetails} that encapsulates an {@link Admin} entity for Spring Security.
+ * <p>
+ * This class provides a Spring Security-compatible representation of an authenticated admin user within the
+ * university management system. It wraps an {@link Admin} entity, exposing security-relevant details such as
+ * authorities (permissions), hashed password, username (email), and additional user attributes like ID, full
+ * name, and role name. The implementation leverages the admin's role and permissions to define access rights.
  *
  * @author Serhii Bohdan
+ * @see CustomUserDetails
+ * @see Admin
+ * @see SimpleGrantedAuthority
+ * @see RoleName
+ * @see FullName
  */
 @RequiredArgsConstructor
 public class AdminDetails implements CustomUserDetails {
 
     /**
-     * The underlying {@link Admin} entity that this object represents.
+     * The underlying {@link Admin} entity represented by this object.
      */
     private final Admin admin;
 
     /**
-     * Retrieves the authorities (permissions) granted to this admin user.
+     * Retrieves the authorities granted to this admin user.
      * <p>
-     * This implementation fetches the permissions associated with the admin's role and converts them
-     * into {@link SimpleGrantedAuthority} objects for use by Spring Security.
+     * This method extracts the permissions from the admin's role and converts them into a collection of
+     * {@link SimpleGrantedAuthority} objects, which Spring Security uses to determine the user's access rights.
      *
-     * @return A collection of granted authorities (permissions).
+     * @return a collection of {@link GrantedAuthority} objects representing the admin's permissions
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -42,7 +50,7 @@ public class AdminDetails implements CustomUserDetails {
     /**
      * Retrieves the hashed password of the admin user.
      *
-     * @return The hashed password.
+     * @return the admin's hashed password as a {@code String}
      */
     @Override
     public String getPassword() {
@@ -50,9 +58,9 @@ public class AdminDetails implements CustomUserDetails {
     }
 
     /**
-     * Retrieves the username (email) of the admin user.
+     * Retrieves the username of the admin user, represented by their email address.
      *
-     * @return The admin's email address.
+     * @return the admin's email address as a {@code String}
      */
     @Override
     public String getUsername() {
@@ -60,10 +68,11 @@ public class AdminDetails implements CustomUserDetails {
     }
 
     /**
-     * Retrieves the ID of the admin user.
+     * Retrieves the unique identifier of the admin user.
      *
-     * @return The admin's ID.
+     * @return the admin's ID as a {@code Long}
      */
+    @Override
     public Long getId() {
         return this.admin.getId();
     }
@@ -71,30 +80,53 @@ public class AdminDetails implements CustomUserDetails {
     /**
      * Retrieves the first name of the admin user.
      *
-     * @return The admin's first name.
+     * @return the admin's first name as a {@code String}
      */
     @Override
     public String getFirstName() {
-        return this.admin.getName().getFirstName();
+        return this.admin.getFullName().getFirstName();
     }
 
     /**
      * Retrieves the last name of the admin user.
      *
-     * @return The admin's last name.
+     * @return the admin's last name as a {@code String}
      */
     @Override
     public String getLastName() {
-        return this.admin.getName().getLastName();
+        return this.admin.getFullName().getLastName();
     }
 
     /**
-     * Retrieves the role name of the admin user.
+     * Retrieves the admin user's time zone offset from UTC.
      *
-     * @return The admin's role name.
+     * @return the admin's time zone offset as a {@code String}, e.g., "+02:00" or "-05:00"
      */
+    @Override
+    public String getLocationZoneOffset() {
+        return this.admin.getLocationZoneOffset();
+    }
+
+    /**
+     * Retrieves the role name assigned to the admin user.
+     *
+     * @return the admin's role name as a {@link RoleName} enum value
+     */
+    @Override
     public RoleName getRoleName() {
         return this.admin.getRole().getRoleName();
+    }
+
+    /**
+     * Sets the full name of the admin user.
+     * <p>
+     * Updates the {@link FullName} object of the underlying {@link Admin} entity with the provided value.
+     *
+     * @param fullName the {@link FullName} object containing the admin's first and last names
+     */
+    @Override
+    public void setFullName(FullName fullName) {
+        this.admin.setFullName(fullName);
     }
 
 }

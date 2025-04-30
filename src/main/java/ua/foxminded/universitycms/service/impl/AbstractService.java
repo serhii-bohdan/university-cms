@@ -13,32 +13,72 @@ import ua.foxminded.universitycms.model.AbstractEntity;
 import ua.foxminded.universitycms.service.Service;
 
 /**
- * The {@code AbstractService} class provides a foundation for implementing service-layer components that interact with
- * repositories and handle CRUD operations for entities and DTOs. It encapsulates common logic and promotes consistency
- * across service classes.
+ * Abstract base class for implementing service-layer components that manage CRUD operations in the university
+ * management system.
+ * <p>
+ * This class provides a generic foundation for service implementations handling entities of type {@code E} and their
+ * DTOs of type {@code D}. It encapsulates common CRUD logic (Create, Read, Update, Delete) using a {@link JpaRepository}
+ * for persistence and a {@link Mapper} for entity-DTO conversions, promoting consistency and reducing boilerplate code
+ * across service classes. The {@code @RequiredArgsConstructor} annotation ensures dependency injection of the
+ * repository and mapper.
  *
- * @param <E> the type of entity being managed
- * @param <D> the type of DTO representing the entity
+ * @param <E> the entity type being managed, extending {@link AbstractEntity}
+ * @param <D> the DTO type representing the entity, extending {@link AbstractDto}
  * @author Serhii Bohdan
+ * @see Service
+ * @see JpaRepository
+ * @see Mapper
+ * @see EntityNotFoundException
  */
 @RequiredArgsConstructor
 public abstract class AbstractService<E extends AbstractEntity, D extends AbstractDto> implements Service<E, D> {
 
     /**
-     * The {@link JpaRepository} used for managing entities of type {@code E}.
+     * Error message template used when an entity with the specified ID cannot be found.
+     * <p>
+     * This message is formatted with the entity's ID and included in an {@link EntityNotFoundException} when
+     * retrieval or update
+     * operations fail due to a missing entity.
+     */
+    private static final String ENTITY_NOT_FOUND_MESSAGE = "Entity not found with id: %s.";
+
+    /**
+     * Error message template used when an entity deletion fails due to the entity not existing.
+     * <p>
+     * This message is formatted with the entity's ID and included in an {@link EntityNotFoundException} when a
+     * deletion attempt
+     * is made on a non-existent entity.
+     */
+    private static final String ENTITY_DELETION_ERROR_MESSAGE = """
+        Error deleting entity. Entity with the passed ID does not exist: %s.
+        """;
+
+    /**
+     * Repository for performing CRUD operations on entities of type {@code E}.
+     * <p>
+     * This {@link JpaRepository} instance provides data access methods for persisting, retrieving, updating, and
+     * deleting entities
+     * in the underlying database.
      */
     protected final JpaRepository<E, Long> repository;
 
     /**
-     * The {@link Mapper} used for converting between entities of type {@code E} and DTOs of type {@code D}.
+     * Mapper for converting between entities of type {@code E} and DTOs of type {@code D}.
+     * <p>
+     * This {@link Mapper} instance handles the transformation of entities to DTOs and vice versa, facilitating
+     * data transfer between the service layer and other application layers.
      */
     protected final Mapper<E, D> mapper;
 
     /**
      * Saves a new entity based on the provided DTO representation.
+     * <p>
+     * Converts the DTO to an entity using the configured mapper, persists it via the repository, and returns the
+     * saved entity as a DTO. This method ensures the entity is created with a generated ID, which is reflected in
+     * the returned DTO.
      *
-     * @param dto the DTO containing the data for the new entity
-     * @return a new DTO representing the saved entity with its generated ID
+     * @param dto the DTO containing the data for the new entity, must be non-null and valid per service requirements
+     * @return a {@link D} DTO representing the saved entity, including its generated ID
      */
     @Override
     public D save(D dto) {
@@ -49,12 +89,12 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
     /**
      * Retrieves an entity by its ID and returns its DTO representation.
      * <p>
-     * This method attempts to find an entity in the repository by its unique identifier. If the entity is found,
-     * it is mapped to its DTO representation using the mapper and returned. If the entity is not found,
-     * an {@link EntityNotFoundException} is thrown with an appropriate HTTP status and error message.
+     * Queries the repository for an entity with the specified ID and maps it to a DTO if found. If no entity exists,
+     * throws an {@link EntityNotFoundException} with a {@link HttpStatus#NOT_FOUND} status and a formatted error
+     * message. The {@link Transactional} annotation ensures this operation is read-only for performance optimization.
      *
      * @param id the unique identifier of the entity to retrieve
-     * @return the DTO representation of the entity if found
+     * @return the {@link D} DTO representation of the entity if found
      * @throws EntityNotFoundException if no entity with the given ID exists
      */
     @Override
@@ -63,15 +103,16 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
         return repository.findById(id)
             .map(mapper::toDto)
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format("Error searching for entity. Entity with the passed ID does not exist: %s", id)));
+                ENTITY_NOT_FOUND_MESSAGE.formatted(id)));
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves a list of all entities and returns their DTO representations.
      * <p>
-     * Retrieves a list of all entities and returns a list of their DTO representations.
+     * Fetches all entities from the repository and converts them to a list of DTOs using the mapper. The
+     * {@link Transactional} annotation ensures this operation is read-only for performance optimization.
      *
-     * @return a list of DTOs representing all entities
+     * @return a {@link List} of {@link D} DTOs representing all entities in the system
      */
     @Override
     @Transactional(readOnly = true)
@@ -82,36 +123,37 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
     }
 
     /**
-     * {@inheritDoc}
+     * Updates an existing entity based on the provided DTO and returns its updated DTO representation.
      * <p>
-     * Updates an existing entity based on the provided DTO by:
-     * <ol>
-     *   <li>Converting the DTO to an entity using the mapper.</li>
-     *   <li>Saving the entity to the repository (which performs an update).</li>
-     *   <li>Converting the updated entity back to a DTO and returning it.</li>
-     * </ol>
+     * Retrieves the existing entity by ID, applies partial updates from the DTO using the mapper, saves the updated
+     * entity to the repository, and returns the updated DTO. Throws an {@link EntityNotFoundException} if the entity
+     * is not found. The {@link Transactional} annotation ensures atomicity of the update operation.
      *
-     * @param dto the DTO containing the updated data for the entity
-     * @return a DTO representing the updated entity
+     * @param dto the DTO containing the updated data for the entity, must be non-null and valid per service
+     *            requirements
+     * @return a {@link D} DTO representing the updated entity
+     * @throws EntityNotFoundException if no entity with the DTO's ID exists
      */
     @Override
     @Transactional
     public D update(D dto) {
         E existingEntity = repository.findById(dto.getId())
             .orElseThrow(() -> new EntityNotFoundException(HttpStatus.NOT_FOUND,
-                String.format("Entity not found with id: %d", dto.getId())));
+                ENTITY_NOT_FOUND_MESSAGE.formatted(dto.getId())));
 
         E updatedEntity = mapper.partialUpdate(dto, existingEntity);
         return mapper.toDto(repository.save(updatedEntity));
     }
 
     /**
-     * {@inheritDoc}
-     * <p>
      * Deletes an entity by its ID.
+     * <p>
+     * Attempts to find and delete the entity with the specified ID from the repository. If the entity exists, it
+     * is removed; otherwise, an {@link EntityNotFoundException} is thrown with a {@link HttpStatus#NOT_FOUND} status
+     * and a formatted error message.
      *
      * @param id the ID of the entity to delete
-     * @throws EntityNotFoundException if the entity with the given ID is not found
+     * @throws EntityNotFoundException if no entity with the given ID exists
      */
     @Override
     public void deleteById(long id) {
@@ -123,7 +165,7 @@ public abstract class AbstractService<E extends AbstractEntity, D extends Abstra
         }
 
         throw new EntityNotFoundException(HttpStatus.NOT_FOUND,
-            String.format("Error deleting entity. Entity with the passed ID does not exist: %s", id));
+            ENTITY_DELETION_ERROR_MESSAGE.formatted(id));
     }
 
 }

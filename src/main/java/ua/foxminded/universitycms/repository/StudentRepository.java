@@ -9,52 +9,70 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * The {@code StudentRepository} interface is a Spring Data JPA repository for
- * {@link Student} entities.
+ * Spring Data JPA repository for managing {@link Student} entities in the university management system.
  * <p>
- * This interface extends {@link JpaRepository}, which provides JPA related
- * methods such as save(), findOne(), findAll(), count(), delete(). This
- * interface is annotated with {@code @Repository}, indicating that it's a
- * "Repository" bean. A Repository is a mechanism for encapsulating storage,
- * retrieval, and search behavior which emulates a collection of objects.
+ * This interface extends {@link JpaRepository}, inheriting standard CRUD operations (create, read,
+ * update, delete) and pagination support for the {@link Student} entity, identified by a {@code Long}
+ * primary key. It also provides custom query methods to retrieve students based on email, group, and
+ * active status criteria. The {@code @Repository} annotation marks this interface as a Spring Data
+ * repository, enabling automatic implementation by Spring to encapsulate storage, retrieval, and
+ * search behavior for student entities.
  *
  * @author Serhii Bohdan
+ * @see JpaRepository
+ * @see Student
+ * @see org.springframework.stereotype.Repository
  */
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
 
     /**
-     * Finds a student by their unique email address.
+     * Retrieves a student by their unique email address.
+     * <p>
+     * This method queries the database for a {@link Student} entity with the specified email address,
+     * returning an {@link Optional} to handle cases where no matching student is found.
      *
-     * @param email The email address of the student to search for.
-     * @return An {@link Optional} containing the student if found, or an empty Optional if not.
+     * @param email the email address of the student to search for
+     * @return an {@link Optional} containing the student if found, or an empty {@link Optional} if no
+     * student matches the provided email
      */
     Optional<Student> findByEmail(String email);
 
     /**
-     * Finds a paginated list of students by their email address.
+     * Retrieves a paginated list of students by their email address.
+     * <p>
+     * This method queries the database for {@link Student} entities matching the specified email
+     * address, returning results as a {@link Page} object to support pagination and sorting. The
+     * {@link Pageable} parameter defines the page size, page number, and sort options.
      *
-     * @param email    The email address of the students to search for.
-     * @param pageable The {@link Pageable} object for pagination information.
-     * @return A {@link Page} containing students with the specified email, or an empty page if none are found.
+     * @param email    the email address of the students to search for
+     * @param pageable the pagination and sorting configuration
+     * @return a {@link Page} containing matching students, or an empty page if no matches are found
      */
     Page<Student> findByEmail(String email, Pageable pageable);
 
     /**
-     * Finds a list of students belonging to a specific group by its ID.
+     * Retrieves all students belonging to a specific group by its ID.
+     * <p>
+     * This method queries the database for {@link Student} entities associated with the specified
+     * group ID, returning the results as a {@link List}.
      *
-     * @param groupId The unique identifier of the group to search for students in.
-     * @return a list of {@link Student} objects that belong to the specified group,
-     * or an empty list if no students are found in that group.
+     * @param groupId the ID of the group whose students are to be retrieved
+     * @return a {@link List} of students in the specified group, or an empty list if no students are found
      */
     List<Student> findByGroupId(Long groupId);
 
     /**
-     * Finds a student by their email address and active status.
+     * Retrieves a student by their email address and active status.
+     * <p>
+     * This method queries the database for a {@link Student} entity matching both the specified email
+     * address and active status, returning an {@link Optional} to handle cases where no matching
+     * student is found.
      *
-     * @param email    The email address of the student to search for.
-     * @param isActive The active status of the student.
-     * @return An {@link Optional} containing the student if found, or an empty Optional if not.
+     * @param email    the email address of the student to search for
+     * @param isActive the active status of the student (true for active, false for inactive)
+     * @return an {@link Optional} containing the student if found, or an empty {@link Optional} if no
+     * student matches the provided email and active status
      */
     Optional<Student> findByEmailAndIsActive(String email, Boolean isActive);
 

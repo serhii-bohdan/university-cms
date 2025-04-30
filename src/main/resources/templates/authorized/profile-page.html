@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0"/>
+  <title>My Profile - University CMS</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/tab-logo.svg}">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/font-awesome/6.5.1/css/all.min.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:insert="~{fragments/header :: header}"></header>
+<div class="container-fluid" style="max-width: 800px; margin: 0 auto;">
+  <h2 class="title-center">Profile Information</h2>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">First name:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${user.firstName}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Last name:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${user.lastName}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Email:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${user.email}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Role:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${user.roleName}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Password:</div>
+    <div class="col-md-2 mt-3 unsent-width" style="padding-left: inherit;">
+      <span>**********</span>
+      <a class="fas fa-edit" style="text-decoration: none; padding-left: 5px;" title="Change password"
+         th:href="@{/ui/v1/iam/change-pass}"></a>
+    </div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Time zone:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${user.locationZoneOffset}"></div>
+  </div>
+  <div th:if="${user.roleName == 'STUDENT'}" class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Group name:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${user.groupName}"></div>
+  </div>
+  <div th:if="${(user.roleName == 'STUDENT') || (user.roleName == 'TEACHER')}" class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Account status:</div>
+    <div class="col mt-3 pn-lf-unsent">
+      <span th:text="${user.isActive ? 'Active' : 'Inactive'}"></span>
+    </div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Created at:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${#temporals.format(user.createdAt, 'dd-MM-yyyy HH:mm:ss')}"></div>
+  </div>
+  <div class="row d-flex">
+    <div class="col-md-2 mt-3 bold unsent-width">Last updated:</div>
+    <div class="col mt-3 pn-lf-unsent" th:text="${#temporals.format(user.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></div>
+  </div>
+  <div class="my-2">
+    <hr class="my-1">
+  </div>
+  <div class="my-4">
+    <div class="row d-flex">
+      <a class="col-md-3 unsent-width btn btn-secondary" th:href="@{/ui/v1/iam/edit-name}"
+         style="margin-left: 12px; margin-right: 15px">Edit name</a>
+    </div>
+  </div>
+</div>
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+</body>
+</html>

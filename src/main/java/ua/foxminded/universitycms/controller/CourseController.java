@@ -2,7 +2,6 @@ package ua.foxminded.universitycms.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -13,23 +12,26 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ua.foxminded.universitycms.dto.*;
-import ua.foxminded.universitycms.model.enumeration.RoleName;
 import ua.foxminded.universitycms.security.userdetails.CustomUserDetails;
 import ua.foxminded.universitycms.service.CourseService;
 import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
- * This Spring Boot Web Controller handles requests related to managing and displaying courses.
- * It maps GET requests to the {@code /ui/v1/courses} path.
+ * Spring MVC Controller for handling course-related requests under the {@code /ui/v1/courses} path.
+ * Manages operations such as displaying course lists, creating, updating, deleting courses, and
+ * managing student enrollment. Uses {@link CourseService} for business logic. Annotated with
+ * {@code @Controller} and {@code @RequiredArgsConstructor}.
  *
  * @author Serhii Bohdan
+ * @see CourseService
+ * @see ModelAttributeNames
+ * @see ViewNames
  */
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/ui/v1/courses")
+@RequestMapping({"/ui/v1/courses"})
 public class CourseController {
 
     /**
@@ -48,31 +50,28 @@ public class CourseController {
     private static final String USER_SPECIFIC_COURSE_REDIRECT_URL = "redirect:/ui/v1/courses/my/%s";
 
     /**
-     * The {@link CourseService} used to interact with course data.
+     * Service for interacting with course data and performing business logic operations.
      */
     private final CourseService courseService;
 
     /**
-     * Retrieves a page of course data for display and populates the model with necessary attributes.
-     * <p>
-     * This method handles GET requests to the endpoint responsible for displaying a paginated list of courses.
-     * It utilizes the {@code courseService} to retrieve course data based on a provided keyword (optional)
-     * and pagination information.
+     * Displays a paginated list of courses, optionally filtered by keyword.
+     * Handles GET requests to {@code /ui/v1/courses}. Retrieves courses via
+     * {@link CourseService#findCourses} and adds pagination data and names to the model.
+     * Requires {@code COURSES_READ} authority.
      *
-     * @param model    the Spring MVC Model object used to store data for the view
-     * @param keyword  an optional search keyword for filtering courses by name (can be blank)
-     * @param pageable the Pageable object containing pagination information (size, page number)
-     * @return the logical view name {@code courses/all-courses} representing the course list template
+     * @param model    the {@link Model} to store view data
+     * @param keyword  optional keyword to filter courses by name; may be blank
+     * @param pageable pagination info from {@link PageableDefault}
+     * @return view name {@link ViewNames#ALL_COURSES_PAGE} for the course list
      */
     @GetMapping
     @PreAuthorize("hasAuthority('COURSES_READ')")
     public String getPageWithCourses(Model model, @RequestParam(name = "keyword", required = false) String keyword,
                                      @PageableDefault Pageable pageable) {
-        Page<CourseDto> coursesPage = StringUtils.isBlank(keyword)
-            ? courseService.getAllCoursesInPage(pageable)
-            : courseService.getCourseByNameInPage(keyword, pageable);
+        Page<CourseDto> coursesPage = courseService.findCourses(pageable, keyword);
 
-        model.addAttribute(ModelAttributeNames.COURSES_ALL_NAMES_ATTRIBUTE, getCoursesNames(courseService.getAll()))
+        model.addAttribute(ModelAttributeNames.COURSES_ALL_NAMES_ATTRIBUTE, courseService.extractCourseNames(courseService.getAll()))
             .addAttribute(ModelAttributeNames.COURSES_ATTRIBUTE, coursesPage.getContent())
             .addAttribute(ModelAttributeNames.PAGE_ATTRIBUTE, pageable.getPageNumber())
             .addAttribute(ModelAttributeNames.TOTAL_ITEMS_ATTRIBUTE, coursesPage.getTotalElements())
@@ -84,77 +83,56 @@ public class CourseController {
     }
 
     /**
-     * Retrieves a page of courses for the currently authenticated user, optionally filtered by a keyword.
-     * <p>
-     * This method handles GET requests to the {@code /my} endpoint under the {@code /ui/v1/courses} path. It determines
-     * the user's role (either teacher or student) from the {@code customUserDetails} and fetches the courses accordingly,
-     * filtered by the provided {@code keyword} if present.
-     * <p>
-     * It adds the retrieved courses, a list of course names, the search keyword (if any), and an error flag (if an
-     * error occurred during retrieval) to the model.
+     * Displays a list of courses for the authenticated user, optionally filtered by keyword.
+     * Handles GET requests to {@code /ui/v1/courses/my}. Retrieves user courses via
+     * {@link CourseService#getUserCourses} and filters them. Requires {@code COURSES_READ}.
      *
-     * @param model             the Spring MVC Model object used to store data for the view
-     * @param customUserDetails the details of the currently authenticated user
-     * @param keyword           an optional search keyword for filtering courses by name (can be blank)
-     * @return the logical view name {@code courses/user-courses} representing the user's course list template
+     * @param model             the {@link Model} to store view data
+     * @param customUserDetails authenticated user details from {@link CustomUserDetails}
+     * @param keyword           optional keyword to filter courses by name; may be blank
+     * @return view name {@link ViewNames#USER_COURSES} for the user's course list
      */
     @GetMapping("/my")
     @PreAuthorize("hasAuthority('COURSES_READ')")
     public String getPageWithCoursesForUser(Model model, @AuthenticationPrincipal CustomUserDetails customUserDetails,
                                             @RequestParam(name = "keyword", required = false) String keyword) {
-        boolean isKeywordNotCorrect = StringUtils.isBlank(keyword);
-        Long userId = customUserDetails.getId();
-        RoleName userRole = customUserDetails.getRoleName();
-        List<CourseDto> userCourses = new ArrayList<>();
+        List<CourseDto> userCourses = courseService.getUserCourses(customUserDetails);
+        List<CourseDto> filteredCourses = courseService.filterCoursesByName(userCourses, keyword);
 
-        if (RoleName.TEACHER.equals(userRole)) {
-            userCourses = isKeywordNotCorrect
-                ? courseService.getTeacherCourses(userId)
-                : courseService.getTeacherCourseByCourseName(userId, keyword);
-        } else if (RoleName.STUDENT.equals(userRole)) {
-            userCourses = isKeywordNotCorrect
-                ? courseService.getStudentCourses(userId)
-                : courseService.getStudentCourseByCourseName(userId, keyword);
-        }
-
-        model.addAttribute(ModelAttributeNames.USER_COURSES_NAMES_ATTRIBUTE, getCoursesNames(userCourses))
-            .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, userCourses)
+        model.addAttribute(ModelAttributeNames.USER_COURSES_NAMES_ATTRIBUTE, courseService.extractCourseNames(userCourses))
+            .addAttribute(ModelAttributeNames.USER_COURSES_ATTRIBUTE, filteredCourses)
             .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
         return ViewNames.USER_COURSES;
     }
 
     /**
-     * Renders a page containing details for a specific course.
-     * This method handles GET requests to the path {@code /ui/v1/courses/{courseId}}, where {@code courseId} is the
-     * unique identifier of the course.
-     * <p>
-     * If the course is found, it adds the course details and author's full name to the model. Otherwise, it sets an
-     * error flag.
+     * Displays details of a specific course for the user.
+     * Handles GET requests to {@code /ui/v1/courses/my/{courseId}}. Retrieves course data via
+     * {@link CourseService#getById} and adds it with sorted topics to the model. Requires
+     * {@code COURSES_READ}.
      *
-     * @param model    the Spring MVC {@link Model} object used to pass data to the view
-     * @param courseId the unique identifier of the course to retrieve
-     * @return the logical name of the view template {@code courses/course}
+     * @param model    the {@link Model} to store view data
+     * @param courseId the ID of the course to display
+     * @return view name {@link ViewNames#SPECIFIC_COURSE} for course details
      */
     @GetMapping("/my/{courseId}")
     @PreAuthorize("hasAuthority('COURSES_READ')")
     public String getPageWithSpecificCourse(Model model, @PathVariable("courseId") long courseId) {
         CourseDto course = courseService.getById(courseId);
         model.addAttribute(ModelAttributeNames.COURSE_ATTRIBUTE, course)
-            .addAttribute(ModelAttributeNames.TOPICS_ATTRIBUTE, getSortedTopicsByTopicOrder(course.getTopics()));
-
+            .addAttribute(ModelAttributeNames.TOPICS_ATTRIBUTE, sortTopicsByTopicOrder(course.getTopics()));
         return ViewNames.SPECIFIC_COURSE;
     }
 
     /**
-     * Retrieves the creation form for a new course.
-     * <p>
-     * This method handles GET requests to the `{@code /ui/v1/courses/my/new}` endpoint. If so, it creates a new
-     * {@code CourseDto} object with the user's ID set as the author and adds it to the model for the creation form.
+     * Displays the form for creating a new course.
+     * Handles GET requests to {@code /ui/v1/courses/my/new}. Prepares a {@link CourseDto} with the
+     * user's ID as author. Requires {@code COURSES_CREATE} authority.
      *
-     * @param model             the Spring MVC Model object used to store data for the view
-     * @param customUserDetails details of the authenticated user
-     * @return the logical view name "courses/creation-form" representing the course creation template
+     * @param model             the {@link Model} to store form data
+     * @param customUserDetails authenticated user details from {@link CustomUserDetails}
+     * @return view name {@link ViewNames#COURSE_CREATION_FORM} for the creation form
      */
     @GetMapping("/my/new")
     @PreAuthorize("hasAuthority('COURSES_CREATE')")
@@ -168,16 +146,14 @@ public class CourseController {
     }
 
     /**
-     * Handles the creation of a new course.
-     * <p>
-     * This method processes the course creation request by first validating the input using the {@link CourseDto}.
-     * If validation fails, it returns the course creation form with error messages. If the input is valid, it
-     * proceeds to save the new course using the {@link CourseService}. Upon successful creation, it redirects to
-     * the user's courses page.
+     * Processes the submission of the course creation form.
+     * Handles POST requests to {@code /ui/v1/courses/my/create}. Validates {@link CourseDto} and
+     * saves the course via {@link CourseService#save}. Returns the form on errors. Requires
+     * {@code COURSES_CREATE}.
      *
-     * @param course        the {@link CourseDto} containing the course details to be created
-     * @param bindingResult the result of validating the {@link CourseDto}
-     * @return a redirection URL to the user's courses page or the course creation form if validation fails
+     * @param course        the {@link CourseDto} with form data
+     * @param bindingResult validation results for the DTO
+     * @return redirect to {@link #USER_COURSES_REDIRECT_URL} or form view on errors
      */
     @PostMapping("/my/create")
     @PreAuthorize("hasAuthority('COURSES_CREATE')")
@@ -191,15 +167,13 @@ public class CourseController {
     }
 
     /**
-     * Retrieves the update form for an existing course.
-     * <p>
-     * This method handles GET requests to the {@code /ui/v1/courses/my/{courseId}/edit} endpoint. It attempts to
-     * retrieve the course data with the provided course ID using the {@code courseService}. If the course is found,
-     * it adds the course data to the model and returns the update form view name.
+     * Displays the form for updating a course's information.
+     * Handles GET requests to {@code /ui/v1/courses/my/{courseId}/edit}. Retrieves course data via
+     * {@link CourseService#getById} for the form. Requires {@code COURSES_UPDATE}.
      *
-     * @param model    the Spring MVC Model object used to store data for the view
-     * @param courseId the ID of the course to be updated
-     * @return the logical view name {@code courses/update-form} representing the course update template
+     * @param model    the {@link Model} to store form data
+     * @param courseId the ID of the course to update
+     * @return view name {@link ViewNames#COURSE_UPDATE_FORM} for the update form
      */
     @GetMapping("/my/{courseId}/edit")
     @PreAuthorize("hasAuthority('COURSES_UPDATE')")
@@ -209,15 +183,14 @@ public class CourseController {
     }
 
     /**
-     * Handles the update of an existing course.
-     * <p>
-     * This method processes the course update request by first validating the input using the {@link CourseDto}.
-     * If validation fails, it returns the course update form with error messages. If the input is valid, it
-     * proceeds to update the existing course using the {@link CourseService}.
+     * Processes the update of a course's information.
+     * Handles PUT requests to {@code /ui/v1/courses/my/update}. Validates {@link CourseDto} and
+     * updates via {@link CourseService#update}. Returns form on errors. Requires
+     * {@code COURSES_UPDATE}.
      *
-     * @param course        the {@link CourseDto} containing the updated course details
-     * @param bindingResult the result of validating the {@link CourseDto}
-     * @return a redirection URL to the specific course page or the course update form if validation fails
+     * @param course        the {@link CourseDto} with updated data
+     * @param bindingResult validation results for the DTO
+     * @return redirect to course page or form view on errors
      */
     @PutMapping("/my/update")
     @PreAuthorize("hasAuthority('COURSES_UPDATE')")
@@ -227,18 +200,16 @@ public class CourseController {
         }
 
         courseService.update(course);
-        return String.format(USER_SPECIFIC_COURSE_REDIRECT_URL, course.getId());
+        return USER_SPECIFIC_COURSE_REDIRECT_URL.formatted(course.getId());
     }
 
     /**
-     * Deletes a specified course.
-     * <p>
-     * This method handles DELETE requests to the {@code /ui/v1/courses/my/{courseId}/delete} endpoint. It attempts to
-     * delete the course with the provided {@code courseId} using the {@code courseService}. If successful, it redirects
-     * the user to the "my courses" page.
+     * Deletes a course from the system.
+     * Handles DELETE requests to {@code /ui/v1/courses/my/{courseId}/delete}. Deletes course via
+     * {@link CourseService#deleteById} and redirects. Requires {@code COURSES_DELETE}.
      *
-     * @param courseId the ID of the course to be deleted
-     * @return a redirect URL on success or throws an exception
+     * @param courseId the ID of the course to delete
+     * @return redirect to {@link #USER_COURSES_REDIRECT_URL}
      */
     @DeleteMapping("/my/{courseId}/delete")
     @PreAuthorize("hasAuthority('COURSES_DELETE')")
@@ -248,44 +219,40 @@ public class CourseController {
     }
 
     /**
-     * Retrieves a list of students enrolled in a specified course.
-     * <p>
-     * This method handles GET requests to the {@code /ui/v1/courses/my/{courseId}/students} endpoint. It retrieves the
-     * course with the provided {@code courseId} using the {@code courseService}. If the course is found, it filters the
-     * course students based on an optional keyword and adds the course and student information to the model for display.
+     * Displays students enrolled in a specific course, optionally filtered by keyword.
+     * Handles GET requests to {@code /ui/v1/courses/my/{courseId}/students}. Retrieves course data
+     * via {@link CourseService#getById} and filters students. Requires {@code STUDENTS_READ}.
      *
-     * @param model    the Spring MVC Model object used to store data for the view
-     * @param courseId the ID of the course
-     * @param keyword  an optional search keyword for filtering students by email (can be blank)
-     * @return the logical view name {@code courses/course-students} representing the course students list template
+     * @param model    the {@link Model} to store view data
+     * @param courseId the ID of the course to display students for
+     * @param keyword  optional keyword to filter students by email; may be blank
+     * @return view name {@link ViewNames#COURSE_STUDENTS} for the student list
      */
     @GetMapping("/my/{courseId}/students")
     @PreAuthorize("hasAuthority('STUDENTS_READ')")
     public String getCourseStudents(Model model, @PathVariable("courseId") long courseId,
                                     @RequestParam(value = "keyword", required = false) String keyword) {
         CourseDto course = courseService.getById(courseId);
-        Set<StudentDto> courseStudents = StringUtils.isBlank(keyword)
-            ? course.getStudents()
-            : findStudentByEmail(course.getStudents(), keyword);
+        Set<StudentDto> allStudents = course.getStudents();
+        Set<StudentDto> displayedStudents = courseService.filterCourseStudentsByEmail(allStudents, keyword);
 
         model.addAttribute(ModelAttributeNames.COURSE_ATTRIBUTE, course)
-            .addAttribute(ModelAttributeNames.COURSE_STUDENTS_ATTRIBUTE, courseStudents)
-            .addAttribute(ModelAttributeNames.STUDENT_EMAILS_ATTRIBUTE, getStudentEmails(course.getStudents()))
+            .addAttribute(ModelAttributeNames.COURSE_STUDENTS_ATTRIBUTE, displayedStudents)
+            .addAttribute(ModelAttributeNames.STUDENT_EMAILS_ATTRIBUTE, extractStudentEmails(allStudents))
             .addAttribute(ModelAttributeNames.KEYWORD_ATTRIBUTE, keyword);
 
         return ViewNames.COURSE_STUDENTS;
     }
 
     /**
-     * Deducts a student from a specified course.
-     * <p>
-     * This method handles DELETE requests to the {@code /ui/v1/courses/my/{courseId}/students/{studentId}/deduct} endpoint.
-     * It attempts to deduct the student with the provided {@code studentId} from the course with the provided
-     * {@code courseId} using the {@code courseService}.
+     * Deducts a student from a specific course.
+     * Handles DELETE requests to {@code /ui/v1/courses/my/{courseId}/students/{studentId}/deduct}.
+     * Deducts student via {@link CourseService#deductStudentFromCourse}. Requires
+     * {@code COURSES_UPDATE}.
      *
      * @param courseId  the ID of the course
-     * @param studentId the ID of the student to be deducted
-     * @return a redirect URL to the course students page
+     * @param studentId the ID of the student to deduct
+     * @return redirect to {@link #COURSE_STUDENTS_REDIRECT_URL}
      */
     @DeleteMapping("/my/{courseId}/students/{studentId}/deduct")
     @PreAuthorize("hasAuthority('COURSES_UPDATE')")
@@ -295,15 +262,14 @@ public class CourseController {
     }
 
     /**
-     * Enrolls a student in a specified course.
-     * <p>
-     * This method handles POST requests to the {@code /ui/v1/courses/my/{courseId}/students/{studentId}/enroll} endpoint.
-     * It attempts to enroll the student with the provided {@code studentId} in the course with the provided {@code courseId}
-     * using the {@code courseService}.
+     * Enrolls a student in a specific course.
+     * Handles POST requests to {@code /ui/v1/courses/my/{courseId}/students/{studentId}/enroll}.
+     * Enrolls student via {@link CourseService#enrollStudentInCourse}. Requires
+     * {@code COURSES_UPDATE}.
      *
      * @param courseId  the ID of the course
-     * @param studentId the ID of the student to be enrolled
-     * @return a redirect URL to the course students page
+     * @param studentId the ID of the student to enroll
+     * @return redirect to {@link #COURSE_STUDENTS_REDIRECT_URL}
      */
     @PostMapping("/my/{courseId}/students/{studentId}/enroll")
     @PreAuthorize("hasAuthority('COURSES_UPDATE')")
@@ -313,15 +279,14 @@ public class CourseController {
     }
 
     /**
-     * Enrolls all students from a specific group in a course.
-     * <p>
-     * This method handles POST requests to the {@code /ui/v1/courses/my/{courseId}/group/{groupId}/enroll} endpoint.
-     * It attempts to enroll all students from the group with the provided {@code groupId} in the course with the
-     * provided {@code courseId} using the {@code courseService}.
+     * Enrolls all students from a group in a specific course.
+     * Handles POST requests to {@code /ui/v1/courses/my/{courseId}/group/{groupId}/enroll}.
+     * Enrolls group via {@link CourseService#enrollAllStudentsFromGroupInCourse}. Requires
+     * {@code COURSES_UPDATE}.
      *
      * @param courseId the ID of the course
-     * @param groupId  the ID of the group to be enrolled
-     * @return a redirect URL to the course students page
+     * @param groupId  the ID of the group to enroll
+     * @return redirect to {@link #COURSE_STUDENTS_REDIRECT_URL}
      */
     @PostMapping("/my/{courseId}/group/{groupId}/enroll")
     @PreAuthorize("hasAuthority('COURSES_UPDATE')")
@@ -330,28 +295,16 @@ public class CourseController {
         return COURSE_STUDENTS_REDIRECT_URL;
     }
 
-    private List<String> getCoursesNames(Collection<CourseDto> courses) {
-        return courses.stream()
-            .map(CourseDto::getCourseName)
-            .toList();
-    }
-
-    private List<TopicDto> getSortedTopicsByTopicOrder(Set<TopicDto> topics) {
+    private List<TopicDto> sortTopicsByTopicOrder(Set<TopicDto> topics) {
         return topics.stream()
             .sorted(Comparator.comparing(TopicDto::getTopicOrder))
             .toList();
     }
 
-    private List<String> getStudentEmails(Collection<StudentDto> students) {
+    private List<String> extractStudentEmails(Collection<StudentDto> students) {
         return students.stream()
             .map(UserDto::getEmail)
             .toList();
-    }
-
-    private Set<StudentDto> findStudentByEmail(Collection<StudentDto> students, String email) {
-        return students.stream()
-            .filter(s -> s.getEmail().equals(email))
-            .collect(Collectors.toSet());
     }
 
 }

@@ -1,59 +1,89 @@
 package ua.foxminded.universitycms.service;
 
+import java.util.Collection;
+import java.util.List;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import ua.foxminded.universitycms.dto.ManagerCreationDto;
 import ua.foxminded.universitycms.dto.ManagerDto;
+import ua.foxminded.universitycms.dto.PasswordUpdateRequestDto;
+import ua.foxminded.universitycms.model.FullName;
 import ua.foxminded.universitycms.model.Manager;
-import java.util.List;
 
 /**
- * The {@code ManagerService} interface extends the {@link Service} interface and defines methods for managing {@link Manager} entities.
- * It provides functionality for creating, retrieving, updating, and deleting managers, likely using DTOs (Data Transfer Objects)
- * for data transfer between the service layer and other application layers.
+ * Service interface for managing {@link Manager} entities and their DTO representations in the university management
+ * system.
+ * <p>
+ * This interface extends the generic {@link Service} interface, specializing in operations for {@link Manager}
+ * entities mapped to {@link ManagerDto} DTOs. It provides methods for CRUD operations inherited from {@link Service},
+ * along with additional functionality such as creating managers from creation DTOs, paginated retrieval with email
+ * filtering, email extraction, password updates, and full name updates. Implementations of this interface handle
+ * business logic related to manager management, leveraging validation constraints for data integrity.
  *
  * @author Serhii Bohdan
+ * @see Service
+ * @see Manager
+ * @see ManagerDto
+ * @see ManagerCreationDto
+ * @see PasswordUpdateRequestDto
+ * @see FullName
  */
 public interface ManagerService extends Service<Manager, ManagerDto> {
 
     /**
-     * Creates a new manager user.
+     * Saves a new manager entity based on the provided creation DTO.
      * <p>
-     * This method takes a {@link ManagerDto} object and a plain-text `password`, encodes the password using the
-     * {@link PasswordEncoder}, and then saves the new manager entity to the database. The provided `dto` must
-     * be valid according to its validation constraints, and the `password` must not be blank.
+     * Creates a new manager in the system using the data from the {@link ManagerCreationDto}, applying validation
+     * rules ({@link Valid}) to ensure data integrity and the {@link NotNull} constraint to ensure the DTO is provided.
      *
-     * @param dto      the {@link ManagerDto} object representing the new manager
-     * @param password the plain-text password for the new manager
-     * @return the saved {@link ManagerDto} object, with the password hashed
+     * @param dto the {@link ManagerCreationDto} containing the data for the new manager, must be non-null and valid
+     * @return a {@link ManagerDto} representing the saved manager, including its generated ID
      */
-    ManagerDto save(@NotNull @Valid ManagerDto dto, @NotBlank String password);
+    ManagerDto save(@NotNull @Valid ManagerCreationDto dto);
 
     /**
-     * Retrieves a page of manager data.
+     * Retrieves a paginated list of managers, optionally filtered by email.
+     * <p>
+     * Fetches managers from the system based on the provided {@link Pageable} paging parameters and an optional
+     * email filter. The {@link NotNull} constraint ensures that the paging configuration is provided.
      *
-     * @param pageable the pagination information (page number, page size, sorting)
-     * @return a Page object containing a list of ManagerDto objects representing the requested page of managers
+     * @param pageable the paging and sorting configuration for the query, must be non-null
+     * @param email    an optional email filter; if null or empty, all managers are retrieved
+     * @return a {@link Page} of {@link ManagerDto} objects representing the filtered and paginated managers
      */
-    Page<ManagerDto> getManagersPage(@NotNull Pageable pageable);
+    Page<ManagerDto> findManagers(@NotNull Pageable pageable, String email);
 
     /**
-     * Retrieves a page of managers filtered by name.
+     * Extracts email addresses from a collection of managers.
+     * <p>
+     * Converts the provided collection of {@link ManagerDto} objects into a list of their email addresses.
+     * The {@link NotNull} constraint ensures that the input collection is not null.
      *
-     * @param fullName the full name (or part of it) to filter managers by
-     * @param pageable the pagination information (page number, page size, sorting)
-     * @return a Page object containing a list of ManagerDto objects representing the requested page of filtered managers
+     * @param managers the collection of {@link ManagerDto} objects from which to extract emails, must be non-null
+     * @return a {@link List} of email addresses as strings
      */
-    Page<ManagerDto> getManagerInPageByName(@NotNull String fullName, @NotNull Pageable pageable);
+    List<String> extractManagerEmails(@NotNull Collection<ManagerDto> managers);
 
     /**
-     * Retrieves a list of all manager names.
+     * Updates a manager's password based on the provided request.
+     * <p>
+     * Modifies the password of a manager identified in the {@link PasswordUpdateRequestDto}, ensuring the request
+     * meets validation criteria. The {@link NotNull} constraint ensures that the request DTO is provided.
      *
-     * @return a list of strings representing the full names of all managers
+     * @param passwordUpdateRequest the {@link PasswordUpdateRequestDto} containing the password update details,
+     *                              must be non-null
      */
-    List<String> getAllNamesOfManagers();
+    void updateManagerPassword(@NotNull PasswordUpdateRequestDto passwordUpdateRequest);
+
+    /**
+     * Updates a manager's full name.
+     * Changes the full name of the manager identified by {@code managerId} to the provided {@link FullName} object.
+     *
+     * @param managerId the ID of the manager whose full name is to be updated
+     * @param fullName  the new {@link FullName} object containing the updated first and last names
+     */
+    void updateManagerFullName(long managerId, FullName fullName);
 
 }

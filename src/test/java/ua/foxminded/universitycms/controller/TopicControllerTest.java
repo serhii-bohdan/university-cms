@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,8 +21,8 @@ import ua.foxminded.universitycms.dto.TopicDto;
 import ua.foxminded.universitycms.exception.EntityNotFoundException;
 import ua.foxminded.universitycms.service.TopicService;
 
-@WebMvcTest(controllers = TopicController.class)
-@ContextConfiguration(classes = ControllerTestConfig.class)
+@WebMvcTest(controllers = {TopicController.class})
+@ContextConfiguration(classes = {ControllerTestConfig.class})
 @Import({SecurityConfig.class})
 class TopicControllerTest {
 
@@ -63,7 +62,7 @@ class TopicControllerTest {
                 .param("topicOrder", String.valueOf(topicOrder))
                 .param("courseId", String.valueOf(courseId)))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s", courseId)));
+            .andExpect(redirectedUrl("/ui/v1/courses/my/%s".formatted(courseId)));
 
         verify(topicServiceMock, times(1)).save(any(TopicDto.class));
     }
@@ -113,7 +112,7 @@ class TopicControllerTest {
         mockMvc.perform(get("/ui/v1/topics/{topicId}/edit", topicId))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(topicServiceMock, times(1)).getById(topicId);
     }
@@ -134,7 +133,7 @@ class TopicControllerTest {
                 .param("topicOrder", String.valueOf(topicOrder))
                 .param("courseId", String.valueOf(courseId)))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s", courseId)));
+            .andExpect(redirectedUrl("/ui/v1/courses/my/%s".formatted(courseId)));
 
         verify(topicServiceMock, times(1)).update(any(TopicDto.class));
     }
@@ -178,7 +177,7 @@ class TopicControllerTest {
                 .param("courseId", String.valueOf(courseId)))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(topicServiceMock, times(1)).update(any(TopicDto.class));
     }
@@ -194,7 +193,7 @@ class TopicControllerTest {
                 .with(csrf())
                 .param("cid", String.valueOf(courseId)))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(String.format("/ui/v1/courses/my/%s", courseId)));
+            .andExpect(redirectedUrl("/ui/v1/courses/my/%s".formatted(courseId)));
 
         verify(topicServiceMock, times(1)).deleteById(topicId);
     }
@@ -216,7 +215,7 @@ class TopicControllerTest {
                 .param("cid", String.valueOf(courseId)))
             .andExpect(status().isOk())
             .andExpect(model().attributeExists("exception"))
-            .andExpect(view().name("error-page"));
+            .andExpect(view().name("custom-error-page"));
 
         verify(topicServiceMock, times(1)).deleteById(topicId);
     }

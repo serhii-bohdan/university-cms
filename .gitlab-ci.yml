@@ -1,3 +1,9 @@
+variables:
+  TESTCONTAINERS_HOST_OVERRIDE: "host.docker.internal"
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
+
 stages:
   - build
   - test
@@ -22,7 +28,8 @@ unit-test:
     - docker
   image: docker:latest
   services:
-    - docker:dind
+    - name: docker:dind
+      command: [ "--tls=false" ]
   before_script:
     - apk add openjdk17-jdk
   script:

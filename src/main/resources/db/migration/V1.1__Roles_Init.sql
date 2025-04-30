@@ -50,15 +50,10 @@ VALUES ('ADMINS_CREATE'),            --1
        ('SCHEDULE_UPDATE'),          --35
        ('SCHEDULE_DELETE'),          --36
 
-       ('STUDY_DAYS_CREATE'),        --37
-       ('STUDY_DAYS_READ'),          --38
-       ('STUDY_DAYS_UPDATE'),        --39
-       ('STUDY_DAYS_DELETE'),        --40
-
-       ('LESSONS_CREATE'),           --41
-       ('LESSONS_READ'),             --42
-       ('LESSONS_UPDATE'),           --43
-       ('LESSONS_DELETE');           --44
+       ('LESSONS_CREATE'),           --37
+       ('LESSONS_READ'),             --38
+       ('LESSONS_UPDATE'),           --39
+       ('LESSONS_DELETE');           --40
 
 INSERT INTO roles_permissions (role_id, permission_id)
 VALUES (1, 1),
@@ -83,6 +78,11 @@ VALUES (1, 1),
        (2, 18),
        (2, 19),
        (2, 20),
+       (2, 34),
+       (2, 37),
+       (2, 38),
+       (2, 39),
+       (2, 40),
 
        (3, 10),
        (3, 14),
@@ -107,10 +107,6 @@ VALUES (1, 1),
        (3, 38),
        (3, 39),
        (3, 40),
-       (3, 41),
-       (3, 42),
-       (3, 43),
-       (3, 44),
 
        (4, 10),
        (4, 14),
@@ -125,8 +121,4 @@ VALUES (1, 1),
        (4, 37),
        (4, 38),
        (4, 39),
-       (4, 40),
-       (4, 41),
-       (4, 42),
-       (4, 43),
-       (4, 44);
+       (4, 40);

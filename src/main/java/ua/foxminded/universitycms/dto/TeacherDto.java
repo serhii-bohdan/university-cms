@@ -8,22 +8,29 @@ import lombok.experimental.SuperBuilder;
 import java.util.Set;
 
 /**
- * The {@code TeacherDto} class is a concrete DTO (Data Transfer Object) that
- * extends the {@link UserDto} class. It represents a teacher user entity in the
- * system and inherits all properties from {@link UserDto}. Additionally, it provides
- * information specific to teachers, such as associated courses.
+ * Data Transfer Object (DTO) representing a teacher user in the university management system.
+ * <p>
+ * This class extends {@link EducatorDto} to inherit common educator attributes and encapsulates
+ * additional information specific to a teacher, including the set of courses they teach. It facilitates
+ * secure and efficient data transfer between application layers, representing a teacher entity with
+ * its associated {@link CourseDto} objects.
  *
  * @author Serhii Bohdan
+ * @see EducatorDto
+ * @see CourseDto
  */
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(callSuper = true, exclude = "courses")
+@ToString(callSuper = true, exclude = {"courses"})
 @SuperBuilder
-public class TeacherDto extends UserDto {
+public class TeacherDto extends EducatorDto {
 
     /**
-     * A collection of {@link CourseDto} objects representing the courses taught by the teacher.
+     * The set of courses taught by the teacher.
+     * <p>
+     * This field contains a collection of {@link CourseDto} objects, representing the courses
+     * associated with the teacher in the system.
      */
     private Set<CourseDto> courses;
 

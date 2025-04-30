@@ -6,29 +6,38 @@ import org.springframework.stereotype.Component;
 import ua.foxminded.universitycms.util.annotation.PasswordEncoderMapping;
 
 /**
- * A component that provides a mapping for password encoding functionality.
+ * Component providing password encoding functionality within the university management system.
  * <p>
- * This class encapsulates the {@link PasswordEncoder} to handle password encoding,
- * offering a single method to encode raw passwords. It is marked with the custom
- * {@link PasswordEncoderMapping} annotation, enabling it to act as a qualified
- * method for password encoding operations.
+ * This class encapsulates a {@link PasswordEncoder} instance to perform secure password encoding operations.
+ * It serves as a utility in the security layer, exposing a single method to encode raw passwords. The
+ * {@link PasswordEncoderMapping} annotation marks the encoding method as a qualified entry point for
+ * password encoding, enhancing modularity. The {@code @Component} annotation registers this class as a
+ * Spring-managed bean, and {@code @RequiredArgsConstructor} ensures dependency injection of the encoder.
  *
  * @author Serhii Bohdan
+ * @see PasswordEncoder
+ * @see PasswordEncoderMapping
+ * @see org.springframework.stereotype.Component
+ * @see lombok.RequiredArgsConstructor
  */
 @Component
 @RequiredArgsConstructor
 public class PasswordEncoderMapper {
 
     /**
-     * The {@link PasswordEncoder} implementation used for encoding passwords.
+     * The {@link PasswordEncoder} instance used to encode passwords.
      */
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * Encodes the provided raw password.
+     * Encodes the provided raw password into a secure hashed format.
+     * <p>
+     * This method delegates to the underlying {@link PasswordEncoder} to transform the raw password into
+     * an encoded string suitable for secure storage. The {@link PasswordEncoderMapping} annotation identifies
+     * this method as the designated entry point for password encoding operations.
      *
-     * @param rawPassword the raw password to encode
-     * @return the encoded password
+     * @param rawPassword the raw, unencoded password to be processed
+     * @return the encoded password as a {@code String}
      */
     @PasswordEncoderMapping
     public String encode(String rawPassword) {

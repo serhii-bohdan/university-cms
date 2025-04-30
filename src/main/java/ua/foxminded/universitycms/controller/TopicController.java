@@ -13,16 +13,19 @@ import ua.foxminded.universitycms.util.ModelAttributeNames;
 import ua.foxminded.universitycms.util.ViewNames;
 
 /**
- * Controller class responsible for handling topic-related functionalities within the application.
- * <p>
- * This controller provides endpoints for creating, updating, deleting, and managing topics associated with courses.
- * It utilizes the {@link TopicService} to interact with topic data and provides a user interface for topic management.
+ * Spring MVC Controller for handling topic-related requests under the {@code /ui/v1/topics} path.
+ * Manages operations such as creating, updating, and deleting topics within courses. Uses
+ * {@link TopicService} for business logic. Annotated with {@code @Controller} and
+ * {@code @RequiredArgsConstructor}.
  *
  * @author Serhii Bohdan
+ * @see TopicService
+ * @see ModelAttributeNames
+ * @see ViewNames
  */
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/ui/v1/topics")
+@RequestMapping({"/ui/v1/topics"})
 public class TopicController {
 
     /**
@@ -31,25 +34,23 @@ public class TopicController {
     private static final String COURSE_ID_PARAM_NAME = "cid";
 
     /**
-     * The redirect URL format used to redirect the user to the specific course details page.
+     * Redirect URL template to a specific course page, with a placeholder for course ID.
      */
     private static final String USER_SPECIFIC_COURSE_REDIRECT = "redirect:/ui/v1/courses/my/%s";
 
     /**
-     * The injected {@link TopicService} used to interact with topic data.
+     * Service for interacting with topic data and performing business logic operations.
      */
     private final TopicService topicService;
 
     /**
-     * Retrieves the topic creation form for a new topic within a specific course.
-     * <p>
-     * This method handles GET requests to the {@code /ui/v1/topics/new} endpoint. It retrieves the course ID from
-     * the request parameter and creates a new empty `{@link TopicDto}` object with that course ID set. The topic data
-     * is then added to the model for display in the creation form template.
+     * Displays the form for creating a new topic within a course.
+     * Handles GET requests to {@code /ui/v1/topics/new}. Prepares a {@link TopicDto} with the
+     * specified course ID for the form. Requires {@code TOPICS_CREATE} authority.
      *
-     * @param model    the Spring MVC Model object used to store data for the view
-     * @param courseId the ID of the course the new topic belongs to (from request parameter)
-     * @return the logical view name `CREATION_FORM` representing the topic creation template
+     * @param model    the {@link Model} to store form data
+     * @param courseId the ID of the course for the new topic, from request parameter
+     * @return view name {@link ViewNames#TOPIC_CREATION_FORM} for the creation form
      */
     @GetMapping("/new")
     @PreAuthorize("hasAuthority('TOPICS_CREATE')")
@@ -63,17 +64,14 @@ public class TopicController {
     }
 
     /**
-     * Handles the creation of a new topic within a course.
-     * <p>
-     * This method processes the topic creation request by first validating the input using the {@link TopicDto}.
-     * If validation fails, it returns the topic creation form with error messages. If the input is valid, it
-     * proceeds to save the new topic using the {@link TopicService}. Upon successful creation, it redirects
-     * to the specific course page associated with the newly created topic.
+     * Processes the submission of the topic creation form.
+     * Handles POST requests to {@code /ui/v1/topics/create}. Validates {@link TopicDto} and saves
+     * the topic via {@link TopicService#save}. Returns the form on errors. Requires
+     * {@code TOPICS_CREATE}.
      *
-     * @param topic         the {@link TopicDto} containing the details of the topic to be created
-     * @param bindingResult the result of validating the {@link TopicDto}
-     * @return a redirection URL to the course page that the new topic is associated with, or the topic creation form
-     * if validation fails
+     * @param topic         the {@link TopicDto} with form data
+     * @param bindingResult validation results for the DTO
+     * @return redirect to {@link #USER_SPECIFIC_COURSE_REDIRECT} or form view on errors
      */
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('TOPICS_CREATE')")
@@ -83,19 +81,17 @@ public class TopicController {
         }
 
         topicService.save(topic);
-        return String.format(USER_SPECIFIC_COURSE_REDIRECT, topic.getCourseId());
+        return USER_SPECIFIC_COURSE_REDIRECT.formatted(topic.getCourseId());
     }
 
     /**
-     * Retrieves the topic update form for an existing topic.
-     * <p>
-     * This method handles GET requests to the `{@code /ui/v1/topics/{topicId}/edit}` endpoint. It attempts to
-     * retrieve the topic with the provided {@code topicId} using the {@code topicService}. If the topic is found,
-     * it adds the topic data to the model for display in the update form template.
+     * Displays the form for updating a topic's information.
+     * Handles GET requests to {@code /ui/v1/topics/{topicId}/edit}. Retrieves topic data via
+     * {@link TopicService#getById} for the form. Requires {@code TOPICS_UPDATE}.
      *
-     * @param model   the Spring MVC Model object used to store data for the view
-     * @param topicId the ID of the topic to be updated
-     * @return the logical view name {@code UPDATE_FORM} representing the topic update template
+     * @param model   the {@link Model} to store form data
+     * @param topicId the ID of the topic to update
+     * @return view name {@link ViewNames#TOPIC_UPDATE_FORM} for the update form
      */
     @GetMapping("/{topicId}/edit")
     @PreAuthorize("hasAuthority('TOPICS_UPDATE')")
@@ -105,17 +101,13 @@ public class TopicController {
     }
 
     /**
-     * Handles the update of an existing topic.
-     * <p>
-     * This method processes the topic update request by first validating the input using the {@link TopicDto}.
-     * If validation fails, it returns the topic update form with error messages. If the input is valid, it proceeds
-     * to update the existing topic using the {@link TopicService}. Upon successful update, it redirects to the
-     * specific course page that the updated topic belongs to.
+     * Processes the update of a topic's information.
+     * Handles PUT requests to {@code /ui/v1/topics/update}. Validates {@link TopicDto} and updates
+     * via {@link TopicService#update}. Returns form on errors. Requires {@code TOPICS_UPDATE}.
      *
-     * @param topic         the {@link TopicDto} containing the updated details of the topic
-     * @param bindingResult the result of validating the {@link TopicDto}
-     * @return a redirection URL to the course page that the updated topic is associated with, or the topic update form
-     * if validation fails or the topic cannot be found
+     * @param topic         the {@link TopicDto} with updated data
+     * @param bindingResult validation results for the DTO
+     * @return redirect to {@link #USER_SPECIFIC_COURSE_REDIRECT} or form view on errors
      */
     @PutMapping("/update")
     @PreAuthorize("hasAuthority('TOPICS_UPDATE')")
@@ -125,27 +117,25 @@ public class TopicController {
         }
 
         topicService.update(topic);
-        return String.format(USER_SPECIFIC_COURSE_REDIRECT, topic.getCourseId());
+        return USER_SPECIFIC_COURSE_REDIRECT.formatted(topic.getCourseId());
     }
 
     /**
-     * Deletes a specified topic from a course.
-     * <p>
-     * This method handles DELETE requests to the {@code /ui/v1/topics/{topicId}/delete} endpoint. It attempts to
-     * delete the topic with the provided {@code topicId} using the {@code topicService}. If successful, it redirects
-     * the user to the specific course details page for the course the topic belonged to (using the provided
-     * {@code courseId}).
+     * Deletes a topic from a course.
+     * Handles DELETE requests to {@code /ui/v1/topics/{topicId}/delete}. Deletes topic via
+     * {@link TopicService#deleteById} and redirects to the course page. Requires
+     * {@code TOPICS_DELETE}.
      *
-     * @param topicId  the ID of the topic to be deleted
-     * @param courseId the ID of the course the topic belongs to (from request parameter)
-     * @return a redirect URL to the course details page on success
+     * @param topicId  the ID of the topic to delete
+     * @param courseId the ID of the course the topic belongs to, from request parameter
+     * @return redirect to {@link #USER_SPECIFIC_COURSE_REDIRECT}
      */
     @DeleteMapping("/{topicId}/delete")
     @PreAuthorize("hasAuthority('TOPICS_DELETE')")
     public String performTopicDeletion(@PathVariable("topicId") long topicId,
                                        @RequestParam(COURSE_ID_PARAM_NAME) long courseId) {
         topicService.deleteById(topicId);
-        return String.format(USER_SPECIFIC_COURSE_REDIRECT, courseId);
+        return USER_SPECIFIC_COURSE_REDIRECT.formatted(courseId);
     }
 
 }

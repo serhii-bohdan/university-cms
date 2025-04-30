@@ -4,54 +4,69 @@ import org.mapstruct.*;
 import org.mapstruct.Mapper;
 import ua.foxminded.universitycms.dto.TopicDto;
 import ua.foxminded.universitycms.model.Topic;
-import ua.foxminded.universitycms.model.Course;
 
 /**
- * Interface defining mappings between {@link Topic} entities and {@link TopicDto} data transfer objects.
- * This mapper utilizes the MapStruct library for efficient and type-safe conversion. It specifically handles
- * topic entity conversions, including mapping relationships with associated {@link Course} entities.
+ * Mapper interface for converting between {@link Topic} entities and {@link TopicDto} objects in the university
+ * management system.
+ * <p>
+ * This interface extends the generic {@link Mapper} contract to provide type-safe mappings specific to topic entities.
+ * It leverages the MapStruct library for efficient conversions between persistence-layer entities and application-layer
+ * DTOs, supporting bidirectional mapping, partial updates, and bulk transformations. The {@code @Mapper} annotation
+ * integrates this interface with Spring and utilizes {@link MarkMapper} to handle nested mark object conversions within
+ * the topic.
  *
  * @author Serhii Bohdan
+ * @see Mapper
+ * @see Topic
+ * @see TopicDto
+ * @see MarkMapper
  */
 @Mapper(componentModel = "spring", uses = {MarkMapper.class})
 public interface TopicMapper extends ua.foxminded.universitycms.mapper.Mapper<Topic, TopicDto> {
 
     /**
-     * Converts a {@link Topic} entity to a corresponding {@link TopicDto} object.
-     * This method performs the following mapping:
+     * Converts a {@link Topic} entity to a {@link TopicDto} object.
+     * Maps the entity's fields to the DTO, including:
      * <ul>
-     *   <li>Maps the ID of the associated {@link Course} to the `courseId` field in the DTO.</li>
+     *   <li>{@code course.id} to {@code courseId}</li>
      * </ul>
+     * Nested mark data is processed by the {@link MarkMapper}.
      *
-     * @param entity the {@link Topic} entity to be converted
-     * @return a new {@link TopicDto} object representing the converted data
+     * @param entity the {@link Topic} entity to convert
+     * @return the resulting {@link TopicDto} object
      */
     @Override
     @Mapping(source = "course.id", target = "courseId")
     TopicDto toDto(Topic entity);
 
     /**
-     * Converts a {@link TopicDto} object to a corresponding {@link Topic} entity.
-     * This method performs the following mapping (inverse of `toDto`):
+     * Converts a {@link TopicDto} object to a {@link Topic} entity.
+     * Maps the DTO's fields to the entity, including:
      * <ul>
-     *   <li>Maps the `courseId` field from the DTO to the ID of the associated {@link Course} in the entity.</li>
+     *   <li>{@code courseId} to {@code course.id}</li>
      * </ul>
+     * Nested mark data is processed by the {@link MarkMapper}.
      *
-     * @param dto the {@link TopicDto} object to be converted
-     * @return a new {@link Topic} entity representing the converted data
+     * @param dto the {@link TopicDto} object to convert
+     * @return the resulting {@link Topic} entity
      */
     @Override
     @Mapping(source = "courseId", target = "course.id")
     Topic toEntity(TopicDto dto);
 
     /**
-     * Partially updates an existing {@link Topic} entity with the data from a {@link TopicDto} object.
-     * Only the fields in the DTO that are not null will be updated in the entity. This method utilizes the
-     * `@BeanMapping` annotation with the `NullValuePropertyMappingStrategy.IGNORE` strategy to ensure that
-     * null values in the DTO are not used to overwrite existing values in the entity.
+     * Partially updates an existing {@link Topic} entity with data from a {@link TopicDto} object.
+     * <p>
+     * Updates only the non-null fields from the DTO into the target entity, preserving existing entity data for null
+     * DTO fields. The {@link BeanMapping} annotation with {@code NullValuePropertyMappingStrategy.IGNORE} ensures this
+     * selective update behavior. Mappings include:
+     * <ul>
+     *   <li>{@code courseId} to {@code course.id}</li>
+     * </ul>
+     * Nested mark updates are managed via the {@link MarkMapper}.
      *
-     * @param dto    the {@link TopicDto} object containing the updated data (may contain null values)
-     * @param entity the existing {@link Topic} entity to be partially updated
+     * @param dto    the {@link TopicDto} object containing updated data
+     * @param entity the existing {@link Topic} entity to update
      * @return the updated {@link Topic} entity
      */
     @Override
