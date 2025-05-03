@@ -60,9 +60,9 @@
              th:href="@{/ui/v1/managers/{managerId}(managerId=${manager.id})}" title="View this manager"></a>
           <a sec:authorize="hasAuthority('MANAGERS_UPDATE')" class="fa-regular fa-pen-to-square icon-dark"
              th:href="@{/ui/v1/managers/{managerId}/edit(managerId=${manager.id})}" title="Update manger info"
-             style="text-decoration: none; margin-left: 10px;"></a>
+             style="text-decoration: none; margin-left: 5px;"></a>
           <span sec:authorize="hasAuthority('MANAGERS_DELETE')" class="fa-regular fa-trash-can icon-dark btn-delete"
-                title="Delete this manager" style="margin-left: 10px; cursor: pointer;" data-bs-toggle="modal"
+                title="Delete this manager" style="margin-left: 5px; cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#managerDeleteModal" th:data-manager-id="${manager.id}"
                 th:data-manager-email="${manager.email}"></span>
         </td>

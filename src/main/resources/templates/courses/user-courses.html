@@ -64,8 +64,8 @@
             <a sec:authorize="hasAuthority('COURSES_UPDATE')"
                th:href="@{/ui/v1/courses/my/{courseId}/edit(courseId=${course.id})}"
                class="fa-regular fa-pen-to-square icon-dark" title="Edit this course"
-               style="text-decoration: none; margin-left: 10px;"></a>
-            <span sec:authorize="hasAuthority('COURSES_DELETE')" style="margin-left: 10px; cursor: pointer;"
+               style="text-decoration: none; margin-left: 5px;"></a>
+            <span sec:authorize="hasAuthority('COURSES_DELETE')" style="margin-left: 5px; cursor: pointer;"
                   class="fa-regular fa-trash-can icon-dark btn-delete" title="Delete this course"
                   data-bs-toggle="modal" data-bs-target="#courseDeleteModal" th:data-course-id="${course.id}"
                   th:data-course-name="${course.courseName}">
