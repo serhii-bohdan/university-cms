@@ -5,7 +5,6 @@
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-yellow)](https://www.postgresql.org/)
 [![Lombok](https://img.shields.io/badge/Lombok-1.18.30-red)](https://projectlombok.org/download)
 [![MapStruct](https://img.shields.io/badge/MapStruct-1.5.5.Final-purple)](https://mapstruct.org/documentation/1.5/reference/html/)
-![pipeline](https://gitlab.com/SerhiiBohdan/university-cms/badges/master/pipeline.svg)
 
 ## Motivation & Goal
 
@@ -21,8 +20,12 @@ The creation of **University CMS** was driven by several key motivations:
 - **Utilities**: *MapStruct, Lombok*
 - **Testing**: *JUnit 5, Mockito, Testcontainers*
 - **Build & VCS**: *Maven, Git*
-- **DevOps**: *Docker, GitLab CI/CD*
+- **DevOps**: *Docker, GitLab CI*
 - **Frontend**: *HTML, CSS, Thymeleaf, JavaScript*
+
+## Note
+From the very beginning, the development of this project was carried out on [GitLab](https://gitlab.com/), this explains the fact that there is a
+configuration file `.gitlab-ci.yml` for CI. At the end of the main part of the development, the project was moved to [GitHub](https://github.com/).
 
 ## Description
 
@@ -41,7 +44,7 @@ The platform supports four user roles with distinct responsibilities, adhering t
 | Role          | Responsibilities                                                                                   |
 |---------------|----------------------------------------------------------------------------------------------------|
 | **Administrator** | Manages managers: adds, edits, and deletes accounts. No access to teachers or students.           |
-| **Manager**       | Manages teachers, students, and groups: creates, edits, deletes accounts, and assigns groups.     |
+| **Manager**       | Manages teachers, students, and groups: creates, edits, deletes accounts, and assigns groups. Has access to teachers‘ and students’ schedules. |
 | **Teacher**       | Manages courses: creates, edits, adds students, schedules lessons, and evaluates student progress.|
 | **Student**       | Views course materials, tracks progress via evaluations, and manages their own schedule.         |
 
@@ -50,7 +53,7 @@ The platform supports four user roles with distinct responsibilities, adhering t
 - **Course Management**: Teachers can create, manage, and evaluate courses.
 - **Scheduling**: Personalized schedules with lesson planning capabilities.
 - **Database-Driven**: Uses PostgreSQL with Flyway for schema migrations.
-- **CI/CD Pipeline**: Automated builds and deployments via GitLab CI/CD and Docker.
+- **CI Pipeline**: Automated builds via GitLab CI and Docker.
 
 ## Install & Run
 
@@ -63,7 +66,7 @@ The platform supports four user roles with distinct responsibilities, adhering t
 Go to the folder where you want to install the project. Open Git Bash in it and enter the command:
 
 ```
-git clone https://gitlab.com/SerhiiBohdan/university-cms.git
+git clone https://github.com/serhii-bohdan/university-cms.git
 ```
 
 This way you will have the app installed.
@@ -156,7 +159,7 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 ![class diagram](docs/university-cms.svg)
 
 **Admin** - a user who manages managers in the system. <br>
-**Manager** - a user who has advanced management of students, teachers, groups; <br>
+**Manager** - a user who has advanced management of students, teachers, groups. Also has access to teachers‘ and students’ schedules.; <br>
 **Student** - reflects the student in the learning process; <br>
 **Teacher** - corresponds to the teacher in a certain educational institution, has a certain set of courses created by him; <br>
 **Course** - corresponds to the training course created by a particular teacher, may have registered students; <br>
@@ -165,318 +168,3 @@ Below is a class diagram of our project. It helps to visualize the structure of 
 **Group** - corresponds to a group in an educational institution, consists of a certain number of students; <br>
 **Schedule** - contains a set of lessons; <br>
 **Lesson** - corresponds to one lesson in the schedule, contains the date, start time and end time of the lesson, and is linked to a specific course; <br>
-
-### Business Requirements
-
-**1. Roles & Login**
-
-- The participant of the educational process should be able to log in as a *teacher* or *student*.
-
-- Also, the *administrator* must be able to log in.
-
-**2. User logged in as Teacher**
-
-- User can see and navigate to `My Schedule` menu.
-
-- User should see own Teacher schedule according with selected date/range filter.
-
-- The user should be able to create/update/delete courses and view their courses.
-
-- The user as a teacher can add and remove students (or entire groups of students) from their courses.
-
-- The user should be able to evaluate the student on a specific topic from his course.
-
-**3. User logged in as Student**
-
-- User can see and navigate to `My Schedule` menu.
-
-- User should see own Student schedule according with selected date/range filter.
-
-- The user can view the courses on which he is registered.
-
-- The user can view his marks on a specific course.
-
-- The user as a student can view other students who belong to the same course or group (each student must necessarily belong to a certain group).
-
-**4. Manager capabilities**
-
-- The manager must be able to create/update/delete teachers, students, groups and courses.
-
-- The manager distributes and adds students to the groups.
-
-# Task 3.10 Finalize app functionality
-
-**Assignment**
-
-Using your flows descriptions from task 3.1 create list of flows to implement, call it features, consult with Mentor if required.
-
-Example:
-
-```
-Given Anonymous User D
-- User 'D' should be able to list all courses with basic info (without schedule, teacher, groups and student information)
-... etc
-```
-
-Consider feature implementation as subtask(made in new branch and merged into main/master on completion)
-
-For each feature, implement UI pages(usually list, create, edit, delete, etc.), controller/controller methods, service/service methods, repository methods.
-
-Controller tests are mandatory, add other components tests if required.
-
-# Task 3.9 Implement Schedule view + edit features
-
-**Assignment**
-
-Using your flows descriptions from task 3.1 create list of flows to implement, call it features, consult with Mentor if required.
-
-Example:
-
-```
-Given User A logged in with Admin or Stuff role.
-- User 'A' should be able to create/read/update/delete new schedule.
-
-Given User 'B' logged in with Student or Teacher role.
-- User 'B' should be able to list all its schedules.
-... etc
-```
-
-Consider feature implementation as subtask(made in new branch and merged into main/master on completion)
-
-For each feature, implement UI pages(usually list, create, edit, delete, etc.), controller/controller methods, service/service methods, repository methods.
-
-Controller tests are mandatory, add other components tests if required.
-
-# Task 3.8 Implement Teachers view + edit features
-
-**Assignment**
-
-Using your flows descriptions from task 3.1 create list of flows to implement, call it features, consult with Mentor if required.
-
-Example:
-
-```
-Given User `B` logged in with Teacher role.
-- User 'B' should be able to list all its courses.
-
-... etc
-```
-
-Consider feature implementation as subtask(made in new branch and merged into main/master on completion)
-
-For each feature, implement UI pages(usually list, create, edit, delete, etc.), controller/controller methods, service/service methods, repository methods.
-
-Controller tests are mandatory, add other components tests if required.
-
-# Task 3.7 Implement Students view + edit feature
-
-**Assignment**
-
-Using your flows descriptions from task 3.1 create list of flows to implement, call it features, consult with Mentor if required.
-
-Example:
-
-```
-Given User A logged in with Admin, or Stuff role.
-- User 'A' can assign/ reassign Students to Group
-
-Given User B logged in with Admin, Stuff, Student, or Teacher role.
-- User 'B' should be able to list all students in a group (read access).
-... etc
-```
-
-Consider feature implementation as subtask(made in new branch and merged into main/master on completion)
-
-For each feature, implement UI pages(usually list, create, edit, delete, etc.), controller/controller methods, service/service methods, repository methods.
-
-Controller tests are mandatory, add other components tests if required.
-
-# Task 3.6 Implement Groups view + edit feature
-
-**Assignment**
-
-Using your flows descriptions from task 3.1 create list of flows to implement, call it features, consult with Mentor if required.
-
-Example:
-
-```
-User administration flow
-
-Given User A logged in with Admin role
-- User 'A' can Create/Read/Update/Delete group information
-Given User B logged in with Student or Teacher role.
-- User 'A' should be able to list all groups information (read access).
-Given User C logged in with Stuff role
-- User 'A' should be able to Create/Read/Update group information.
-... etc
-```
-
-Consider feature implementation as subtask(made in new branch and merged int main/master on completion)
-
-For each feature, implement UI pages(usually list, create, edit, delete, etc), controller/controller methods, service/service methods, repository methods.
-
-Controller tests are mandatory, add other components tests if required.
-
-# Task 3.5 Implement Course view + edit feature
-
-**Assignment**
-1) Using your flows descriptions from task 3.1 create a list of flows to implement, call it features, consult with Mentor if required. <br>
-   Example:
-
-   <pre style="font-family: monospace">
-   User administration flow
-   Given User A logged in with Admin role
-   - User 'A' should be able to create/read/update/delete courses.
-
-   Given User B logged in with Student or Teacher role
-   - User 'B' should be able to list all courses (read access).
-
-   Given User C logged in with Stuff rolef
-   - User 'C' should be able to create/read/update all courses
-   - User 'C' should be able to assign/reassign teacher to a course
-   - User 'C' should be able to assign/reassign groups to a course.
-   ... etc
-   </pre>
-
-2) Consider feature implementation as subtask (made in new branch and merged into main/master on completion) <br>
-   For each feature, implement UI pages(usually list, create, edit, delete, etc), controller/controller methods, service/service methods, repository methods. <br>
-   Controller tests are mandatory, add other components tests if required.
-
-# Task 3.4 Adding Security
-
-**Assignment**
-1. Review your user/roles model, and ask your mentor for clarifications regarding your security model. For example, you can add ADMIN, STUDENT, TEACHER, and STUFF roles.
-2. Use form security for user authentication.
-3. Create an admin panel for assigning a new user's role and create services that help the admin manage users.
-4. Add required changes with login/logout functionality and logged-in user information to UI
-
-Read: <br>
-[https://www.baeldung.com/spring-security-login](https://www.baeldung.com/spring-security-login) <br>
-[https://www.baeldung.com/spring-security-method-security](https://www.baeldung.com/spring-security-method-security )<br>
-[https://www.thymeleaf.org/doc/articles/springsecurity.html](https://www.thymeleaf.org/doc/articles/springsecurity.html) <br>
-[https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/test-method.html](https://docs.spring.io/spring-security/site/docs/4.2.x/reference/html/test-method.html)
-
-Security configuration example:
-
-```java
-@Bean
-SecurityFilterChain config(HttpSecurity httpSecurity) throws Exception {
-    return httpSecurity.authorizeHttpRequests() .requestMatchers("/css/**", "/webjars/**").permitAll() // public matcher first
-            .requestMatchers("/foo").hasRole("FOO") // single role
-            .requestMatchers("/bar", "/foo-bar").hasAnyRole("FOO", "FOO_BAR") // multiple roles
-            .anyRequest().authenticated() // other requests need to have any role
-            .and().formLogin() .and().build();
- }
-```
-Example:
-
-<pre style="font-family: monospace">
-User administration flow
-
-Given User `A` logged in with Admin role
-- User 'A' should be able to navigate to admin panel
-- User without admin role should not have access to user admin panel
-- User 'A' should be able to list all registered users on user admin page
-- User 'A' should be able to set required role for each registered user
-... etc
-</pre>
-
-# Task 3.3 Create basic UI
-
-**Assignment:** <br>
-1. [Add Bootstrap](https://www.baeldung.com/spring-boot-start) js/css support to your project (webjars recommended)
-2. Add basic data generation or migration script to populate your db with sample data
-3. Create welcome page and controller with menu with main entities from your model
-
-**Important** use thymeleaf templates and reusable fragments
-
-4. Create pages with tables to list content from DB for each Entity and link those pages from main menu
-5. Cover controllers with [Spring MVC tests](https://www.baeldung.com/spring-boot-testing#unit-testing-with-webmvctest)
-
-# Task 3.2 Bootstrap project
-
-**Assignment** <br>
-1. Create new Spring Boot project using [Initializer](https://start.spring.io/) with dependencies:
-- **Spring Web** (Build web, including RESTful, applications using Spring MVC. Uses Apache Tomcat as the default embedded container.)
-- **Spring Data JPA** (Persist data in SQL stores with Java Persistence API using Spring Data and Hibernate.)
-- **Thymeleaf** (A modern server-side Java template engine for both web and standalone environments. Allows HTML to be correctly displayed in browsers and as static prototypes.)
-- **Flyway Migration** (Version control for your database so you can migrate from any version (incl. an empty database) to the latest version of the schema.)
-- **H2 Database** or **PostgreSQL** Driver of your choice
-2. Create model and schema initializing sql migration script according with your UML diagrama
-3. Create JPA repositories and service layer with base CRUD operations
-
-**Important** <br>
-
-From now on you should cover all your code (repository, service) with test in case you add any logic like custom query or multiple repository/service calls in one method
-
-Example:
-
-```java
-@Repository
-public interface GroupRepository extends JpaRepository<Group, Long> {
-
-    // should not be covered with test
-    Optional<Group> findByGroupName(String name) throws SQLException;
-
-    // sould be covered with test
-    @Query(value = "SELECT gr.* "
-			+ "FROM Groups gr inner join (SELECT COUNT(student_id) as studCount, group_id as group_id_counter FROM Students "
-			+ "group by group_id " + ") as counter on group_id = group_id_counter "
-			+ "WHERE studCount <= :stdCount", nativeQuery = true)
-    List<Group> findWithEquelOrLessStudents(@Param("stdCount") int count) throws SQLException;
-}
-
-
-@Service
-public class StudentService {
-
-    // should not be covered with tests
-    @Transactional
-    public void deleteById(Long id) throws SQLException {
-		studentRepository.delete(studentOpt.get());
-	}
-
-    // should be covered with test
-    @Transactional
-    public Student addCourse(Long studentId, Long courseId) throws SQLException {
-
-	    var student = studentRepository.findById(studentId);
-	    var course = courseRepository.findById(courseId);
-
-	    if (course.isPresent() && student.isPresent()) {
-	        Optional<Course> courseInStudent = student.get().getCourses().stream()
-				    .filter(c -> c.getId().equals(courseId)).findFirst();
-		    if (courseInStudent.isEmpty()) {
-                student.get().getCourses().add(course.get());
-                studentRepository.save(student.get());
-                return student.get();
-            }
-        }
-
-        throw new Somexception("Could not add student to course");
-	}
-
-}
-```
-
-# Task 3.1 Planning: Decompose university
-
-**Important: In the next series of tasks you're going to develop Univesity Schedule web application, make sure to give repo meaningful name (ex. university-cms)**
-
-**Assignment:**
-
-1. Analyze and decompose University (create UML class diagram for application).
-
-You should make a research and describe university structure. The main feature of the application is Class Timetable for students and teachers. Students or teachers can get their timetable for a day or for a month.
-
-2. Add png image to the separate GitLab project.
-3. Add text description of main user stories using markup language Example:
-
-```
-Teacher can view own schedule flow:
-
-Given user is logged on as Teacher
-
-- User can see and navigate to `My Schedule` menu
-- User should see own Teacher schedule according with selected date/range filter
-```
