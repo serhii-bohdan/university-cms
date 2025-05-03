@@ -62,9 +62,9 @@
              class="fa fa-eye icon-dark no-decoration" aria-hidden="true" title="View this group"></a>
           <a sec:authorize="hasAuthority('GROUPS_UPDATE')" class="fa-regular fa-pen-to-square icon-dark"
              th:href="@{/ui/v1/groups/{groupId}/edit(groupId=${group.id})}"
-             title="Edit this group" style="text-decoration: none; margin-left: 10px;"></a>
+             title="Edit this group" style="text-decoration: none; margin-left: 5px;"></a>
           <span sec:authorize="hasAuthority('GROUPS_DELETE')" class="fa-regular fa-trash-can icon-dark btn-delete"
-                title="Delete this group" style="margin-left: 10px; cursor: pointer;" data-bs-toggle="modal"
+                title="Delete this group" style="margin-left: 5px; cursor: pointer;" data-bs-toggle="modal"
                 data-bs-target="#groupDeleteModal" th:data-group-id="${group.id}"
                 th:data-group-name="${group.groupName}"></span>
         </td>
